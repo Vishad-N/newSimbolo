@@ -1,0 +1,14 @@
+{
+  "servers": {
+    "skillgod": {
+      "args": [
+        "C:\\Users\\visha\\.skillgod\\engine\\mcp_server.py"
+      ],
+      "command": "python",
+      "env": {
+        "SKILLGOD_ROOT": "C:\\Users\\visha\\.skillgod"
+      },
+      "type": "stdio"
+    }
+  }
+}

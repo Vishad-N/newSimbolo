@@ -1,0 +1,130 @@
+
+> @simbolo/landing@0.1.0 build
+> next build
+
+   ▲ Next.js 15.5.9
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 13.3s
+   Linting and checking validity of types ...
+
+ ⚠ The Next.js plugin was not detected in your ESLint configuration. See https://nextjs.org/docs/app/api-reference/config/eslint#migrating-existing-config
+
+Failed to compile.
+
+./src/app/admin/blogs/editor/page.tsx
+5:36  Error: 'ImageIcon' is defined but never used.  @typescript-eslint/no-unused-vars
+147:87  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+185:20  Error: Definition for rule '@next/next/no-img-element' was not found.  @next/next/no-img-element
+
+./src/app/admin/blogs/page.tsx
+3:10  Error: 'useState' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/blogs/page.tsx
+4:18  Error: 'Filter' is defined but never used.  @typescript-eslint/no-unused-vars
+17:9  Error: 'featuredBlog' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/services/page.tsx
+101:25  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+
+./src/components/admin/AdminGraphicEditor.tsx
+34:28  Error: 'React' is not defined.  no-undef
+43:36  Error: 'React' is not defined.  no-undef
+43:58  Error: 'React' is not defined.  no-undef
+57:30  Error: 'React' is not defined.  no-undef
+57:52  Error: 'React' is not defined.  no-undef
+75:31  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./src/components/admin/AdminPackageEditor.tsx
+46:28  Error: 'React' is not defined.  no-undef
+58:8  Error: 'React' is not defined.  no-undef
+58:30  Error: 'React' is not defined.  no-undef
+
+./src/components/admin/AdminVideoEditor.tsx
+40:28  Error: 'React' is not defined.  no-undef
+45:28  Error: 'React' is not defined.  no-undef
+72:30  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./src/components/blog/BlogCard.tsx
+27:10  Error: Definition for rule '@next/next/no-img-element' was not found.  @next/next/no-img-element
+71:20  Error: Definition for rule '@next/next/no-img-element' was not found.  @next/next/no-img-element
+
+./src/components/blog/BlogReadingLayout.tsx
+59:18  Error: Definition for rule '@next/next/no-img-element' was not found.  @next/next/no-img-element
+75:12  Error: Definition for rule '@next/next/no-img-element' was not found.  @next/next/no-img-element
+105:20  Error: Definition for rule '@next/next/no-img-element' was not found.  @next/next/no-img-element
+
+./src/components/ecommerce/EcommerceComparison.tsx
+24:19  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+
+./src/components/ecommerce/EcommercePage.tsx
+48:106  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+
+./src/components/ecommerce/EcommerceTestimonials.tsx
+42:83  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+42:100  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+73:76  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+73:96  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+
+./src/components/googleAds/GoogleAdsHero.tsx
+3:8  Error: 'Image' is defined but never used.  @typescript-eslint/no-unused-vars
+13:10  Error: 'GoogleAdsMark' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/helpCenter/HelpCTA.tsx
+22:20  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+32:103  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+
+./src/components/helpCenter/TrustLocation.tsx
+5:10  Error: 'motion' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/metaAds/MetaAdsHero.tsx
+3:8  Error: 'Image' is defined but never used.  @typescript-eslint/no-unused-vars
+13:10  Error: 'MetaAdsMark' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/packages/CompactPackageCard.tsx
+13:61  Error: 'index' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars
+
+./src/components/packages/ExpandedPackageModal.tsx
+44:9  Error: 'discountPercent' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+129:25  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+
+./src/components/packages/PackageComparisonTable.tsx
+20:81  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+50:46  Error: Optional chain expressions can return undefined by design - using a non-null assertion is unsafe and wrong.  @typescript-eslint/no-non-null-asserted-optional-chain
+
+./src/components/packages/PackagesPage.tsx
+31:194  Error: 'React' is not defined.  no-undef
+
+./src/components/seo/SeoHero.tsx
+3:8  Error: 'Image' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/services/GoalSelector.tsx
+9:9  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+26:28  Error: 'React' is not defined.  no-undef
+
+./src/components/shared/StickyConsultationWidget.tsx
+42:22  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+
+./src/components/videoEditing/VideoServiceCard.tsx
+5:16  Error: 'Clock' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/data/landing.ts
+10:3  Error: 'Gem' is defined but never used.  @typescript-eslint/no-unused-vars
+15:3  Error: 'Mail' is defined but never used.  @typescript-eslint/no-unused-vars
+19:3  Error: 'PencilLine' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/hooks/useVideoServices.ts
+11:22  Error: 'setCategories' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./src/mock/seo-services.ts
+1:21  Error: 'FileSearch' is defined but never used.  @typescript-eslint/no-unused-vars
+1:48  Error: 'MapPin' is defined but never used.  @typescript-eslint/no-unused-vars
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/app/api-reference/config/eslint#disabling-rules
+npm error Lifecycle script `build` failed with error:
+npm error code 1
+npm error path C:\Users\visha\simbolonew\apps\landing
+npm error workspace @simbolo/landing@0.1.0
+npm error location C:\Users\visha\simbolonew\apps\landing
+npm error command failed
+npm error command C:\WINDOWS\system32\cmd.exe /d /s /c next build

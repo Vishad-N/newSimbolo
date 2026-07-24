@@ -1,0 +1,178 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+@theme {
+  --font-body: var(--font-open-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-montserrat), ui-sans-serif, system-ui, sans-serif;
+  --font-sidebar: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --color-white: var(--text-primary);
+  --color-gray-400: var(--muted);
+  --color-card: var(--card);
+  --color-background: var(--background);
+  --color-sidebar: var(--sidebar);
+  --color-surface: var(--surface);
+  --color-primary: var(--primary);
+  --color-hero-start: var(--hero-gradient-start);
+  --color-hero-mid: var(--hero-gradient-mid);
+  --color-hero-end: var(--hero-gradient-end);
+  --color-accent-amber: var(--accent-amber);
+}
+
+
+:root {
+  color-scheme: dark;
+  --background: #050816;
+  --sidebar: #0b1120;
+  --card: #0f172a;
+  --surface: #111827;
+  --primary: #22D3EE;
+  --primary-hover: #06B6D4;
+  --primary-active: #0891B2;
+  --primary-glow: rgba(34, 211, 238, 0.35);
+  --primary-border: rgba(34, 211, 238, 0.25);
+  --primary-gradient: linear-gradient(135deg, #22D3EE, #06B6D4);
+  --hero-gradient-start: #A5F3FC;
+  --hero-gradient-mid: #22D3EE;
+  --hero-gradient-end: #0891B2;
+  --accent-amber: #22D3EE;
+  --accent-amber-glow: rgba(34, 211, 238, 0.24);
+  --accent: #14B8A6;
+  --accent-hover: #0F9D91;
+  --accent-glow: rgba(20, 184, 166, 0.18);
+  --accent-border: rgba(20, 184, 166, 0.35);
+  --accent-soft: rgba(20, 184, 166, 0.08);
+  --accent-gradient: linear-gradient(135deg, #14B8A6, #2DD4BF);
+  --secondary: #2dd4bf;
+  --muted: #94a3b8;
+  --text-primary: #ffffff;
+}
+
+:root.light {
+  color-scheme: light;
+  --background: #f8fafc;
+  --sidebar: #ffffff;
+  --card: #ffffff;
+  --surface: #f1f5f9;
+  --primary: #F97316;
+  --primary-hover: #EA580C;
+  --primary-active: #C2410C;
+  --primary-glow: rgba(249, 115, 22, 0.2);
+  --primary-border: #FDBA74;
+  --primary-gradient: linear-gradient(135deg, #F97316, #EA580C);
+  --hero-gradient-start: #FFD166;
+  --hero-gradient-mid: #F59E0B;
+  --hero-gradient-end: #D97706;
+  --accent-amber: #F97316;
+  --accent-amber-glow: rgba(249, 115, 22, 0.24);
+  --accent: #0f766e;
+  --accent-hover: #0d9488;
+  --accent-glow: rgba(15, 118, 110, 0.15);
+  --accent-border: rgba(15, 118, 110, 0.35);
+  --accent-soft: rgba(15, 118, 110, 0.05);
+  --accent-gradient: linear-gradient(135deg, #0f766e, #14B8A6);
+  --secondary: #0f766e;
+  --muted: #64748b;
+  --text-primary: #0f172a;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--background);
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  overflow-x: hidden;
+  background:
+    radial-gradient(circle at 24% 16%, rgba(45, 212, 191, 0.045), transparent 28rem),
+    radial-gradient(circle at 84% 8%, rgba(255, 255, 255, 0.035), transparent 22rem),
+    var(--background);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+/* Light mode scrollbar */
+.light ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.light ::-webkit-scrollbar-track {
+  background: #F3F4F6;
+}
+.light ::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 9999px;
+  border: 2px solid #F3F4F6;
+}
+.light ::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  letter-spacing: -0.02em; /* slightly tighter letter spacing for Montserrat as requested */
+}
+
+button,
+input {
+  font: inherit;
+}
+
+@keyframes floatMascot {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(-2deg);
+  }
+  50% {
+    transform: translate3d(0, -14px, 0) rotate(2deg);
+  }
+}
+
+@keyframes pulseGlow {
+  0%,
+  100% {
+    box-shadow:
+      inset 0 1px 0 rgba(var(--text-primary), 0.08),
+      inset 0 -20px 46px rgba(20, 184, 166, 0.1),
+      0 0 16px rgba(20, 184, 166, 0.18);
+  }
+  50% {
+    box-shadow:
+      inset 0 1px 0 rgba(var(--text-primary), 0.1),
+      inset 0 -20px 50px rgba(20, 184, 166, 0.15),
+      0 0 16px rgba(20, 184, 166, 0.22);
+  }
+}
+
+@keyframes meshShift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.72;
+  }
+  50% {
+    transform: translate3d(12px, -10px, 0) scale(1.04);
+    opacity: 0.92;
+  }
+}
+
+.mascot-float {
+  animation: floatMascot 6s ease-in-out infinite;
+}
+
+.search-glow {
+  animation: pulseGlow 4s ease-in-out infinite;
+}
+
+.hero-mesh {
+  animation: meshShift 10s ease-in-out infinite;
+}
+
+.text-balance {
+  text-wrap: balance;
+}

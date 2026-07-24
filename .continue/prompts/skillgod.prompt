@@ -1,0 +1,17 @@
+---
+name: SkillGod
+description: Use when coding needs SkillGod project memory or skill injection
+---
+
+# SkillGod
+
+Before coding tasks, load context:
+1. Prefer MCP tool sg_inject_context with the user task
+2. Or run in terminal: sg inject "<task>"
+
+After architectural decisions:
+1. Prefer MCP tool sg_capture_turn
+2. Or: sg capture --task "..." --output "..."
+3. Or: sg remember "decision: ..."
+
+Treat AGENTS.md / SKILLGOD.md digests as authoritative project history.

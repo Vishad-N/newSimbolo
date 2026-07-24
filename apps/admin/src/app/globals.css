@@ -1,0 +1,89 @@
+@import "tailwindcss";
+
+@theme {
+  --font-body: var(--font-open-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-montserrat), ui-sans-serif, system-ui, sans-serif;
+  --font-sidebar: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+:root {
+  color-scheme: dark;
+  --background: #050816;
+  --sidebar: #0b1120;
+  --card: #0f172a;
+  --surface: #111827;
+  --primary: #FF8C1A;
+  --primary-hover: #FFA733;
+  --primary-active: #E87400;
+  --primary-glow: rgba(255,140,26,0.28);
+  --primary-border: rgba(255,140,26,0.45);
+  --primary-gradient: linear-gradient(135deg, #FF8C1A, #FFA733);
+  --accent: #14B8A6;
+  --accent-hover: #0F9D91;
+  --accent-glow: rgba(20, 184, 166, 0.18);
+  --accent-border: rgba(20, 184, 166, 0.35);
+  --accent-soft: rgba(20, 184, 166, 0.08);
+  --accent-gradient: linear-gradient(135deg, #14B8A6, #2DD4BF);
+  --secondary: #2dd4bf;
+  --muted: #94a3b8;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--background);
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  overflow-x: hidden;
+  background: var(--background);
+  color: white;
+  font-family: var(--font-body);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  letter-spacing: -0.02em;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+/* Glassmorphism Utilities for Admin */
+.glass-panel {
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.glass-card {
+  background: rgba(17, 24, 39, 0.7);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.5);
+}
+
+/* Scrollbar customization for admin */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}

@@ -1,0 +1,76 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #FF8C1A;
+  --color-primary-hover: #e67d17;
+  --color-secondary: #2dd4bf;
+  --color-accent: #14B8A6;
+  --color-background: #050816;
+  --color-surface: #0f172a;
+
+  --font-heading: 'Montserrat', sans-serif;
+  --font-body: 'Open Sans', sans-serif;
+
+  --radius-xl: 1rem;
+}
+
+@layer base {
+  :root {
+    --primary: #FF8C1A;
+    --primary-glow: rgba(255, 140, 26, 0.5);
+    --secondary: #2dd4bf;
+    --secondary-glow: rgba(45, 212, 191, 0.5);
+    --background: #050816;
+    --surface: #0f172a;
+    --border: rgba(255, 255, 255, 0.1);
+  }
+
+  body {
+    background-color: var(--background);
+    color: #ffffff;
+    font-family: var(--font-body);
+  }
+}
+
+@layer utilities {
+  .font-heading {
+    font-family: var(--font-heading);
+  }
+  
+  .glass-card {
+    @apply bg-surface/40 backdrop-blur-md border border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.1)];
+  }
+
+  .glass-panel {
+    @apply bg-surface/60 backdrop-blur-lg border border-white/10;
+  }
+  
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary;
+  }
+  
+  .hover-glow {
+    @apply transition-all duration-300;
+  }
+  
+  .hover-glow:hover {
+    box-shadow: 0 0 20px var(--primary-glow);
+  }
+
+  /* Custom Scrollbar for a premium feel */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+}

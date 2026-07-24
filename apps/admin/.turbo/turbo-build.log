@@ -1,0 +1,40 @@
+
+> @simbolo/admin@0.1.0 build
+> next build
+
+⚠ turbopack.root should be absolute, using: C:\Users\visha\simbolonew\apps
+▲ Next.js 16.2.11 (Turbopack)
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 9.3s
+  Running TypeScript ...
+  Finished TypeScript in 7.0s ...
+  Collecting page data using 11 workers ...
+  Generating static pages using 11 workers (0/16) ...
+  Generating static pages using 11 workers (4/16) 
+  Generating static pages using 11 workers (8/16) 
+  Generating static pages using 11 workers (12/16) 
+✓ Generating static pages using 11 workers (16/16) in 1222ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ○ /faqs
+├ ○ /homepage
+├ ○ /industries
+├ ○ /media
+├ ○ /navigation
+├ ○ /packages
+├ ○ /portfolio
+├ ○ /seo
+├ ○ /services
+├ ƒ /services/[slug]
+├ ○ /settings
+├ ○ /technologies
+└ ○ /testimonials
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
