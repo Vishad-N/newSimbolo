@@ -13,6 +13,11 @@ const openSans = Open_Sans({ subsets: ["latin"], variable: "--font-open-sans", d
 export const metadata: Metadata = {
   title: "The Simbolo | AI-Powered Marketing Match",
   description: "Find the right digital marketing expert in seconds.",
+  icons: {
+    icon: "/icon.png",
+    shortcut: "/favicon.ico",
+    apple: "/icon.png",
+  },
 };
 
 export default function RootLayout({

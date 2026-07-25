@@ -11,6 +11,11 @@ const openSans = Open_Sans({ subsets: ["latin"], variable: "--font-open-sans", d
 export const metadata: Metadata = {
   title: "Simbolo Admin",
   description: "Admin CMS for The Simbolo",
+  icons: {
+    icon: "/icon.png",
+    shortcut: "/favicon.ico",
+    apple: "/icon.png",
+  },
 };
 
 export default function RootLayout({
