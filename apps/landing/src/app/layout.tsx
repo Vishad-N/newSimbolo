@@ -14,9 +14,9 @@ export const metadata: Metadata = {
   title: "The Simbolo | AI-Powered Marketing Match",
   description: "Find the right digital marketing expert in seconds.",
   icons: {
-    icon: "/icon.png",
-    shortcut: "/favicon.ico",
-    apple: "/icon.png",
+    icon: "/favicon.png",
+    shortcut: "/favicon.png",
+    apple: "/favicon.png",
   },
 };
 

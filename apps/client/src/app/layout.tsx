@@ -17,9 +17,9 @@ export const metadata: Metadata = {
   title: "Client Workspace | The Simbolo",
   description: "Manage your projects, invoices, and reports securely.",
   icons: {
-    icon: "/icon.png",
-    shortcut: "/favicon.ico",
-    apple: "/icon.png",
+    icon: "/favicon.png",
+    shortcut: "/favicon.png",
+    apple: "/favicon.png",
   },
 };
 

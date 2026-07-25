@@ -12,9 +12,9 @@ export const metadata: Metadata = {
   title: "Simbolo Admin",
   description: "Admin CMS for The Simbolo",
   icons: {
-    icon: "/icon.png",
-    shortcut: "/favicon.ico",
-    apple: "/icon.png",
+    icon: "/favicon.png",
+    shortcut: "/favicon.png",
+    apple: "/favicon.png",
   },
 };
 
