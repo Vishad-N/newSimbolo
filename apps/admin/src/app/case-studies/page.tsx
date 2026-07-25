@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { DataTable } from "@/components/DataTable";
-import { Plus, Briefcase, Eye } from "lucide-react";
+import { Plus, Briefcase, Eye, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 // Mock data matching the new Case Study structure
@@ -57,9 +57,9 @@ export default function CaseStudiesManagerPage() {
 
   const columns = [
     {
+      key: "title",
       header: "Title",
-      accessorKey: "title",
-      cell: (item: any) => (
+      render: (item: any) => (
         <div>
           <div className="font-medium text-white">{item.title}</div>
           <div className="text-xs text-muted-foreground">{item.client} • {item.industry}</div>
@@ -67,9 +67,9 @@ export default function CaseStudiesManagerPage() {
       )
     },
     {
+      key: "status",
       header: "Status",
-      accessorKey: "status",
-      cell: (item: any) => (
+      render: (item: any) => (
         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
           item.status === 'Published' ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 
           item.status === 'Draft' ? 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20' : 
@@ -80,32 +80,30 @@ export default function CaseStudiesManagerPage() {
       )
     },
     {
+      key: "featured",
       header: "Featured",
-      accessorKey: "featured",
-      cell: (item: any) => (
+      render: (item: any) => (
         <span className="text-sm text-muted-foreground">
           {item.featured ? "Yes" : "No"}
         </span>
       )
     },
-    { header: "Publish Date", accessorKey: "publishDate" },
-  ];
-
-  const actions = [
+    { key: "publishDate", header: "Publish Date" },
     {
-      icon: Eye,
-      label: "Preview",
-      onClick: (item: any) => window.open(`http://localhost:3003/case-studies/${item.id === 'cs_ecommerce_scaling' ? 'scaling-ecommerce-brand' : 'b2b-saas-lead-gen'}`, '_blank')
+      key: "preview",
+      header: "Preview",
+      render: (item: any) => (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            window.open(`http://localhost:3003/case-studies/${item.id === 'cs_ecommerce_scaling' ? 'scaling-ecommerce-brand' : 'b2b-saas-lead-gen'}`, '_blank');
+          }}
+          className="flex items-center gap-1.5 px-2.5 py-1 bg-white/5 hover:bg-white/10 text-gray-300 text-xs rounded transition-colors"
+        >
+          <Eye className="w-3.5 h-3.5" /> Preview
+        </button>
+      )
     },
-    {
-      label: "Edit",
-      onClick: (item: any) => router.push(`/case-studies/edit/${item.id}`)
-    },
-    {
-      label: "Delete",
-      onClick: (item: any) => setData(data.filter(d => d.id !== item.id)),
-      variant: "destructive" as const
-    }
   ];
 
   return (
@@ -163,7 +161,8 @@ export default function CaseStudiesManagerPage() {
         <DataTable
           columns={columns}
           data={filteredData}
-          actions={actions}
+          onEdit={(item: any) => router.push(`/case-studies/edit/${item.id}`)}
+          onDelete={(item: any) => setData(data.filter(d => d.id !== item.id))}
         />
       </div>
     </div>

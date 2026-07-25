@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Save, Plus, Trash2, GripVertical, Image as ImageIcon } from "lucide-react";
-import { RichTextEditor } from "@/components/editors/RichTextEditor";
+import { RichTextEditor } from "@/components/forms/RichTextEditor";
 
 export default function EditCaseStudyPage({ params }: { params: { id: string } }) {
   const router = useRouter();

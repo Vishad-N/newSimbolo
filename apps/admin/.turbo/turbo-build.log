@@ -6,35 +6,27 @@
 ▲ Next.js 16.2.11 (Turbopack)
 
   Creating an optimized production build ...
-✓ Compiled successfully in 9.3s
+✓ Compiled successfully in 19.0s
   Running TypeScript ...
-  Finished TypeScript in 7.0s ...
-  Collecting page data using 11 workers ...
-  Generating static pages using 11 workers (0/16) ...
-  Generating static pages using 11 workers (4/16) 
-  Generating static pages using 11 workers (8/16) 
-  Generating static pages using 11 workers (12/16) 
-✓ Generating static pages using 11 workers (16/16) in 1222ms
-  Finalizing page optimization ...
+Failed to type check.
 
-Route (app)
-┌ ○ /
-├ ○ /_not-found
-├ ○ /faqs
-├ ○ /homepage
-├ ○ /industries
-├ ○ /media
-├ ○ /navigation
-├ ○ /packages
-├ ○ /portfolio
-├ ○ /seo
-├ ○ /services
-├ ƒ /services/[slug]
-├ ○ /settings
-├ ○ /technologies
-└ ○ /testimonials
+./src/app/case-studies/page.tsx:164:11
+Type error: Type '({ header: string; accessorKey: string; cell: (item: any) => Element; } | { header: string; accessorKey: string; cell?: undefined; })[]' is not assignable to type 'Column<{ id: string; title: string; client: string; industry: string; publishDate: string; status: string; featured: boolean; }>[]'.
+  Type '{ header: string; accessorKey: string; cell: (item: any) => Element; } | { header: string; accessorKey: string; cell?: undefined; }' is not assignable to type 'Column<{ id: string; title: string; client: string; industry: string; publishDate: string; status: string; featured: boolean; }>'.
+    Property 'key' is missing in type '{ header: string; accessorKey: string; cell: (item: any) => JSX.Element; }' but required in type 'Column<{ id: string; title: string; client: string; industry: string; publishDate: string; status: string; featured: boolean; }>'.
 
-
-○  (Static)   prerendered as static content
-ƒ  (Dynamic)  server-rendered on demand
-
+  [90m162 |[0m
+  [90m163 |[0m         <[33mDataTable[0m
+[31m[1m>[0m [90m164 |[0m           columns={columns}
+  [90m    |[0m           [31m[1m^[0m
+  [90m165 |[0m           data={filteredData}
+  [90m166 |[0m           actions={actions}
+  [90m167 |[0m         />
+Next.js build worker exited with code: 1 and signal: null
+npm error Lifecycle script `build` failed with error:
+npm error code 1
+npm error path C:\Users\visha\simbolonew\apps\admin
+npm error workspace @simbolo/admin@0.1.0
+npm error location C:\Users\visha\simbolonew\apps\admin
+npm error command failed
+npm error command C:\WINDOWS\system32\cmd.exe /d /s /c next build
