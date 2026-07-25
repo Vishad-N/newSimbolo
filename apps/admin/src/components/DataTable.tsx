@@ -5,18 +5,28 @@ import { cn } from "@/utils/utils";
 import { ChevronLeft, ChevronRight, MoreVertical, Edit2, Trash2, Copy } from "lucide-react";
 import { useState } from "react";
 
-export interface Column<T> {
-  key: string;
+export interface Column<T = any> {
+  key?: string;
+  accessorKey?: string;
   header: string;
   render?: (item: T) => ReactNode;
+  cell?: (item: T) => ReactNode;
 }
 
-interface DataTableProps<T> {
+export interface ActionItem<T = any> {
+  label: string;
+  icon?: any;
+  onClick: (item: T) => void;
+  variant?: "default" | "destructive";
+}
+
+interface DataTableProps<T = any> {
   columns: Column<T>[];
   data: T[];
   onEdit?: (item: T) => void;
   onDelete?: (item: T) => void;
   onDuplicate?: (item: T) => void;
+  actions?: ActionItem<T>[];
   emptyMessage?: string;
 }
 
@@ -26,6 +36,7 @@ export function DataTable<T extends { id: string | number }>({
   onEdit,
   onDelete,
   onDuplicate,
+  actions,
   emptyMessage = "No items found."
 }: DataTableProps<T>) {
   const [openActionMenuId, setOpenActionMenuId] = useState<string | number | null>(null);
@@ -40,12 +51,12 @@ export function DataTable<T extends { id: string | number }>({
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="border-b border-white/10 bg-white/5">
-              {columns.map((col) => (
-                <th key={col.key} className="px-6 py-4 text-sm font-semibold text-gray-300">
+              {columns.map((col, idx) => (
+                <th key={col.key || col.accessorKey || idx} className="px-6 py-4 text-sm font-semibold text-gray-300">
                   {col.header}
                 </th>
               ))}
-              {(onEdit || onDelete || onDuplicate) && (
+              {(onEdit || onDelete || onDuplicate || actions) && (
                 <th className="px-6 py-4 text-right text-sm font-semibold text-gray-300">
                   Actions
                 </th>
@@ -65,12 +76,17 @@ export function DataTable<T extends { id: string | number }>({
                   key={item.id} 
                   className="border-b border-white/5 hover:bg-white/[0.02] transition-colors relative"
                 >
-                  {columns.map((col) => (
-                    <td key={col.key} className="px-6 py-4 text-sm text-gray-200">
-                      {col.render ? col.render(item) : (item as any)[col.key]}
-                    </td>
-                  ))}
-                  {(onEdit || onDelete || onDuplicate) && (
+                  {columns.map((col, idx) => {
+                    const colKey = col.key || col.accessorKey || idx;
+                    const renderFn = col.render || col.cell;
+                    const val = (item as any)[col.key || col.accessorKey || ""];
+                    return (
+                      <td key={colKey} className="px-6 py-4 text-sm text-gray-200">
+                        {renderFn ? renderFn(item) : val}
+                      </td>
+                    );
+                  })}
+                  {(onEdit || onDelete || onDuplicate || actions) && (
                     <td className="px-6 py-4 text-right">
                       <button 
                         onClick={() => toggleMenu(item.id)}
@@ -110,6 +126,22 @@ export function DataTable<T extends { id: string | number }>({
                                 <Trash2 className="w-4 h-4" /> Delete
                               </button>
                             )}
+                            {actions?.map((act, actIdx) => {
+                              const Icon = act.icon;
+                              return (
+                                <button
+                                  key={actIdx}
+                                  onClick={() => { act.onClick(item); setOpenActionMenuId(null); }}
+                                  className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 ${
+                                    act.variant === "destructive"
+                                      ? "text-red-400 hover:text-red-300 hover:bg-red-400/10"
+                                      : "text-gray-300 hover:text-white hover:bg-white/5"
+                                  }`}
+                                >
+                                  {Icon && <Icon className="w-4 h-4" />} {act.label}
+                                </button>
+                              );
+                            })}
                           </div>
                         </>
                       )}
