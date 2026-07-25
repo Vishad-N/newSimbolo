@@ -21,8 +21,10 @@ type MarketingAssetsProps = {
 export function MarketingAssets({ assets }: MarketingAssetsProps) {
   return (
     <SectionCard className="p-6 md:p-8 flex flex-col">
-      <h2 className="text-[1.15rem] font-black text-white">Marketing Assets</h2>
-      <p className="mt-1 text-[0.8rem] text-white/60">Get everything you need to promote The Simbolo.</p>
+      <div className="text-center md:text-left">
+        <h2 className="text-[1.15rem] font-black text-white">Marketing Assets</h2>
+        <p className="mt-1 text-[0.8rem] text-white/60">Get everything you need to promote The Simbolo.</p>
+      </div>
       
       <div className="mt-6 grid gap-4 grid-cols-2 flex-1">
         {assets.map((asset, index) => {

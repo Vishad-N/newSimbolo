@@ -46,7 +46,7 @@ function HeroStatsCard() {
 
 function HeroVisual() {
   return (
-    <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.18, duration: 0.65 }} className="relative h-[340px] w-full">
+    <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.18, duration: 0.65 }} className="relative hidden md:block h-[340px] w-full">
       <div className="absolute inset-0 scale-[0.80] md:scale-[0.85] origin-top md:origin-right">
       <div className="absolute inset-0 md:-translate-x-[150px] transition-transform duration-500">
       <div className="absolute left-0 top-12 hidden h-[320px] w-[320px] rounded-full border border-[var(--secondary)]/20 bg-[var(--secondary)]/5 shadow-[0_0_70px_rgba(45,212,191,0.14)] md:block" />

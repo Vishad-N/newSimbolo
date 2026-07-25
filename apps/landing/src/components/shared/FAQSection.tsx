@@ -20,7 +20,7 @@ export function FAQSection({ title = "Frequently Asked Questions", faqs }: FAQSe
   const [openId, setOpenId] = useState(faqs[0]?.id);
 
   return (
-    <section className="pb-10">
+    <section className="pb-2 md:pb-10">
       <h2 className="mb-4 text-[1.35rem] font-semibold text-white">{title}</h2>
       <div className="divide-y divide-white/10 overflow-hidden rounded-[8px] border border-white/10 bg-[color-mix(in_srgb,var(--card)_72%,transparent)]">
         {faqs.map((faq) => {

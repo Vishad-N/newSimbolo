@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useUIStore } from "@/store/uiStore";
@@ -51,13 +52,24 @@ const accountNavItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { sidebarOpen, toggleSidebar } = useUIStore();
+  const { sidebarOpen, toggleSidebar, setSidebarOpen } = useUIStore();
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.innerWidth < 768) {
+      setSidebarOpen(false);
+    }
+  }, [setSidebarOpen]);
 
   const NavLink = ({ href, label, icon: Icon }: any) => {
     const isActive = pathname === href || pathname.startsWith(`${href}/`);
     return (
       <Link 
         href={href}
+        onClick={() => {
+          if (typeof window !== "undefined" && window.innerWidth < 768) {
+            setSidebarOpen(false);
+          }
+        }}
         className={cn(
           "flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 group relative",
           isActive 
@@ -86,36 +98,63 @@ export function Sidebar() {
   };
 
   return (
-    <aside 
-      className={cn(
-        "fixed top-0 left-0 h-screen bg-surface border-r border-white/10 flex flex-col transition-all duration-300 z-40 overflow-visible",
-        sidebarOpen ? "w-64" : "w-20"
+    <>
+      {/* Mobile Backdrop Overlay */}
+      {sidebarOpen && (
+        <div 
+          onClick={() => setSidebarOpen(false)}
+          className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 md:hidden transition-opacity duration-300 animate-fade-in"
+        />
       )}
-    >
-      {/* Brand Header */}
-      <div className="h-16 flex items-center justify-between px-4 border-b border-white/10 shrink-0 relative">
-        <Link href="/dashboard" className={cn("flex items-center gap-3 overflow-hidden w-full", !sidebarOpen && "justify-center")}>
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0">
-            <Image src="/assets/logo1.png" alt="Simbolo Mascot" width={32} height={32} className="object-contain" />
-          </div>
-          {sidebarOpen && (
-            <span className="text-white font-heading font-bold text-lg whitespace-nowrap">
-              Simbolo <span className="font-light opacity-60">Client</span>
-            </span>
-          )}
-        </Link>
-        
-        {/* Toggle Button (Floating outside the edge) */}
-        <button 
-          onClick={toggleSidebar}
-          className={cn(
-            "absolute -right-3 top-5 w-6 h-6 bg-surface border border-white/10 rounded-full flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/5 transition-all hidden md:flex shadow-md z-50",
-            !sidebarOpen && "rotate-180"
-          )}
-        >
-          <ChevronLeft className="w-4 h-4" />
-        </button>
-      </div>
+
+      <aside 
+        className={cn(
+          "fixed top-0 left-0 h-screen bg-surface border-r border-white/10 flex flex-col transition-all duration-300 z-50 overflow-visible",
+          sidebarOpen 
+            ? "translate-x-0 w-64" 
+            : "-translate-x-full md:translate-x-0 md:w-20"
+        )}
+      >
+        {/* Brand Header */}
+        <div className="h-16 flex items-center justify-between px-4 border-b border-white/10 shrink-0 relative">
+          <Link 
+            href="/dashboard" 
+            onClick={() => {
+              if (typeof window !== "undefined" && window.innerWidth < 768) {
+                setSidebarOpen(false);
+              }
+            }}
+            className={cn("flex items-center gap-3 overflow-hidden w-full", !sidebarOpen && "md:justify-center")}
+          >
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0">
+              <Image src="/assets/logo1.png" alt="Simbolo Mascot" width={32} height={32} className="object-contain" />
+            </div>
+            {sidebarOpen && (
+              <span className="text-white font-heading font-bold text-lg whitespace-nowrap">
+                Simbolo <span className="font-light opacity-60">Client</span>
+              </span>
+            )}
+          </Link>
+          
+          {/* Mobile Close Button */}
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="md:hidden p-1.5 text-gray-400 hover:text-white rounded-md hover:bg-white/10 transition-colors shrink-0"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+
+          {/* Toggle Button (Floating outside the edge on desktop) */}
+          <button 
+            onClick={toggleSidebar}
+            className={cn(
+              "absolute -right-3 top-5 w-6 h-6 bg-surface border border-white/10 rounded-full flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/5 transition-all hidden md:flex shadow-md z-50",
+              !sidebarOpen && "rotate-180"
+            )}
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+        </div>
 
       {/* Navigation Groups */}
       <div className="flex-1 overflow-y-auto custom-scrollbar py-6 px-3 flex flex-col gap-6 overflow-x-hidden">
@@ -148,5 +187,6 @@ export function Sidebar() {
         </button>
       </div>
     </aside>
+    </>
   );
 }

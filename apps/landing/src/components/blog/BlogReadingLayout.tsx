@@ -44,7 +44,7 @@ export function BlogReadingLayout({ post, author, category, relatedPosts }: Blog
           <span className="text-white/40 truncate max-w-[200px] sm:max-w-[300px]">{post.title}</span>
         </nav>
         
-        <h1 className="font-heading text-[2.5rem] md:text-[3.5rem] font-black leading-tight text-white tracking-tight mb-6">
+        <h1 className="font-heading text-[1.8rem] sm:text-[2.5rem] md:text-[3.5rem] font-black leading-tight text-white tracking-tight mb-6">
           {post.title}
         </h1>
         

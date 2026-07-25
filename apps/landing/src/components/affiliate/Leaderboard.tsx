@@ -22,9 +22,9 @@ type LeaderboardProps = {
 export function Leaderboard({ leaders }: LeaderboardProps) {
   return (
     <SectionCard className="p-6 md:p-8 flex flex-col">
-      <div className="mb-6 flex items-center justify-between">
-        <h2 className="text-[1.15rem] font-black text-white">Top Affiliate Leaders</h2>
-        <Link href="/leaderboard" className="flex items-center gap-1.5 text-[0.8rem] font-bold text-[var(--accent)] transition hover:text-white">
+      <div className="mb-6 flex items-center justify-between text-center sm:text-left w-full sm:w-auto">
+        <h2 className="text-[1.15rem] font-black text-white w-full sm:w-auto">Top Affiliate Leaders</h2>
+        <Link href="/leaderboard" className="hidden sm:flex items-center gap-1.5 text-[0.8rem] font-bold text-[var(--accent)] transition hover:text-white">
           View All
           <ArrowRight className="h-3.5 w-3.5" />
         </Link>
@@ -52,7 +52,7 @@ export function Leaderboard({ leaders }: LeaderboardProps) {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1, duration: 0.4 }}
-              className="flex items-center gap-4 rounded-[8px] border border-white/5 bg-[var(--background)]/30 p-3 transition hover:bg-[var(--background)]/60"
+              className="flex flex-col sm:flex-row items-center text-center sm:text-left gap-3 sm:gap-4 rounded-[8px] border border-white/5 bg-[var(--background)]/30 p-3 transition hover:bg-[var(--background)]/60"
             >
               <div className={`relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${bgMedal} ${medalColor}`}>
                 <Medal className="h-4 w-4" />
@@ -65,12 +65,12 @@ export function Leaderboard({ leaders }: LeaderboardProps) {
                 <Image src={leader.avatar} alt={leader.name} fill className="object-cover" />
               </div>
               
-              <div className="flex-1 overflow-hidden">
+              <div className="flex-1 overflow-hidden w-full sm:w-auto">
                 <h3 className="truncate text-[0.9rem] font-bold text-white leading-tight">{leader.name}</h3>
                 <p className="truncate text-[0.7rem] text-white/50">{leader.email}</p>
               </div>
               
-              <div className="text-right">
+              <div className="text-center sm:text-right w-full sm:w-auto mt-1 sm:mt-0">
                 <div className="text-[1.05rem] font-black text-white">{leader.earnings}</div>
                 <div className="text-[0.65rem] font-semibold uppercase tracking-wider text-white/40">Total Earnings</div>
               </div>

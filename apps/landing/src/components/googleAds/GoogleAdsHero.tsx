@@ -22,12 +22,12 @@ function GoogleAdsMark() {
 
 function HeroArt() {
   return (
-    <div className="relative h-full w-full">
-      <motion.div animate={{ y: [0, -10, 0] }} transition={{ repeat: Infinity, duration: 4.5 }} className="absolute right-[12%] top-[24%] z-20 grid h-12 w-12 place-items-center rounded-[8px] border border-white/10 bg-[var(--surface)]/80 text-white">
+    <div className="relative h-full w-full flex items-center justify-center lg:justify-end">
+      <motion.div animate={{ y: [0, -10, 0] }} transition={{ repeat: Infinity, duration: 4.5 }} className="hidden md:grid absolute right-[12%] top-[24%] z-20 h-12 w-12 place-items-center rounded-[8px] border border-white/10 bg-[var(--surface)]/80 text-white">
         <Search className="h-6 w-6" />
       </motion.div>
-      <div className="absolute left-[28%] top-[67%] h-10 w-[250px] rounded-[50%] border border-[var(--secondary)]/25 bg-[var(--secondary)]/6 shadow-[0_0_30px_rgba(45,212,191,0.16)]" />
-      <div className="absolute right-0 top-0 lg:bottom-0 w-full max-w-[500px] translate-y-[285px] lg:translate-y-0">
+      <div className="hidden md:block absolute left-[28%] top-[67%] h-10 w-[250px] rounded-[50%] border border-[var(--secondary)]/25 bg-[var(--secondary)]/6 shadow-[0_0_30px_rgba(45,212,191,0.16)]" />
+      <div className="relative w-full max-w-[500px] mt-4 lg:mt-0 lg:absolute lg:right-0 lg:bottom-0">
         <PerformanceCard />
       </div>
     </div>

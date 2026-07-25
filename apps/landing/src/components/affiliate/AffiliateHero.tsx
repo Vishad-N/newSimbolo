@@ -11,7 +11,7 @@ type AffiliateHeroProps = {
 
 function HeroVisual() {
   return (
-    <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.18, duration: 0.65 }} className="relative min-h-[500px]">
+    <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.18, duration: 0.65 }} className="relative hidden md:block min-h-[500px]">
       <div className="absolute inset-0 -translate-x-[5cm] translate-y-[5cm]">
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 hidden h-[400px] w-[400px] rounded-full bg-[var(--primary)]/5 blur-[120px] md:block" />
         

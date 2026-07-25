@@ -19,8 +19,10 @@ type CommissionStructureProps = {
 export function CommissionStructure({ plans }: CommissionStructureProps) {
   return (
     <SectionCard className="p-6 md:p-8">
-      <h2 className="text-[1.15rem] font-black text-[var(--text-primary)]">Commission Structure</h2>
-      <p className="mt-1 text-[0.8rem] text-[var(--text-primary)]/60">Higher referrals, higher earnings!</p>
+      <div className="text-center md:text-left">
+        <h2 className="text-[1.15rem] font-black text-[var(--text-primary)]">Commission Structure</h2>
+        <p className="mt-1 text-[0.8rem] text-[var(--text-primary)]/60">Higher referrals, higher earnings!</p>
+      </div>
       
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {plans.map((plan, index) => (
@@ -47,7 +49,7 @@ export function CommissionStructure({ plans }: CommissionStructureProps) {
           </motion.div>
         ))}
       </div>
-      <p className="mt-6 text-[0.7rem] text-[var(--text-primary)]/40">* Commissions are tier-based and subject to terms & conditions.</p>
+      <p className="mt-6 text-[0.7rem] text-[var(--text-primary)]/40 text-center md:text-left">* Commissions are tier-based and subject to terms & conditions.</p>
     </SectionCard>
   );
 }

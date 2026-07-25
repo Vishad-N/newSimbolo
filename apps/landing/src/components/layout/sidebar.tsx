@@ -14,7 +14,7 @@ type SidebarProps = {
   onToggle: () => void;
 };
 
-function NavSection({ title, items }: { title: string; items: typeof exploreNav }) {
+function NavSection({ title, items, onClose }: { title: string; items: typeof exploreNav; onClose?: () => void }) {
   const pathname = usePathname();
 
   return (
@@ -29,6 +29,7 @@ function NavSection({ title, items }: { title: string; items: typeof exploreNav 
             <Link
               key={item.label}
               href={item.href}
+              onClick={onClose}
               className={cn(
                 "group flex h-9 items-center gap-3 rounded-[8px] px-3 text-[0.9rem] font-medium text-[var(--text-primary)] transition",
                 isActive
@@ -46,7 +47,7 @@ function NavSection({ title, items }: { title: string; items: typeof exploreNav 
   );
 }
 
-function SidebarContent() {
+function SidebarContent({ onClose }: { onClose?: () => void }) {
   const pathname = usePathname();
   const dashboardActive = pathname === "/";
 
@@ -54,14 +55,24 @@ function SidebarContent() {
     <aside className="font-sidebar flex h-full w-[250px] flex-col border-r border-white/[0.08] bg-[var(--sidebar)]/95 shadow-[20px_0_55px_rgba(0,0,0,0.24)] backdrop-blur-xl">
       <div className="relative">
         <SidebarBackgroundDecoration />
-        <div className="flex h-[100px] items-center px-5 relative z-10">
+        <div className="flex h-[100px] items-center justify-between px-5 relative z-10">
           <BrandLogo />
+          {onClose && (
+            <button
+              onClick={onClose}
+              aria-label="Close navigation"
+              className="grid h-8 w-8 place-items-center rounded-lg border border-white/10 bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white transition-colors lg:hidden shrink-0"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
         </div>
         <SidebarMascotBubble />
       </div>
       <div className="px-5">
         <Link
           href="/"
+          onClick={onClose}
           className={cn(
             "mb-5 flex h-11 items-center gap-3 rounded-[9px] px-3 text-[0.95rem] font-bold text-white transition hover:bg-white/[0.06]",
             dashboardActive && "border-l-[3px] border-l-[var(--primary)] bg-[var(--accent-glow)] text-[var(--accent)]",
@@ -72,13 +83,14 @@ function SidebarContent() {
         </Link>
       </div>
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 pb-4">
-        <NavSection title="Explore" items={exploreNav} />
-        <NavSection title="Marketing" items={marketingNav} />
-        <NavSection title="Grow" items={growNav} />
+        <NavSection title="Explore" items={exploreNav} onClose={onClose} />
+        <NavSection title="Marketing" items={marketingNav} onClose={onClose} />
+        <NavSection title="Grow" items={growNav} onClose={onClose} />
         
         <div className="border-t border-white/[0.08] pt-4">
           <Link
             href="/about-us"
+            onClick={onClose}
             className={cn(
               "group flex h-9 items-center gap-3 rounded-[8px] px-3 text-[0.9rem] font-medium text-[var(--text-primary)] transition",
               pathname.startsWith("/about-us")
@@ -110,13 +122,15 @@ function SidebarContent() {
 export function Sidebar({ open, onToggle }: SidebarProps) {
   return (
     <>
-      <button
-        aria-label="Open navigation"
-        onClick={onToggle}
-        className="fixed left-4 top-4 z-50 grid h-11 w-11 place-items-center rounded-[8px] border border-white/[0.08] bg-[var(--sidebar)]/90 text-white shadow-lg lg:hidden"
-      >
-        {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-      </button>
+      {!open && (
+        <button
+          aria-label="Open navigation"
+          onClick={onToggle}
+          className="fixed left-4 top-4 z-50 grid h-11 w-11 place-items-center rounded-[8px] border border-white/[0.08] bg-[var(--sidebar)]/90 text-white shadow-lg lg:hidden hover:bg-white/10 transition-colors"
+        >
+          <Menu className="h-5 w-5" />
+        </button>
+      )}
       <div className="fixed inset-y-0 left-0 z-40 hidden lg:block">
         <SidebarContent />
       </div>
@@ -131,7 +145,7 @@ export function Sidebar({ open, onToggle }: SidebarProps) {
               transition={{ type: "spring", stiffness: 320, damping: 34 }}
               className="fixed inset-y-0 left-0 z-40 lg:hidden"
             >
-              <SidebarContent />
+              <SidebarContent onClose={onToggle} />
             </motion.div>
           </>
         )}

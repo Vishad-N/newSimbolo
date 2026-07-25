@@ -45,7 +45,7 @@ export default function BlogsListingPage() {
         <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[var(--accent)]/10 via-transparent to-transparent opacity-50" />
         
         <div className="relative z-10 mx-auto max-w-[1400px] px-5 sm:px-8 lg:px-10 text-center">
-          <h1 className="font-heading text-[2.5rem] md:text-[3.5rem] lg:text-[4rem] font-black leading-tight text-white tracking-tight mb-2 whitespace-nowrap">
+          <h1 className="font-heading text-[2rem] sm:text-[2.5rem] md:text-[3.5rem] lg:text-[4rem] font-black leading-tight text-white tracking-tight mb-3">
             Insights That Help Businesses Grow
           </h1>
           <p className="mx-auto max-w-2xl text-[1.1rem] text-white/60 mb-8">

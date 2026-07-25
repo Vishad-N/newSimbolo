@@ -36,13 +36,13 @@ export function VideoServiceCatalog() {
   return (
     <div className="flex flex-col gap-8">
       {/* Header & Controls */}
-      <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between text-center md:text-left">
         <div>
           <h2 className="font-heading text-[1.5rem] font-black text-white sm:text-[2rem]">Our Video Editing Services</h2>
           <p className="mt-2 text-[0.95rem] text-white/70">Browse our professional editing services with transparent hourly pricing.</p>
         </div>
         
-        <div className="relative w-full max-w-xs">
+        <div className="relative w-full max-w-xs mx-auto md:mx-0">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
           <input
             type="text"
@@ -55,7 +55,7 @@ export function VideoServiceCatalog() {
       </div>
 
       {/* Category Filters */}
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap items-center justify-center md:justify-start gap-2">
         <button
           onClick={() => setActiveCategoryId("all")}
           className={`font-heading rounded-full px-4 py-1.5 text-[0.85rem] font-medium transition-colors ${

@@ -66,7 +66,7 @@ export default function AboutUsPage() {
       </section>
 
       {/* 12. FAQ */}
-      <section className="py-24 px-6 relative z-10 bg-white/[0.01]">
+      <section className="pt-16 pb-4 md:py-24 px-6 relative z-10 bg-white/[0.01]">
         <div className="container mx-auto max-w-3xl">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">Got Questions?</h2>

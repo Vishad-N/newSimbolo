@@ -18,7 +18,7 @@ export function RecentWorks({ works }: RecentWorksProps) {
   return (
     <SectionCard className="p-5 overflow-hidden">
       <div className="mb-6 flex items-center justify-between">
-        <div>
+        <div className="text-center sm:text-left w-full sm:w-auto">
           <h2 className="text-[1.35rem] font-black text-white">Recent Our Work</h2>
           <p className="text-[0.8rem] text-white/60 mt-1">Swipe to explore our premium video projects.</p>
         </div>

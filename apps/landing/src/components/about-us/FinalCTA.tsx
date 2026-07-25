@@ -12,7 +12,7 @@ type CTAProps = {
 
 export function FinalCTA({ title, subtitle, primaryButton, secondaryButton }: CTAProps) {
   return (
-    <section className="py-24 px-6 relative z-10 overflow-hidden">
+    <section className="pt-4 pb-16 md:py-24 px-6 relative z-10 overflow-hidden">
       <div className="absolute inset-0 z-0 pointer-events-none">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[40rem] h-[20rem] bg-[var(--primary)]/20 rounded-[100%] blur-[120px]" />
       </div>

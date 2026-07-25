@@ -53,7 +53,7 @@ function HeroChart() {
 
 function HeroVisual() {
   return (
-    <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.18, duration: 0.65 }} className="relative h-full min-h-[340px] w-full flex flex-col justify-between items-end pb-2">
+    <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.18, duration: 0.65 }} className="relative h-full min-h-[340px] w-full flex flex-col justify-between items-center lg:items-end pb-2">
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute left-0 top-6 hidden h-[260px] w-[260px] rounded-full border border-[var(--secondary)]/20 bg-[var(--secondary)]/5 shadow-[0_0_70px_rgba(45,212,191,0.14)] md:block" />
         <motion.div animate={{ y: [0, -14, 0] }} transition={{ repeat: Infinity, duration: 5.4, ease: "easeInOut" }} className="absolute left-[6%] top-[10%] z-10 hidden h-[72px] w-[72px] place-items-center rounded-full border border-white/15 bg-[color-mix(in_srgb,var(--surface)_72%,transparent)] text-[1.8rem] font-black text-white shadow-[0_0_30px_rgba(255,255,255,0.08)] md:grid">
@@ -72,7 +72,7 @@ function HeroVisual() {
           <div className="ml-[72px] mt-[-14px] h-[75px] w-4 rotate-[-28deg] rounded-full bg-[var(--secondary)]/55 shadow-[0_0_24px_rgba(45,212,191,0.2)]" />
         </div>
       </div>
-      <div className="relative w-[75%] min-w-[310px] origin-top-right mt-2 lg:scale-100 scale-95 pointer-events-auto">
+      <div className="relative w-full max-w-[450px] origin-center lg:origin-top-right mt-2 lg:scale-100 scale-95 pointer-events-auto">
         <HeroChart />
       </div>
       <div className="relative grid w-full max-w-[450px] grid-cols-3 gap-2 mt-4 pointer-events-auto">

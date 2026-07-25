@@ -22,9 +22,9 @@ export function StickyRenewCard() {
   const isExpired = subscription.daysRemaining <= 0 || subscription.billingStatus !== "Active";
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 animate-in slide-in-from-bottom-5 duration-500 fade-in">
+    <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-6 md:bottom-6 z-50 animate-in slide-in-from-bottom-5 duration-500 fade-in flex justify-center md:justify-end pointer-events-none">
       <div className={cn(
-        "bg-surface/90 backdrop-blur-xl border rounded-2xl shadow-2xl p-5 max-w-sm flex flex-col relative",
+        "w-full max-w-sm bg-surface/90 backdrop-blur-xl border rounded-2xl shadow-2xl p-5 flex flex-col relative pointer-events-auto",
         isExpired ? "border-red-500/50" : "border-yellow-500/50"
       )}>
         <button 

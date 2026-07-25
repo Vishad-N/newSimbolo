@@ -18,7 +18,7 @@ type HowItWorksTimelineProps = {
 export function HowItWorksTimeline({ steps }: HowItWorksTimelineProps) {
   return (
     <SectionCard className="p-6 md:p-8">
-      <h2 className="mb-8 text-[1.15rem] font-black text-[var(--text-primary)]">How Our Affiliate Program Works</h2>
+      <h2 className="mb-8 text-[1.15rem] font-black text-[var(--text-primary)] text-center md:text-left">How Our Affiliate Program Works</h2>
       <div className="relative">
         <div className="absolute left-0 top-8 h-[1px] w-full border-t border-dashed border-[var(--text-primary)]/20 hidden md:block" />
         <div className="grid gap-8 md:grid-cols-5 md:gap-4">
