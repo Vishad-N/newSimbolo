@@ -22,7 +22,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} ${montserrat.variable} ${openSans.variable} font-body antialiased`}>
+      <body className={`${inter.variable} ${montserrat.variable} ${openSans.variable} font-body antialiased cursor-default`}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
           <AppLayout>
             {children}

@@ -25,7 +25,8 @@ import {
   Image as ImageIcon,
   Settings,
   Users,
-  ChevronDown
+  ChevronDown,
+  Building2
 } from "lucide-react";
 import { useState } from "react";
 
@@ -52,11 +53,20 @@ const navigation = [
       },
       { name: "Packages", href: "/packages", icon: Package },
       { name: "Portfolio", href: "/portfolio", icon: Briefcase },
-      { name: "Testimonials", href: "/testimonials", icon: MessageSquare },
       { name: "FAQs", href: "/faqs", icon: HelpCircle },
       { name: "Technology Stack", href: "/technologies", icon: Cpu },
       { name: "Industries", href: "/industries", icon: Building },
       { name: "Navigation", href: "/navigation", icon: Navigation },
+    ]
+  },
+  {
+    name: "Content Management",
+    isGroup: true,
+    items: [
+      { name: "Blogs", href: "/blogs", icon: PenTool },
+      { name: "Case Studies", href: "/case-studies", icon: Briefcase },
+      { name: "Testimonials", href: "/testimonials", icon: MessageSquare },
+      { name: "About Us", href: "/about-us", icon: Building2 },
     ]
   },
   { name: "Media Library", href: "/media", icon: ImageIcon },

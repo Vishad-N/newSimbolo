@@ -4,9 +4,8 @@ import { useMemo, useState } from "react";
 import { BenefitsSection } from "@/components/packages/BenefitsSection";
 import { FAQAccordion } from "@/components/packages/FAQAccordion";
 import { PackageHero } from "@/components/packages/PackageHero";
-import { CompactPackageCard } from "@/components/packages/CompactPackageCard";
+import { ServiceCard } from "@/components/ui/ServiceCard";
 import { ExpandedPackageModal } from "@/components/packages/ExpandedPackageModal";
-import { PackageComparisonTable } from "@/components/packages/PackageComparisonTable";
 import { benefits, faqs } from "@/mock/packages";
 import { usePackages } from "@/hooks/usePackages";
 import type { BillingCycle, MarketingPackage } from "@/types/packages";
@@ -34,16 +33,23 @@ export function PackagesPage() {
       <div className="px-5 sm:px-8 lg:px-10 pb-20">
         
         {/* Interactive Package Grid */}
-        <section className="mx-auto mt-16 grid max-w-[1400px] gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {activePackages.map((item, index) => (
-            <CompactPackageCard 
-              key={item.id} 
-              pkg={item} 
-              billing={billing} 
-              index={index} 
-              onClick={setSelectedPackage}
-            />
-          ))}
+        <section className="mx-auto mt-16 grid max-w-[1400px] gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {activePackages.map((item, index) => {
+            const price = billing === "yearly" && item.priceYearly ? Math.round(item.priceYearly / 12) : (item.priceMonthly || "Custom");
+            return (
+              <ServiceCard
+                key={item.id}
+                title={item.name}
+                image={item.illustration}
+                bullets={item.compactHighlights}
+                price={price}
+                rating={item.rating}
+                accent={item.themeColor as any}
+                delay={index * 0.05}
+                onClick={() => setSelectedPackage(item)}
+              />
+            );
+          })}
         </section>
 
         {/* Expanded Package Modal Overlay */}
@@ -55,7 +61,6 @@ export function PackagesPage() {
         />
 
         <div className="mx-auto max-w-[1400px]">
-          <PackageComparisonTable packages={activePackages} />
           
           <div className="mt-32 max-w-[1235px] mx-auto">
             <BenefitsSection items={benefits} />

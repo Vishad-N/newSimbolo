@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import type { MarketingPackage } from "@/types/packages";
 import { packages as mockPackages } from "@/mock/packages";
 
-const STORAGE_KEY = "simbolo_packages";
+const STORAGE_KEY = "simbolo_packages_v4";
 
 export function usePackages() {
   const [packages, setPackages] = useState<MarketingPackage[]>([]);

@@ -41,14 +41,14 @@ export default function BlogsListingPage() {
   return (
     <div className="bg-[var(--background)] min-h-screen">
       {/* Hero Section */}
-      <section className="relative pt-32 pb-16 overflow-hidden">
+      <section className="relative pt-20 pb-8 overflow-hidden">
         <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[var(--accent)]/10 via-transparent to-transparent opacity-50" />
         
         <div className="relative z-10 mx-auto max-w-[1400px] px-5 sm:px-8 lg:px-10 text-center">
-          <h1 className="font-heading text-[3rem] md:text-[4rem] font-black leading-tight text-white tracking-tight mb-4">
-            Insights That Help <br className="hidden md:block"/> Businesses Grow
+          <h1 className="font-heading text-[2.5rem] md:text-[3.5rem] lg:text-[4rem] font-black leading-tight text-white tracking-tight mb-2 whitespace-nowrap">
+            Insights That Help Businesses Grow
           </h1>
-          <p className="mx-auto max-w-2xl text-[1.1rem] text-white/60 mb-12">
+          <p className="mx-auto max-w-2xl text-[1.1rem] text-white/60 mb-8">
             Expert strategies, tutorials, and case studies on digital marketing, web development, AI, and business growth.
           </p>
 

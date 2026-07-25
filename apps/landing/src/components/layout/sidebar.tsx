@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Building2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { BrandLogo } from "@/components/ui/brand-logo";
 import { SidebarMascotBubble, SidebarBackgroundDecoration } from "@/components/layout/SidebarMascotBubble";
@@ -75,6 +75,21 @@ function SidebarContent() {
         <NavSection title="Explore" items={exploreNav} />
         <NavSection title="Marketing" items={marketingNav} />
         <NavSection title="Grow" items={growNav} />
+        
+        <div className="border-t border-white/[0.08] pt-4">
+          <Link
+            href="/about-us"
+            className={cn(
+              "group flex h-9 items-center gap-3 rounded-[8px] px-3 text-[0.9rem] font-medium text-[var(--text-primary)] transition",
+              pathname.startsWith("/about-us")
+                ? "border-l-[3px] border-l-[var(--primary)] bg-[var(--accent-glow)] text-[var(--accent)] shadow-[0_0_24px_var(--accent-glow)]"
+                : "hover:bg-white/[0.06] hover:text-white"
+            )}
+          >
+            <Building2 className={cn("h-4 w-4 shrink-0", pathname.startsWith("/about-us") ? "text-[var(--accent)]" : "text-[var(--muted)] group-hover:text-[var(--secondary)]")} />
+            <span>About Us</span>
+          </Link>
+        </div>
       </div>
       <div className="px-5 pb-5">
         <div className="rounded-[8px] border border-white/[0.08] bg-[var(--surface)] p-4 shadow-[0_14px_30px_rgba(0,0,0,0.18)]">

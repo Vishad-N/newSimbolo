@@ -22,6 +22,7 @@ import {
   ShoppingCart,
   Sparkles,
   Target,
+  TrendingUp,
   Users,
   Video,
   Workflow,
@@ -32,8 +33,8 @@ import type { NavItem, ServiceCardData } from "@/types/landing";
 export const exploreNav: NavItem[] = [
   { label: "Services", icon: Workflow, href: "/services" },
   { label: "Packages", icon: Boxes, href: "/packages" },
-  { label: "Agencies", icon: BriefcaseBusiness, href: "/#agencies" },
-  { label: "Freelancers", icon: Users, href: "/#freelancers" },
+  { label: "Case Studies", icon: TrendingUp, href: "/case-studies" },
+  { label: "Blogs", icon: PencilLine, href: "/blogs" },
 ];
 
 export const marketingNav: NavItem[] = [
