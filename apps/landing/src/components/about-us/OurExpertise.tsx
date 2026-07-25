@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { motion, useInView } from "framer-motion";
 
 type Stat = {
@@ -15,12 +15,12 @@ type OurExpertiseProps = {
 };
 
 function AnimatedCounter({ value, inView }: { value: string; inView: boolean }) {
-  const [count, setCount] = useState(0);
+  const spanRef = useRef<HTMLSpanElement>(null);
   const target = parseFloat(value.replace(/,/g, ''));
   const isDecimal = value.includes('.');
 
   useEffect(() => {
-    if (!inView) return;
+    if (!inView || !spanRef.current) return;
     
     let startTime: number;
     const duration = 2000; // 2 seconds
@@ -33,21 +33,21 @@ function AnimatedCounter({ value, inView }: { value: string; inView: boolean }) 
       const easeProgress = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
       const currentCount = easeProgress * target;
 
-      setCount(currentCount);
+      if (spanRef.current) {
+        spanRef.current.textContent = isDecimal ? currentCount.toFixed(1) : Math.floor(currentCount).toString();
+      }
 
       if (progress < 1) {
         requestAnimationFrame(updateCounter);
-      } else {
-        setCount(target);
       }
     };
 
     requestAnimationFrame(updateCounter);
-  }, [target, inView]);
+  }, [target, inView, isDecimal]);
 
   return (
-    <span>
-      {isDecimal ? count.toFixed(1) : Math.floor(count)}
+    <span ref={spanRef}>
+      {isDecimal ? "0.0" : "0"}
     </span>
   );
 }

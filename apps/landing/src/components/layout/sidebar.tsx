@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X, Building2 } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { BrandLogo } from "@/components/ui/brand-logo";
 import { SidebarMascotBubble, SidebarBackgroundDecoration } from "@/components/layout/SidebarMascotBubble";
 import { CrownIcon, DashboardIcon, exploreNav, growNav, marketingNav } from "@/data/landing";
@@ -120,17 +120,22 @@ export function Sidebar({ open, onToggle }: SidebarProps) {
       <div className="fixed inset-y-0 left-0 z-40 hidden lg:block">
         <SidebarContent />
       </div>
-      {open && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-30 bg-black/60 backdrop-blur-sm lg:hidden" onClick={onToggle} />
-      )}
-      <motion.div
-        initial={false}
-        animate={{ x: open ? 0 : -270 }}
-        transition={{ type: "spring", stiffness: 320, damping: 34 }}
-        className="fixed inset-y-0 left-0 z-40 lg:hidden"
-      >
-        <SidebarContent />
-      </motion.div>
+      <AnimatePresence>
+        {open && (
+          <>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-30 bg-black/60 backdrop-blur-sm lg:hidden" onClick={onToggle} />
+            <motion.div
+              initial={{ x: -270 }}
+              animate={{ x: 0 }}
+              exit={{ x: -270 }}
+              transition={{ type: "spring", stiffness: 320, damping: 34 }}
+              className="fixed inset-y-0 left-0 z-40 lg:hidden"
+            >
+              <SidebarContent />
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </>
   );
 }

@@ -50,15 +50,15 @@ export function ServiceCard({
       whileHover={{ y: -7 }}
       onClick={onClick}
       className={cn(
-        "group relative min-h-[222px] overflow-hidden rounded-[8px] border border-white/[0.08] bg-[var(--surface)]/86 p-4 shadow-[0_14px_30px_rgba(0,0,0,0.18)] transition duration-300 hover:border-white/[0.14] hover:shadow-[0_18px_42px_rgba(0,0,0,0.24)] flex flex-col",
+        "group relative min-h-[222px] overflow-hidden rounded-[8px] border border-white/[0.08] bg-[var(--surface)]/86 p-4 shadow-[0_14px_30px_rgba(0,0,0,0.18)] transition duration-300 hover:border-white/[0.14] hover:shadow-[0_18px_42px_rgba(0,0,0,0.24)] flex flex-col transform-gpu will-change-transform",
         onClick && "cursor-pointer"
       )}
     >
-      <div className={cn("absolute -left-8 -top-10 h-32 w-32 rounded-full bg-gradient-to-br blur-2xl", accents[accent])} />
+      <div className={cn("absolute -left-8 -top-10 h-32 w-32 rounded-full bg-gradient-to-br blur-xl opacity-60 pointer-events-none transform-gpu", accents[accent])} />
 
       <div className="relative flex h-full flex-col gap-4">
         <div className="relative h-[120px] w-full shrink-0 overflow-visible rounded-[8px]">
-          <div className={cn("absolute inset-2 rounded-full bg-gradient-to-br opacity-55 blur-2xl", accents[accent])} />
+          <div className={cn("absolute inset-2 rounded-full bg-gradient-to-br opacity-40 blur-lg pointer-events-none transform-gpu", accents[accent])} />
           <Image
             src={image}
             alt={`${title} 3D isometric service illustration`}

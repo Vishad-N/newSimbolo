@@ -58,8 +58,7 @@ export default function AboutUsPage() {
             </p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <TestimonialSection testimonials={aboutData.testimonials} />
-            {aboutData.testimonials.slice(1).map((testi) => (
+            {aboutData.testimonials.map((testi) => (
               <TestimonialSection key={testi.id} testimonials={[testi]} />
             ))}
           </div>

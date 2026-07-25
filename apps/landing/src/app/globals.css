@@ -168,25 +168,29 @@ input {
 @keyframes meshShift {
   0%,
   100% {
-    transform: translate3d(0, 0, 0) scale(1);
+    transform: translate3d(0, 0, 0);
     opacity: 0.72;
   }
   50% {
-    transform: translate3d(12px, -10px, 0) scale(1.04);
+    transform: translate3d(12px, -10px, 0);
     opacity: 0.92;
   }
 }
 
 .mascot-float {
   animation: floatMascot 6s ease-in-out infinite;
+  will-change: transform;
 }
 
 .search-glow {
   animation: pulseGlow 4s ease-in-out infinite;
+  will-change: box-shadow;
 }
 
 .hero-mesh {
   animation: meshShift 10s ease-in-out infinite;
+  will-change: transform, opacity;
+  transform: translateZ(0);
 }
 
 .text-balance {
