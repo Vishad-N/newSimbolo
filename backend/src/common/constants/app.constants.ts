@@ -1,0 +1,11 @@
+export const APP_CONSTANTS = {
+  DEFAULT_PORT: 3001,
+  DEFAULT_PREFIX: 'api',
+  DEFAULT_VERSION: 'v1',
+  DEFAULT_PAGE: 1,
+  DEFAULT_LIMIT: 10,
+  MAX_LIMIT: 100,
+  REQUEST_ID_HEADER: 'x-request-id',
+  ROLES_KEY: 'roles',
+  IS_PUBLIC_KEY: 'isPublic',
+};

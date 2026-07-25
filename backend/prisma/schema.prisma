@@ -1,0 +1,1929 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ==========================================
+// ENUMS
+// ==========================================
+
+enum UserRoleEnum {
+  SUPER_ADMIN
+  ADMIN
+  CONTENT_MANAGER
+  PROJECT_MANAGER
+  MARKETING_MANAGER
+  SUPPORT
+  CLIENT
+  AFFILIATE
+  EDITOR
+}
+
+enum UserStatusEnum {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  PENDING_VERIFICATION
+}
+
+enum ProjectStatusEnum {
+  NOT_STARTED
+  IN_PROGRESS
+  IN_REVIEW
+  COMPLETED
+  ON_HOLD
+  CANCELLED
+}
+
+enum PaymentStatusEnum {
+  PENDING
+  SUCCESSFUL
+  FAILED
+  REFUNDED
+  PARTIALLY_REFUNDED
+  RECURRING
+}
+
+enum InvoiceStatusEnum {
+  DRAFT
+  SENT
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+enum TicketStatusEnum {
+  OPEN
+  IN_PROGRESS
+  WAITING_FOR_CLIENT
+  RESOLVED
+  CLOSED
+}
+
+enum TicketPriorityEnum {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum BlogStatusEnum {
+  DRAFT
+  IN_REVIEW
+  PUBLISHED
+  ARCHIVED
+}
+
+enum CaseStudyStatusEnum {
+  DRAFT
+  IN_REVIEW
+  PUBLISHED
+  ARCHIVED
+}
+
+enum PortfolioStatusEnum {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum TestimonialStatusEnum {
+  PENDING
+  APPROVED
+  REJECTED
+  FEATURED
+}
+
+enum FAQStatusEnum {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum NotificationTypeEnum {
+  SYSTEM
+  ORDER
+  PROJECT
+  INVOICE
+  SUPPORT
+  MEETING
+  MARKETING
+}
+
+enum NotificationChannelEnum {
+  IN_APP
+  EMAIL
+  PUSH
+  SMS
+}
+
+enum MediaTypeEnum {
+  IMAGE
+  VIDEO
+  PDF
+  DOCUMENT
+  AUDIO
+  ARCHIVE
+  OTHER
+}
+
+enum OrderStatusEnum {
+  PENDING_PAYMENT
+  ACTIVE
+  IN_PROGRESS
+  UNDER_REVIEW
+  COMPLETED
+  CANCELLED
+  REFUNDED
+}
+
+enum SubscriptionStatusEnum {
+  ACTIVE
+  PAUSED
+  CANCELED
+  PAST_DUE
+  TRIALING
+  UNPAID
+}
+
+enum SubscriptionIntervalEnum {
+  MONTHLY
+  QUARTERLY
+  ANNUALLY
+}
+
+enum MeetingStatusEnum {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+  RESCHEDULED
+  NO_SHOW
+}
+
+enum ServiceTypeEnum {
+  RETAINER
+  ONE_TIME
+  HOURLY
+  CONSULTING
+  CUSTOM
+}
+
+enum PackageTypeEnum {
+  STARTER
+  PROFESSIONAL
+  ENTERPRISE
+  CUSTOM
+}
+
+enum RoleTypeEnum {
+  SYSTEM
+  CUSTOM
+}
+
+enum MilestoneStatusEnum {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  DELAYED
+}
+
+enum DeliverableStatusEnum {
+  PENDING
+  SUBMITTED
+  APPROVED
+  REVISION_REQUESTED
+}
+
+// ==========================================
+// AUTHENTICATION & IDENTITY MODELS
+// ==========================================
+
+/// Purpose: Represents an authenticated user in the system.
+/// Relationships: Belongs to Role, Organization, Agency. Has many Orders, Projects, Notifications, AuditLogs.
+/// Business responsibility: Core identity and profile entity for authorization and accountability.
+model User {
+  id             String         @id @default(uuid()) @db.Uuid
+  email          String         @unique
+  passwordHash   String?
+  firstName      String
+  lastName       String
+  phone          String?
+  avatarUrl      String?
+  status         UserStatusEnum @default(PENDING_VERIFICATION)
+  roleId         String         @db.Uuid
+  organizationId String?        @db.Uuid
+  agencyId       String?        @db.Uuid
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  deletedAt      DateTime?
+  createdBy      String?
+  updatedBy      String?
+
+  role             Role                    @relation(fields: [roleId], references: [id])
+  organization     Organization?           @relation(fields: [organizationId], references: [id])
+  agency           Agency?                 @relation("AgencyUsers", fields: [agencyId], references: [id])
+  ownedAgency      Agency?                 @relation("AgencyOwner")
+  clientProfile    ClientProfile?
+  affiliateProfile Affiliate?              @relation("UserAffiliate")
+  refreshTokens    RefreshToken[]
+  sessions         Session[]
+  oauthAccounts    OAuthAccount[]
+  teamMembers      TeamMember[]
+  managedProjects  Project[]               @relation("ProjectManager")
+  assignedTasks    Task[]                  @relation("TaskAssignee")
+  assignedTickets  SupportTicket[]         @relation("TicketAssignee")
+  ticketReplies    TicketReply[]           @relation("TicketReplySender")
+  conversations    Participant[]           @relation("ConversationParticipant")
+  messages         Message[]               @relation("MessageSender")
+  notifications    Notification[]          @relation("UserNotifications")
+  preferences      NotificationPreference?
+  referredUsers    Referral[]              @relation("ReferredUser")
+  auditLogs        AuditLog[]              @relation("UserAuditLogs")
+  blogAuthor       BlogAuthor?
+  hostedMeetings   Meeting[]               @relation("MeetingHost")
+  mediaUploaded    MediaAsset[]            @relation("MediaUploader")
+
+  @@index([email])
+  @@index([status])
+  @@index([roleId])
+  @@map("users")
+}
+
+/// Purpose: Defines named security roles with specific permission bundles.
+/// Relationships: Has many Users and Permissions.
+/// Business responsibility: Enforces hierarchical role-based access control (RBAC).
+model Role {
+  id          String       @id @default(uuid()) @db.Uuid
+  name        String       @unique
+  slug        String       @unique
+  description String?
+  type        RoleTypeEnum @default(CUSTOM)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  createdBy   String?
+  updatedBy   String?
+
+  users       User[]
+  permissions Permission[] @relation("RolePermissions")
+
+  @@index([slug])
+  @@map("roles")
+}
+
+/// Purpose: Atomic security access right flag.
+/// Relationships: Belongs to many Roles.
+/// Business responsibility: Allows granular attribute-based privilege evaluation.
+model Permission {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  module      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdBy   String?
+  updatedBy   String?
+
+  roles Role[] @relation("RolePermissions")
+
+  @@index([slug])
+  @@index([module])
+  @@map("permissions")
+}
+
+/// Purpose: Stores hashed refresh tokens for secure session continuity.
+/// Relationships: Belongs to User.
+/// Business responsibility: Facilitates HTTP-only token rotation and revocation.
+model RefreshToken {
+  id        String    @id @default(uuid()) @db.Uuid
+  tokenHash String    @unique
+  userId    String    @db.Uuid
+  expiresAt DateTime
+  revokedAt DateTime?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([tokenHash])
+  @@map("refresh_tokens")
+}
+
+/// Purpose: Active user login session tracker.
+/// Relationships: Belongs to User.
+/// Business responsibility: Tracks active devices, IPs, and session termination.
+model Session {
+  id           String   @id @default(uuid()) @db.Uuid
+  sessionToken String   @unique
+  userId       String   @db.Uuid
+  expiresAt    DateTime
+  ipAddress    String?
+  userAgent    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([sessionToken])
+  @@map("sessions")
+}
+
+/// Purpose: Third-party authentication provider linking (Google, GitHub).
+/// Relationships: Belongs to User.
+/// Business responsibility: Enables OAuth2 social login workflows.
+model OAuthAccount {
+  id                String   @id @default(uuid()) @db.Uuid
+  provider          String
+  providerAccountId String
+  userId            String   @db.Uuid
+  accessToken       String?
+  refreshToken      String?
+  expiresAt         Int?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+  @@map("oauth_accounts")
+}
+
+/// Purpose: Email verification token storage.
+/// Relationships: Standalone identifier mapping.
+/// Business responsibility: Validates email address ownership during registration.
+model VerificationToken {
+  id         String   @id @default(uuid()) @db.Uuid
+  identifier String
+  token      String   @unique
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+
+  @@unique([identifier, token])
+  @@index([token])
+  @@map("verification_tokens")
+}
+
+/// Purpose: Password reset magic link token tracker.
+/// Relationships: Standalone email mapping.
+/// Business responsibility: Manages secure forgot-password workflows.
+model PasswordResetToken {
+  id        String    @id @default(uuid()) @db.Uuid
+  email     String
+  token     String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([email])
+  @@index([token])
+  @@map("password_reset_tokens")
+}
+
+/// Purpose: Root multi-tenant organization entity.
+/// Relationships: Has many Users and Teams.
+/// Business responsibility: Groups users and resources under a corporate hierarchy.
+model Organization {
+  id        String    @id @default(uuid()) @db.Uuid
+  name      String
+  slug      String    @unique
+  logoUrl   String?
+  domain    String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  createdBy String?
+  updatedBy String?
+
+  users User[]
+  teams Team[]
+
+  @@index([slug])
+  @@map("organizations")
+}
+
+/// Purpose: White-label partner agency profile.
+/// Relationships: Belongs to owner User, has many ClientProfiles (sub-clients).
+/// Business responsibility: Manages agency co-branding and commission structures.
+model Agency {
+  id               String    @id @default(uuid()) @db.Uuid
+  name             String
+  slug             String    @unique
+  whiteLabelDomain String?   @unique
+  commissionRate   Float     @default(10.0)
+  ownerId          String?   @unique @db.Uuid
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  deletedAt        DateTime?
+  createdBy        String?
+  updatedBy        String?
+
+  owner      User?           @relation("AgencyOwner", fields: [ownerId], references: [id])
+  users      User[]          @relation("AgencyUsers")
+  subClients ClientProfile[] @relation("AgencySubClients")
+
+  @@index([slug])
+  @@map("agencies")
+}
+
+/// Purpose: Department or functional project team.
+/// Relationships: Belongs to Organization, has many TeamMembers.
+/// Business responsibility: Organizes internal staff into collaborative squads.
+model Team {
+  id             String   @id @default(uuid()) @db.Uuid
+  name           String
+  description    String?
+  organizationId String   @db.Uuid
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  createdBy      String?
+  updatedBy      String?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  members      TeamMember[]
+
+  @@index([organizationId])
+  @@map("teams")
+}
+
+/// Purpose: Junction table linking users to internal teams.
+/// Relationships: Belongs to Team and User.
+/// Business responsibility: Assigns squad roles and membership tracking.
+model TeamMember {
+  id       String   @id @default(uuid()) @db.Uuid
+  teamId   String   @db.Uuid
+  userId   String   @db.Uuid
+  role     String   @default("MEMBER")
+  joinedAt DateTime @default(now())
+
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, userId])
+  @@index([userId])
+  @@map("team_members")
+}
+
+// ==========================================
+// CLIENTS & CORPORATE PROFILES
+// ==========================================
+
+/// Purpose: Dashboard account metadata for corporate clients.
+/// Relationships: Belongs to User and Company. Has many Orders, Invoices, Subscriptions.
+/// Business responsibility: Connects identity to commercial billing and SLA history.
+model ClientProfile {
+  id             String    @id @default(uuid()) @db.Uuid
+  userId         String    @unique @db.Uuid
+  companyId      String?   @db.Uuid
+  agencyId       String?   @db.Uuid
+  gstNumber      String?
+  billingAddress String?
+  timezone       String    @default("Asia/Kolkata")
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  deletedAt      DateTime?
+  createdBy      String?
+  updatedBy      String?
+
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  company        Company?        @relation(fields: [companyId], references: [id])
+  agency         Agency?         @relation("AgencySubClients", fields: [agencyId], references: [id])
+  orders         Order[]
+  invoices       Invoice[]
+  subscriptions  Subscription[]
+  projects       Project[]
+  supportTickets SupportTicket[]
+  testimonials   Testimonial[]
+  meetings       Meeting[]
+
+  @@index([userId])
+  @@index([companyId])
+  @@index([agencyId])
+  @@map("client_profiles")
+}
+
+/// Purpose: Commercial business organization profile.
+/// Relationships: Has many ClientProfiles.
+/// Business responsibility: Stores corporate entity details and industry classification.
+model Company {
+  id        String    @id @default(uuid()) @db.Uuid
+  name      String
+  slug      String    @unique
+  website   String?
+  industry  String?
+  size      String?
+  logoUrl   String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  createdBy String?
+  updatedBy String?
+
+  clients ClientProfile[]
+
+  @@index([slug])
+  @@map("companies")
+}
+
+// ==========================================
+// SERVICES & MARKETING CATALOG
+// ==========================================
+
+/// Purpose: Master marketing offering (SEO, Web Design, Video Editing).
+/// Relationships: Belongs to ServiceCategory. Has many Packages, Features, FAQs, CaseStudies.
+/// Business responsibility: Catalog definition powering landing page catalogs and order creation.
+model Service {
+  id               String          @id @default(uuid()) @db.Uuid
+  name             String          @unique
+  slug             String          @unique
+  shortDescription String
+  fullDescription  String?
+  iconUrl          String?
+  type             ServiceTypeEnum @default(RETAINER)
+  basePrice        Float           @default(0.0)
+  categoryId       String?         @db.Uuid
+  seoPageId        String?         @unique @db.Uuid
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  deletedAt        DateTime?
+  createdBy        String?
+  updatedBy        String?
+
+  category       ServiceCategory?   @relation(fields: [categoryId], references: [id])
+  seoPage        SEOPage?           @relation(fields: [seoPageId], references: [id])
+  packages       Package[]
+  features       ServiceFeature[]
+  faqs           ServiceFAQ[]
+  caseStudies    CaseStudy[]
+  portfolioItems PortfolioProject[]
+  orders         Order[]
+  generalFaqs    FAQ[]
+
+  @@index([slug])
+  @@index([categoryId])
+  @@map("services")
+}
+
+/// Purpose: Taxonomy grouping for marketing offerings.
+/// Relationships: Has many Services.
+/// Business responsibility: Organizes platform services into clean navigation structures.
+model ServiceCategory {
+  id          String    @id @default(uuid()) @db.Uuid
+  name        String    @unique
+  slug        String    @unique
+  description String?
+  sortOrder   Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+  createdBy   String?
+  updatedBy   String?
+
+  services Service[]
+
+  @@index([slug])
+  @@map("service_categories")
+}
+
+/// Purpose: Granular capability included in a marketing service.
+/// Relationships: Belongs to Service.
+/// Business responsibility: Highlights specific service features on landing pages.
+model ServiceFeature {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String
+  description String?
+  serviceId   String   @db.Uuid
+  isIncluded  Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  service Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@index([serviceId])
+  @@map("service_features")
+}
+
+/// Purpose: Question and answer pair specific to a service.
+/// Relationships: Belongs to Service.
+/// Business responsibility: Resolves client objections on service landing pages.
+model ServiceFAQ {
+  id        String   @id @default(uuid()) @db.Uuid
+  question  String
+  answer    String
+  serviceId String   @db.Uuid
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  service Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@index([serviceId])
+  @@map("service_faqs")
+}
+
+// ==========================================
+// PACKAGES & PRICING TIERS
+// ==========================================
+
+/// Purpose: Specific pricing tier or retainer bundle under a service.
+/// Relationships: Belongs to Service. Has many Features, Pricings, Orders, Subscriptions.
+/// Business responsibility: Commercial SKU purchased during client checkout.
+model Package {
+  id              String          @id @default(uuid()) @db.Uuid
+  name            String
+  slug            String          @unique
+  description     String?
+  type            PackageTypeEnum @default(STARTER)
+  serviceId       String          @db.Uuid
+  basePrice       Float           @default(0.0)
+  billingInterval String          @default("monthly")
+  isPopular       Boolean         @default(false)
+  isCustom        Boolean         @default(false)
+  seoPageId       String?         @unique @db.Uuid
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  deletedAt       DateTime?
+  createdBy       String?
+  updatedBy       String?
+
+  service       Service             @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  seoPage       SEOPage?            @relation(fields: [seoPageId], references: [id])
+  features      PackageFeature[]
+  pricings      PackagePricing[]
+  comparisons   PackageComparison[]
+  orders        Order[]
+  subscriptions Subscription[]
+
+  @@index([slug])
+  @@index([serviceId])
+  @@map("packages")
+}
+
+/// Purpose: Itemized line item feature included in a package tier.
+/// Relationships: Belongs to Package.
+/// Business responsibility: Details package scope and quantitative limitations.
+model PackageFeature {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String
+  description String?
+  packageId   String   @db.Uuid
+  isIncluded  Boolean  @default(true)
+  limitValue  String?
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  package Package @relation(fields: [packageId], references: [id], onDelete: Cascade)
+
+  @@index([packageId])
+  @@map("package_features")
+}
+
+/// Purpose: Multi-currency or interval-specific pricing schedule for a package.
+/// Relationships: Belongs to Package.
+/// Business responsibility: Manages international currency rates and promotional discounts.
+model PackagePricing {
+  id                 String   @id @default(uuid()) @db.Uuid
+  packageId          String   @db.Uuid
+  currency           String   @default("INR")
+  price              Float
+  billingPeriod      String   @default("monthly")
+  discountPercentage Float    @default(0.0)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  package Package @relation(fields: [packageId], references: [id], onDelete: Cascade)
+
+  @@unique([packageId, currency, billingPeriod])
+  @@index([packageId])
+  @@map("package_pricings")
+}
+
+/// Purpose: Matrix comparison row for side-by-side package evaluations.
+/// Relationships: Belongs to Package.
+/// Business responsibility: Powers pricing comparison tables on the frontend.
+model PackageComparison {
+  id           String   @id @default(uuid()) @db.Uuid
+  packageId    String   @db.Uuid
+  featureName  String
+  featureValue String
+  sortOrder    Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  package Package @relation(fields: [packageId], references: [id], onDelete: Cascade)
+
+  @@index([packageId])
+  @@map("package_comparisons")
+}
+
+// ==========================================
+// ORDERS, PAYMENTS & BILLING
+// ==========================================
+
+/// Purpose: Contractual commercial order initiated by a client.
+/// Relationships: Belongs to ClientProfile, Package, Service. Has one Project, many Payments and Invoices.
+/// Business responsibility: Financial state machine tracking fulfillment commitment.
+model Order {
+  id             String          @id @default(uuid()) @db.Uuid
+  orderNumber    String          @unique
+  status         OrderStatusEnum @default(PENDING_PAYMENT)
+  totalAmount    Float
+  taxAmount      Float           @default(0.0)
+  discountAmount Float           @default(0.0)
+  netAmount      Float
+  currency       String          @default("INR")
+  clientId       String          @db.Uuid
+  packageId      String          @db.Uuid
+  serviceId      String          @db.Uuid
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  deletedAt      DateTime?
+  createdBy      String?
+  updatedBy      String?
+
+  client      ClientProfile @relation(fields: [clientId], references: [id])
+  package     Package       @relation(fields: [packageId], references: [id])
+  service     Service       @relation(fields: [serviceId], references: [id])
+  project     Project?
+  items       OrderItem[]
+  payments    Payment[]
+  invoices    Invoice[]
+  commissions Commission[]
+
+  @@index([orderNumber])
+  @@index([clientId])
+  @@index([status])
+  @@map("orders")
+}
+
+/// Purpose: Itemized line item within a commercial order.
+/// Relationships: Belongs to Order.
+/// Business responsibility: Records exact scope and unit quantities purchased.
+model OrderItem {
+  id          String   @id @default(uuid()) @db.Uuid
+  orderId     String   @db.Uuid
+  name        String
+  description String?
+  quantity    Int      @default(1)
+  unitPrice   Float
+  totalPrice  Float
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@map("order_items")
+}
+
+/// Purpose: Payment transaction attempt and gateway webhook confirmation.
+/// Relationships: Belongs to Order and Invoice. Has many Transactions.
+/// Business responsibility: Reconciles commercial revenues with Stripe/Razorpay gateways.
+model Payment {
+  id                   String            @id @default(uuid()) @db.Uuid
+  paymentNumber        String            @unique
+  amount               Float
+  currency             String            @default("INR")
+  status               PaymentStatusEnum @default(PENDING)
+  method               String?
+  gatewayProvider      String            @default("RAZORPAY")
+  gatewayTransactionId String?           @unique
+  gatewayOrderId       String?           @unique
+  orderId              String?           @db.Uuid
+  invoiceId            String?           @db.Uuid
+  paidAt               DateTime?
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+  createdBy            String?
+  updatedBy            String?
+
+  order        Order?        @relation(fields: [orderId], references: [id])
+  invoice      Invoice?      @relation(fields: [invoiceId], references: [id])
+  transactions Transaction[]
+
+  @@index([paymentNumber])
+  @@index([orderId])
+  @@index([invoiceId])
+  @@index([gatewayTransactionId])
+  @@map("payments")
+}
+
+/// Purpose: Tax-compliant billing ledger with itemized deductions and GST numbers.
+/// Relationships: Belongs to ClientProfile, Order, Subscription. Has many Payments.
+/// Business responsibility: Official accounting document for client auditing and tax compliance.
+model Invoice {
+  id             String            @id @default(uuid()) @db.Uuid
+  invoiceNumber  String            @unique
+  status         InvoiceStatusEnum @default(DRAFT)
+  issueDate      DateTime          @default(now())
+  dueDate        DateTime
+  paidDate       DateTime?
+  subtotal       Float
+  taxAmount      Float             @default(0.0)
+  totalAmount    Float
+  currency       String            @default("INR")
+  orderId        String?           @db.Uuid
+  clientId       String            @db.Uuid
+  subscriptionId String?           @db.Uuid
+  pdfAssetId     String?           @db.Uuid
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  deletedAt      DateTime?
+  createdBy      String?
+  updatedBy      String?
+
+  client       ClientProfile @relation(fields: [clientId], references: [id])
+  order        Order?        @relation(fields: [orderId], references: [id])
+  subscription Subscription? @relation(fields: [subscriptionId], references: [id])
+  pdfAsset     MediaAsset?   @relation(fields: [pdfAssetId], references: [id])
+  payments     Payment[]
+
+  @@index([invoiceNumber])
+  @@index([clientId])
+  @@index([status])
+  @@map("invoices")
+}
+
+/// Purpose: Immutable financial ledger entry logging gateway exchanges.
+/// Relationships: Belongs to Payment.
+/// Business responsibility: Audits refunds, chargebacks, and partial settlements.
+model Transaction {
+  id            String   @id @default(uuid()) @db.Uuid
+  transactionId String   @unique
+  type          String
+  amount        Float
+  currency      String   @default("INR")
+  status        String
+  paymentId     String   @db.Uuid
+  metadata      String?
+  createdAt     DateTime @default(now())
+
+  payment Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+
+  @@index([paymentId])
+  @@index([transactionId])
+  @@map("transactions")
+}
+
+/// Purpose: Recurring billing retainer lifecycle tracker.
+/// Relationships: Belongs to ClientProfile and Package. Has many Invoices.
+/// Business responsibility: Automates monthly renewal cycles and retainer quotas.
+model Subscription {
+  id                     String                   @id @default(uuid()) @db.Uuid
+  subscriptionNumber     String                   @unique
+  status                 SubscriptionStatusEnum   @default(TRIALING)
+  interval               SubscriptionIntervalEnum @default(MONTHLY)
+  currentPeriodStart     DateTime
+  currentPeriodEnd       DateTime
+  cancelAtPeriodEnd      Boolean                  @default(false)
+  clientId               String                   @db.Uuid
+  packageId              String                   @db.Uuid
+  price                  Float
+  currency               String                   @default("INR")
+  stripeSubscriptionId   String?                  @unique
+  razorpaySubscriptionId String?                  @unique
+  createdAt              DateTime                 @default(now())
+  updatedAt              DateTime                 @updatedAt
+  deletedAt              DateTime?
+  createdBy              String?
+  updatedBy              String?
+
+  client   ClientProfile @relation(fields: [clientId], references: [id])
+  package  Package       @relation(fields: [packageId], references: [id])
+  invoices Invoice[]
+
+  @@index([subscriptionNumber])
+  @@index([clientId])
+  @@index([status])
+  @@map("subscriptions")
+}
+
+// ==========================================
+// PROJECTS & WORKFLOW MANAGEMENT
+// ==========================================
+
+/// Purpose: Operational workspace where service fulfillment occurs.
+/// Relationships: Belongs to Order, ClientProfile, manager User. Has many Milestones, Tasks, Deliverables.
+/// Business responsibility: Central hub for tracking client deliverables and staff timelines.
+model Project {
+  id            String            @id @default(uuid()) @db.Uuid
+  name          String
+  slug          String            @unique
+  description   String?
+  status        ProjectStatusEnum @default(NOT_STARTED)
+  orderId       String            @unique @db.Uuid
+  clientId      String            @db.Uuid
+  managerId     String?           @db.Uuid
+  startDate     DateTime?
+  targetEndDate DateTime?
+  actualEndDate DateTime?
+  progress      Int               @default(0)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  deletedAt     DateTime?
+  createdBy     String?
+  updatedBy     String?
+
+  order         Order              @relation(fields: [orderId], references: [id])
+  client        ClientProfile      @relation(fields: [clientId], references: [id])
+  manager       User?              @relation("ProjectManager", fields: [managerId], references: [id])
+  milestones    ProjectMilestone[]
+  statusLogs    ProjectStatus[]
+  tasks         Task[]
+  deliverables  Deliverable[]
+  timelines     Timeline[]
+  conversations Conversation[]
+
+  @@index([slug])
+  @@index([clientId])
+  @@index([status])
+  @@map("projects")
+}
+
+/// Purpose: Major milestone checkpoint within a project lifecycle.
+/// Relationships: Belongs to Project.
+/// Business responsibility: Measures high-level project progress against SLA deadlines.
+model ProjectMilestone {
+  id            String              @id @default(uuid()) @db.Uuid
+  title         String
+  description   String?
+  dueDate       DateTime?
+  completedDate DateTime?
+  status        MilestoneStatusEnum @default(PENDING)
+  projectId     String              @db.Uuid
+  sortOrder     Int                 @default(0)
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@map("project_milestones")
+}
+
+/// Purpose: Historical log tracking project status transitions over time.
+/// Relationships: Belongs to Project.
+/// Business responsibility: Audits workflow velocity and bottleneck timestamps.
+model ProjectStatus {
+  id          String            @id @default(uuid()) @db.Uuid
+  projectId   String            @db.Uuid
+  status      ProjectStatusEnum
+  notes       String?
+  changedById String?           @db.Uuid
+  createdAt   DateTime          @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@map("project_statuses")
+}
+
+/// Purpose: Granular Kanban action item within a project.
+/// Relationships: Belongs to Project and assigned User.
+/// Business responsibility: Staff-level task tracking and deadline management.
+model Task {
+  id           String    @id @default(uuid()) @db.Uuid
+  title        String
+  description  String?
+  status       String    @default("TODO")
+  progress     Int       @default(0)
+  dueDate      DateTime?
+  projectId    String    @db.Uuid
+  assignedToId String?   @db.Uuid
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  createdBy    String?
+  updatedBy    String?
+
+  project  Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  assignee User?   @relation("TaskAssignee", fields: [assignedToId], references: [id])
+
+  @@index([projectId])
+  @@index([assignedToId])
+  @@map("tasks")
+}
+
+/// Purpose: Final completed asset uploaded for client review and sign-off.
+/// Relationships: Belongs to Project and references MediaAsset.
+/// Business responsibility: Client approval gate and formal scope delivery record.
+model Deliverable {
+  id             String                @id @default(uuid()) @db.Uuid
+  title          String
+  description    String?
+  status         DeliverableStatusEnum @default(PENDING)
+  projectId      String                @db.Uuid
+  mediaAssetId   String?               @db.Uuid
+  submittedAt    DateTime?
+  approvedAt     DateTime?
+  clientFeedback String?
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+  deletedAt      DateTime?
+  createdBy      String?
+  updatedBy      String?
+
+  project    Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  mediaAsset MediaAsset? @relation(fields: [mediaAssetId], references: [id])
+
+  @@index([projectId])
+  @@index([status])
+  @@map("deliverables")
+}
+
+/// Purpose: Chronological project activity feed event.
+/// Relationships: Belongs to Project.
+/// Business responsibility: Powers project timeline visualization on client dashboard.
+model Timeline {
+  id          String   @id @default(uuid()) @db.Uuid
+  title       String
+  description String?
+  date        DateTime @default(now())
+  eventType   String
+  projectId   String   @db.Uuid
+  createdAt   DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@map("timelines")
+}
+
+// ==========================================
+// MEETINGS & CALENDAR
+// ==========================================
+
+/// Purpose: Video consultation consultation scheduled between staff and client.
+/// Relationships: Belongs to host User and ClientProfile. Has CalendarEvents.
+/// Business responsibility: Orchestrates consultation bookings and video room links.
+model Meeting {
+  id          String            @id @default(uuid()) @db.Uuid
+  title       String
+  description String?
+  status      MeetingStatusEnum @default(SCHEDULED)
+  startTime   DateTime
+  endTime     DateTime
+  timezone    String            @default("Asia/Kolkata")
+  meetUrl     String?
+  hostId      String            @db.Uuid
+  clientId    String?           @db.Uuid
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  deletedAt   DateTime?
+  createdBy   String?
+  updatedBy   String?
+
+  host          User           @relation("MeetingHost", fields: [hostId], references: [id])
+  client        ClientProfile? @relation(fields: [clientId], references: [id])
+  calendarEvent CalendarEvent?
+
+  @@index([hostId])
+  @@index([clientId])
+  @@index([startTime])
+  @@map("meetings")
+}
+
+/// Purpose: External calendar sync mapping (Google Calendar, Outlook).
+/// Relationships: Belongs to Meeting.
+/// Business responsibility: Ensures two-way calendar synchronization without double bookings.
+model CalendarEvent {
+  id              String   @id @default(uuid()) @db.Uuid
+  provider        String   @default("GOOGLE")
+  externalEventId String   @unique
+  meetingId       String   @unique @db.Uuid
+  syncStatus      String   @default("SYNCED")
+  htmlLink        String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  meeting Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+
+  @@index([meetingId])
+  @@map("calendar_events")
+}
+
+// ==========================================
+// COMMUNICATION & REALTIME CHAT
+// ==========================================
+
+/// Purpose: Realtime chat room bound to a project or support ticket.
+/// Relationships: Belongs to Project or SupportTicket. Has Participants and Messages.
+/// Business responsibility: Isolates communication threads by commercial workspace.
+model Conversation {
+  id              String   @id @default(uuid()) @db.Uuid
+  title           String?
+  type            String   @default("PROJECT_ROOM")
+  projectId       String?  @db.Uuid
+  supportTicketId String?  @unique @db.Uuid
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  project       Project?       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  supportTicket SupportTicket? @relation(fields: [supportTicketId], references: [id], onDelete: Cascade)
+  participants  Participant[]
+  messages      Message[]
+
+  @@index([projectId])
+  @@index([supportTicketId])
+  @@map("conversations")
+}
+
+/// Purpose: Member participant inside a conversation room.
+/// Relationships: Belongs to Conversation and User.
+/// Business responsibility: Tracks unread badge counts and room access authorization.
+model Participant {
+  id             String    @id @default(uuid()) @db.Uuid
+  conversationId String    @db.Uuid
+  userId         String    @db.Uuid
+  joinedAt       DateTime  @default(now())
+  lastReadAt     DateTime?
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user         User         @relation("ConversationParticipant", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userId])
+  @@index([userId])
+  @@map("participants")
+}
+
+/// Purpose: Individual text message or file broadcast in a conversation room.
+/// Relationships: Belongs to Conversation and sender User. Has Attachments.
+/// Business responsibility: Persistent chat log powering client-agency collaboration.
+model Message {
+  id             String    @id @default(uuid()) @db.Uuid
+  content        String
+  senderId       String    @db.Uuid
+  conversationId String    @db.Uuid
+  readAt         DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  deletedAt      DateTime?
+
+  sender       User         @relation("MessageSender", fields: [senderId], references: [id])
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  attachments  Attachment[]
+
+  @@index([conversationId])
+  @@index([senderId])
+  @@map("messages")
+}
+
+/// Purpose: File attachment embedded inside a chat message.
+/// Relationships: Belongs to Message and references MediaAsset.
+/// Business responsibility: Enables seamless file sharing in realtime chat.
+model Attachment {
+  id           String   @id @default(uuid()) @db.Uuid
+  messageId    String   @db.Uuid
+  mediaAssetId String   @db.Uuid
+  createdAt    DateTime @default(now())
+
+  message    Message    @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  mediaAsset MediaAsset @relation(fields: [mediaAssetId], references: [id])
+
+  @@index([messageId])
+  @@map("attachments")
+}
+
+// ==========================================
+// SUPPORT & CUSTOMER SERVICE
+// ==========================================
+
+/// Purpose: Client customer service troubleshooting request.
+/// Relationships: Belongs to ClientProfile and assigned User. Has Replies and Conversation.
+/// Business responsibility: SLA ticketing workflow resolving client issues.
+model SupportTicket {
+  id           String             @id @default(uuid()) @db.Uuid
+  ticketNumber String             @unique
+  subject      String
+  description  String
+  status       TicketStatusEnum   @default(OPEN)
+  priority     TicketPriorityEnum @default(MEDIUM)
+  clientId     String             @db.Uuid
+  assignedToId String?            @db.Uuid
+  category     String?
+  closedAt     DateTime?
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+  deletedAt    DateTime?
+  createdBy    String?
+  updatedBy    String?
+
+  client       ClientProfile @relation(fields: [clientId], references: [id])
+  assignee     User?         @relation("TicketAssignee", fields: [assignedToId], references: [id])
+  replies      TicketReply[]
+  conversation Conversation?
+
+  @@index([ticketNumber])
+  @@index([clientId])
+  @@index([status])
+  @@map("support_tickets")
+}
+
+/// Purpose: Staff or client reply message on a support ticket.
+/// Relationships: Belongs to SupportTicket and sender User.
+/// Business responsibility: Threaded communication history for support audits.
+model TicketReply {
+  id             String   @id @default(uuid()) @db.Uuid
+  ticketId       String   @db.Uuid
+  senderId       String   @db.Uuid
+  message        String
+  isInternalNote Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  ticket SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  sender User          @relation("TicketReplySender", fields: [senderId], references: [id])
+
+  @@index([ticketId])
+  @@map("ticket_replies")
+}
+
+// ==========================================
+// CONTENT MANAGEMENT (BLOGS, CASE STUDIES, PORTFOLIO, FAQ)
+// ==========================================
+
+/// Purpose: Published or draft marketing article in the CMS.
+/// Relationships: Belongs to BlogAuthor, Category, SEOPage. Has many Tags.
+/// Business responsibility: Organic SEO traffic generation and thought leadership.
+model Blog {
+  id             String         @id @default(uuid()) @db.Uuid
+  title          String
+  slug           String         @unique
+  excerpt        String?
+  content        String
+  status         BlogStatusEnum @default(DRAFT)
+  publishDate    DateTime?
+  readingTimeMin Int            @default(5)
+  authorId       String         @db.Uuid
+  coverImageId   String?        @db.Uuid
+  categoryId     String?        @db.Uuid
+  seoPageId      String?        @unique @db.Uuid
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  deletedAt      DateTime?
+  createdBy      String?
+  updatedBy      String?
+
+  author     BlogAuthor    @relation(fields: [authorId], references: [id])
+  coverImage MediaAsset?   @relation(fields: [coverImageId], references: [id])
+  category   BlogCategory? @relation(fields: [categoryId], references: [id])
+  seoPage    SEOPage?      @relation(fields: [seoPageId], references: [id])
+  tags       BlogTag[]     @relation("BlogToTag")
+
+  @@index([slug])
+  @@index([status])
+  @@index([categoryId])
+  @@map("blogs")
+}
+
+/// Purpose: Taxonomy category for blog articles.
+/// Relationships: Has many Blogs.
+/// Business responsibility: Categorizes articles for blog navigation.
+model BlogCategory {
+  id          String    @id @default(uuid()) @db.Uuid
+  name        String    @unique
+  slug        String    @unique
+  description String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  blogs Blog[]
+
+  @@index([slug])
+  @@map("blog_categories")
+}
+
+/// Purpose: Granular keyword tag label for blog articles.
+/// Relationships: Belongs to many Blogs.
+/// Business responsibility: Cross-indexing articles by specific topics.
+model BlogTag {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String   @unique
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  blogs Blog[] @relation("BlogToTag")
+
+  @@index([slug])
+  @@map("blog_tags")
+}
+
+/// Purpose: Profile attribution for marketing blog authors.
+/// Relationships: Belongs to User. Has many Blogs.
+/// Business responsibility: Displays author E-E-A-T credentials on articles.
+model BlogAuthor {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @unique @db.Uuid
+  bio         String?
+  avatarUrl   String?
+  twitterUrl  String?
+  linkedinUrl String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  blogs Blog[]
+
+  @@index([userId])
+  @@map("blog_authors")
+}
+
+/// Purpose: Comprehensive client success story showcasing ROI and metrics.
+/// Relationships: Belongs to Service and Category. Has Metrics, BeforeAfters, Testimonials.
+/// Business responsibility: Commercial proof-of-competence driving lead conversions.
+model CaseStudy {
+  id           String              @id @default(uuid()) @db.Uuid
+  title        String
+  slug         String              @unique
+  summary      String
+  challenge    String
+  solution     String
+  results      String
+  status       CaseStudyStatusEnum @default(DRAFT)
+  publishDate  DateTime?
+  clientName   String
+  industry     String?
+  serviceId    String?             @db.Uuid
+  categoryId   String?             @db.Uuid
+  coverImageId String?             @db.Uuid
+  seoPageId    String?             @unique @db.Uuid
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+  deletedAt    DateTime?
+  createdBy    String?
+  updatedBy    String?
+
+  service      Service?                @relation(fields: [serviceId], references: [id])
+  category     CaseStudyCategory?      @relation(fields: [categoryId], references: [id])
+  coverImage   MediaAsset?             @relation(fields: [coverImageId], references: [id])
+  seoPage      SEOPage?                @relation(fields: [seoPageId], references: [id])
+  metrics      CaseStudyMetric[]
+  beforeAfters BeforeAfterComparison[]
+  testimonials Testimonial[]
+
+  @@index([slug])
+  @@index([status])
+  @@index([serviceId])
+  @@map("case_studies")
+}
+
+/// Purpose: Quantitative performance KPI highlighted on a case study.
+/// Relationships: Belongs to CaseStudy.
+/// Business responsibility: Highlights metrics like "+240% Organic Traffic".
+model CaseStudyMetric {
+  id               String   @id @default(uuid()) @db.Uuid
+  label            String
+  value            String
+  changePercentage String?
+  caseStudyId      String   @db.Uuid
+  sortOrder        Int      @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  caseStudy CaseStudy @relation(fields: [caseStudyId], references: [id], onDelete: Cascade)
+
+  @@index([caseStudyId])
+  @@map("case_study_metrics")
+}
+
+/// Purpose: Visual side-by-side comparison slider asset.
+/// Relationships: Belongs to CaseStudy and references two MediaAssets.
+/// Business responsibility: Visual proof of redesigns or video transformations.
+model BeforeAfterComparison {
+  id            String   @id @default(uuid()) @db.Uuid
+  title         String?
+  description   String?
+  beforeImageId String   @db.Uuid
+  afterImageId  String   @db.Uuid
+  caseStudyId   String   @db.Uuid
+  sortOrder     Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  caseStudy   CaseStudy  @relation(fields: [caseStudyId], references: [id], onDelete: Cascade)
+  beforeImage MediaAsset @relation("BeforeImage", fields: [beforeImageId], references: [id])
+  afterImage  MediaAsset @relation("AfterImage", fields: [afterImageId], references: [id])
+
+  @@index([caseStudyId])
+  @@map("before_after_comparisons")
+}
+
+/// Purpose: Taxonomy category for case studies.
+/// Relationships: Has many CaseStudies.
+/// Business responsibility: Industry or domain filtering for success stories.
+model CaseStudyCategory {
+  id          String    @id @default(uuid()) @db.Uuid
+  name        String    @unique
+  slug        String    @unique
+  description String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  caseStudies CaseStudy[]
+
+  @@index([slug])
+  @@map("case_study_categories")
+}
+
+/// Purpose: Creative showcase project (video reel, website screenshot, graphic flyer).
+/// Relationships: Belongs to Service and PortfolioCategory. References MediaAsset.
+/// Business responsibility: Visual gallery demonstrating technical execution quality.
+model PortfolioProject {
+  id             String              @id @default(uuid()) @db.Uuid
+  title          String
+  slug           String              @unique
+  description    String?
+  clientName     String?
+  liveUrl        String?
+  completionDate DateTime?
+  status         PortfolioStatusEnum @default(PUBLISHED)
+  isFeatured     Boolean             @default(false)
+  serviceId      String?             @db.Uuid
+  categoryId     String?             @db.Uuid
+  coverImageId   String?             @db.Uuid
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  deletedAt      DateTime?
+  createdBy      String?
+  updatedBy      String?
+
+  service    Service?           @relation(fields: [serviceId], references: [id])
+  category   PortfolioCategory? @relation(fields: [categoryId], references: [id])
+  coverImage MediaAsset?        @relation(fields: [coverImageId], references: [id])
+
+  @@index([slug])
+  @@index([status])
+  @@index([serviceId])
+  @@map("portfolio_projects")
+}
+
+/// Purpose: Taxonomy grouping for creative portfolio galleries.
+/// Relationships: Has many PortfolioProjects.
+/// Business responsibility: Organizes reels and mockups by creative medium.
+model PortfolioCategory {
+  id          String    @id @default(uuid()) @db.Uuid
+  name        String    @unique
+  slug        String    @unique
+  description String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  projects PortfolioProject[]
+
+  @@index([slug])
+  @@map("portfolio_categories")
+}
+
+/// Purpose: Client review, rating, and testimonial quote.
+/// Relationships: Belongs to ClientProfile, CaseStudy. References MediaAsset avatar.
+/// Business responsibility: Builds social proof and trust across landing pages.
+model Testimonial {
+  id             String                @id @default(uuid()) @db.Uuid
+  clientName     String
+  clientTitle    String?
+  companyName    String?
+  content        String
+  rating         Int                   @default(5)
+  status         TestimonialStatusEnum @default(APPROVED)
+  isFeatured     Boolean               @default(false)
+  isVerified     Boolean               @default(true)
+  avatarUrl      String?
+  videoReviewUrl String?
+  clientId       String?               @db.Uuid
+  caseStudyId    String?               @db.Uuid
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+  deletedAt      DateTime?
+  createdBy      String?
+  updatedBy      String?
+
+  client    ClientProfile? @relation(fields: [clientId], references: [id])
+  caseStudy CaseStudy?     @relation(fields: [caseStudyId], references: [id])
+
+  @@index([status])
+  @@index([isFeatured])
+  @@map("testimonials")
+}
+
+/// Purpose: Question and answer pair categorized for instant client help.
+/// Relationships: Belongs to FAQCategory and Service.
+/// Business responsibility: Self-service knowledge base reducing support ticket volume.
+model FAQ {
+  id         String        @id @default(uuid()) @db.Uuid
+  question   String
+  answer     String
+  status     FAQStatusEnum @default(PUBLISHED)
+  isFeatured Boolean       @default(false)
+  sortOrder  Int           @default(0)
+  categoryId String?       @db.Uuid
+  serviceId  String?       @db.Uuid
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  deletedAt  DateTime?
+  createdBy  String?
+  updatedBy  String?
+
+  category FAQCategory? @relation(fields: [categoryId], references: [id])
+  service  Service?     @relation(fields: [serviceId], references: [id])
+
+  @@index([status])
+  @@index([categoryId])
+  @@map("faqs")
+}
+
+/// Purpose: Taxonomy grouping for frequently asked questions.
+/// Relationships: Has many FAQs.
+/// Business responsibility: Organizes FAQ accordion tabs on support and about pages.
+model FAQCategory {
+  id          String    @id @default(uuid()) @db.Uuid
+  name        String    @unique
+  slug        String    @unique
+  description String?
+  sortOrder   Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  faqs FAQ[]
+
+  @@index([slug])
+  @@map("faq_categories")
+}
+
+// ==========================================
+// MEDIA & FILE STORAGE ARCHITECTURE
+// ==========================================
+
+/// Purpose: Hierarchical directory folder organizing media files.
+/// Relationships: Self-referential parent/child hierarchy. Has many MediaAssets.
+/// Business responsibility: Keeps media library organized in Admin CMS.
+model MediaFolder {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  slug      String
+  parentId  String?  @db.Uuid
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  parent   MediaFolder?  @relation("FolderHierarchy", fields: [parentId], references: [id])
+  children MediaFolder[] @relation("FolderHierarchy")
+  assets   MediaAsset[]
+
+  @@index([parentId])
+  @@map("media_folders")
+}
+
+/// Purpose: Central file registry for all uploaded images, videos, and PDFs.
+/// Relationships: Belongs to MediaFolder, uploader User. Reused across all CMS entities.
+/// Business responsibility: Reusable file record preventing duplicated S3 storage uploads.
+model MediaAsset {
+  id            String        @id @default(uuid()) @db.Uuid
+  fileName      String
+  originalName  String
+  mimeType      String
+  fileExtension String
+  sizeBytes     Int
+  width         Int?
+  height        Int?
+  cdnUrl        String
+  storageKey    String        @unique
+  storageBucket String        @default("simbolo-public-assets")
+  mediaType     MediaTypeEnum @default(IMAGE)
+  folderId      String?       @db.Uuid
+  uploaderId    String?       @db.Uuid
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  deletedAt     DateTime?
+  createdBy     String?
+  updatedBy     String?
+
+  folder            MediaFolder?            @relation(fields: [folderId], references: [id])
+  uploader          User?                   @relation("MediaUploader", fields: [uploaderId], references: [id])
+  deliverables      Deliverable[]
+  attachments       Attachment[]
+  blogCovers        Blog[]
+  caseStudyCovers   CaseStudy[]
+  beforeComparisons BeforeAfterComparison[] @relation("BeforeImage")
+  afterComparisons  BeforeAfterComparison[] @relation("AfterImage")
+  portfolioCovers   PortfolioProject[]
+  invoices          Invoice[]
+
+  @@index([storageKey])
+  @@index([mediaType])
+  @@index([folderId])
+  @@map("media_assets")
+}
+
+// ==========================================
+// SEO & SITE METADATA
+// ==========================================
+
+/// Purpose: Dedicated SEO metadata repository for public-facing URLs.
+/// Relationships: One-to-One with Blog, CaseStudy, Service, Package.
+/// Business responsibility: Controls search engine indexing, OG cards, and schema JSON-LD.
+model SEOPage {
+  id              String   @id @default(uuid()) @db.Uuid
+  path            String   @unique
+  metaTitle       String
+  metaDescription String
+  keywords        String?
+  canonicalUrl    String?
+  ogTitle         String?
+  ogDescription   String?
+  ogImageId       String?  @db.Uuid
+  twitterCard     String   @default("summary_large_image")
+  schemaJson      String?
+  indexable       Boolean  @default(true)
+  followable      Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  createdBy       String?
+  updatedBy       String?
+
+  blog      Blog?
+  caseStudy CaseStudy?
+  service   Service?
+  package   Package?
+
+  @@index([path])
+  @@map("seo_pages")
+}
+
+/// Purpose: 301/302 HTTP redirect rule mapping.
+/// Relationships: Standalone routing entity.
+/// Business responsibility: Preserves SEO link equity during URL restructuring.
+model Redirect {
+  id         String   @id @default(uuid()) @db.Uuid
+  sourcePath String   @unique
+  targetPath String
+  statusCode Int      @default(301)
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([sourcePath])
+  @@map("redirects")
+}
+
+/// Purpose: XML sitemap configuration entry.
+/// Relationships: Standalone indexing entity.
+/// Business responsibility: Guides Google search crawler indexing priority and frequency.
+model SitemapEntry {
+  id         String   @id @default(uuid()) @db.Uuid
+  loc        String   @unique
+  lastmod    DateTime @default(now())
+  changefreq String   @default("weekly")
+  priority   Float    @default(0.8)
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([loc])
+  @@map("sitemap_entries")
+}
+
+// ==========================================
+// NOTIFICATIONS & USER PREFERENCES
+// ==========================================
+
+/// Purpose: User-specific alert dispatch log.
+/// Relationships: Belongs to User.
+/// Business responsibility: Realtime bell badge updates and historical notification center.
+model Notification {
+  id        String                  @id @default(uuid()) @db.Uuid
+  title     String
+  message   String
+  type      NotificationTypeEnum    @default(SYSTEM)
+  channel   NotificationChannelEnum @default(IN_APP)
+  isRead    Boolean                 @default(false)
+  readAt    DateTime?
+  deepLink  String?
+  userId    String                  @db.Uuid
+  createdAt DateTime                @default(now())
+  updatedAt DateTime                @updatedAt
+  deletedAt DateTime?
+
+  user User @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isRead])
+  @@map("notifications")
+}
+
+/// Purpose: Granular notification channel preference toggles.
+/// Relationships: Belongs to User (One-to-One).
+/// Business responsibility: Enforces user opt-out choices for email and SMS alerts.
+model NotificationPreference {
+  id                 String   @id @default(uuid()) @db.Uuid
+  userId             String   @unique @db.Uuid
+  emailOrderUpdates  Boolean  @default(true)
+  emailMarketing     Boolean  @default(false)
+  inAppProjectAlerts Boolean  @default(true)
+  smsUrgentAlerts    Boolean  @default(false)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notification_preferences")
+}
+
+// ==========================================
+// ANALYTICS & EVENT TRACKING
+// ==========================================
+
+/// Purpose: High-volume website page view tracking event.
+/// Relationships: Standalone telemetry record.
+/// Business responsibility: Measures organic traffic volume, referrers, and device breakdowns.
+model PageView {
+  id         String   @id @default(uuid()) @db.Uuid
+  path       String
+  url        String
+  referrer   String?
+  userAgent  String?
+  ipAddress  String?
+  country    String?
+  deviceType String?
+  sessionId  String?
+  userId     String?  @db.Uuid
+  timestamp  DateTime @default(now())
+
+  @@index([path])
+  @@index([timestamp])
+  @@index([sessionId])
+  @@map("page_views")
+}
+
+/// Purpose: Custom interactive user action tracking log.
+/// Relationships: Standalone analytics event.
+/// Business responsibility: Records button clicks, CTA conversions, and video play events.
+model EventLog {
+  id            String   @id @default(uuid()) @db.Uuid
+  eventName     String
+  eventCategory String
+  eventAction   String
+  eventValue    String?
+  metadata      String?
+  sessionId     String?
+  userId        String?  @db.Uuid
+  timestamp     DateTime @default(now())
+
+  @@index([eventName])
+  @@index([timestamp])
+  @@index([sessionId])
+  @@map("event_logs")
+}
+
+// ==========================================
+// GLOBAL SETTINGS & THEMING
+// ==========================================
+
+/// Purpose: Key-value runtime platform configuration cache.
+/// Relationships: Standalone CMS settings store.
+/// Business responsibility: Allows admins to toggle site maintenance modes without server restarts.
+model GlobalSetting {
+  id          String   @id @default(uuid()) @db.Uuid
+  key         String   @unique
+  value       String
+  description String?
+  isPublic    Boolean  @default(false)
+  category    String   @default("GENERAL")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  updatedBy   String?
+
+  @@index([key])
+  @@index([category])
+  @@map("global_settings")
+}
+
+/// Purpose: Visual styling and logo branding configurations.
+/// Relationships: Standalone branding store.
+/// Business responsibility: Dynamic white-label theming across client dashboards.
+model ThemeSetting {
+  id               String   @id @default(uuid()) @db.Uuid
+  primaryColor     String   @default("#14B8A6")
+  secondaryColor   String   @default("#0F172A")
+  accentColor      String   @default("#F59E0B")
+  darkModeLogoUrl  String?
+  lightModeLogoUrl String?
+  fontFamily       String   @default("Inter")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  updatedBy        String?
+
+  @@map("theme_settings")
+}
+
+// ==========================================
+// AFFILIATES & REFERRAL TRACKING
+// ==========================================
+
+/// Purpose: Partner referral program account profile.
+/// Relationships: Belongs to User. Has many Referrals and Commissions.
+/// Business responsibility: Tracks referral link clicks and tier-based commission payouts.
+model Affiliate {
+  id             String    @id @default(uuid()) @db.Uuid
+  affiliateCode  String    @unique
+  commissionRate Float     @default(15.0)
+  totalEarnings  Float     @default(0.0)
+  pendingBalance Float     @default(0.0)
+  paidBalance    Float     @default(0.0)
+  status         String    @default("ACTIVE")
+  userId         String    @unique @db.Uuid
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  deletedAt      DateTime?
+  createdBy      String?
+  updatedBy      String?
+
+  user        User         @relation("UserAffiliate", fields: [userId], references: [id], onDelete: Cascade)
+  referrals   Referral[]
+  commissions Commission[]
+
+  @@index([affiliateCode])
+  @@index([userId])
+  @@map("affiliates")
+}
+
+/// Purpose: Individual lead referral attribution record.
+/// Relationships: Belongs to Affiliate and referred User.
+/// Business responsibility: Maps new client signups to responsible affiliate partners.
+model Referral {
+  id             String   @id @default(uuid()) @db.Uuid
+  referralCode   String
+  referredUserId String   @unique @db.Uuid
+  affiliateId    String   @db.Uuid
+  status         String   @default("CONVERTED")
+  convertedAt    DateTime @default(now())
+  createdAt      DateTime @default(now())
+
+  referredUser User      @relation("ReferredUser", fields: [referredUserId], references: [id], onDelete: Cascade)
+  affiliate    Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+
+  @@index([affiliateId])
+  @@map("referrals")
+}
+
+/// Purpose: Earned monetary bounty generated from an order conversion.
+/// Relationships: Belongs to Affiliate and Order.
+/// Business responsibility: Commission payout ledger for affiliate withdrawals.
+model Commission {
+  id          String    @id @default(uuid()) @db.Uuid
+  amount      Float
+  currency    String    @default("INR")
+  status      String    @default("PENDING")
+  percentage  Float
+  orderId     String    @db.Uuid
+  affiliateId String    @db.Uuid
+  paidAt      DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  order     Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  affiliate Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+
+  @@index([affiliateId])
+  @@index([orderId])
+  @@map("commissions")
+}
+
+// ==========================================
+// COMPLIANCE & SECURITY AUDITING
+// ==========================================
+
+/// Purpose: Immutable security and compliance action log.
+/// Relationships: Belongs to actor User.
+/// Business responsibility: Write-once-read-many (WORM) audit trail for legal compliance and accountability.
+model AuditLog {
+  id         String   @id @default(uuid()) @db.Uuid
+  action     String
+  entityType String
+  entityId   String
+  oldValue   String?
+  newValue   String?
+  ipAddress  String?
+  userAgent  String?
+  userId     String?  @db.Uuid
+  createdAt  DateTime @default(now())
+
+  user User? @relation("UserAuditLogs", fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
