@@ -47,6 +47,8 @@ export function PackagesPage() {
                 accent={item.themeColor as any}
                 delay={index * 0.05}
                 onClick={() => setSelectedPackage(item)}
+                showCta={true}
+                ctaText="Explore"
               />
             );
           })}

@@ -10,6 +10,7 @@ exports.APP_CONSTANTS = {
     MAX_LIMIT: 100,
     REQUEST_ID_HEADER: 'x-request-id',
     ROLES_KEY: 'roles',
+    PERMISSIONS_KEY: 'permissions',
     IS_PUBLIC_KEY: 'isPublic',
 };
 //# sourceMappingURL=app.constants.js.map

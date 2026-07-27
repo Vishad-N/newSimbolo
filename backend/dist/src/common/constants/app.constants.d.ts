@@ -7,5 +7,6 @@ export declare const APP_CONSTANTS: {
     MAX_LIMIT: number;
     REQUEST_ID_HEADER: string;
     ROLES_KEY: string;
+    PERMISSIONS_KEY: string;
     IS_PUBLIC_KEY: string;
 };

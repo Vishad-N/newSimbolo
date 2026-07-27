@@ -1,0 +1,151 @@
+import { CaseStudiesService } from './case-studies.service';
+import { CreateCaseStudyDto } from './dto/create-case-study.dto';
+import { UpdateCaseStudyDto } from './dto/update-case-study.dto';
+import { CreateCaseStudyCategoryDto } from './dto/create-case-study-category.dto';
+import { CreateCaseStudyMetricDto } from './dto/create-case-study-metric.dto';
+import { CreateBeforeAfterDto } from './dto/create-before-after.dto';
+import { CaseStudyStatusEnum } from '@prisma/client';
+import { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
+export declare class CaseStudiesController {
+    private readonly caseStudiesService;
+    constructor(caseStudiesService: CaseStudiesService);
+    getCategories(): Promise<{
+        id: string;
+        createdAt: Date;
+        name: string;
+        updatedAt: Date;
+        deletedAt: Date | null;
+        description: string | null;
+        slug: string;
+    }[]>;
+    getCaseStudies(categoryId?: string, serviceId?: string, search?: string, status?: CaseStudyStatusEnum): Promise<{
+        id: string;
+        createdAt: Date;
+        status: import(".prisma/client").$Enums.CaseStudyStatusEnum;
+        updatedAt: Date;
+        deletedAt: Date | null;
+        createdBy: string | null;
+        updatedBy: string | null;
+        title: string;
+        slug: string;
+        summary: string;
+        industry: string | null;
+        categoryId: string | null;
+        serviceId: string | null;
+        seoPageId: string | null;
+        coverImageId: string | null;
+        publishDate: Date | null;
+        challenge: string;
+        solution: string;
+        results: string;
+        clientName: string;
+    }[]>;
+    getCaseStudyBySlug(slug: string): Promise<{
+        id: string;
+        createdAt: Date;
+        status: import(".prisma/client").$Enums.CaseStudyStatusEnum;
+        updatedAt: Date;
+        deletedAt: Date | null;
+        createdBy: string | null;
+        updatedBy: string | null;
+        title: string;
+        slug: string;
+        summary: string;
+        industry: string | null;
+        categoryId: string | null;
+        serviceId: string | null;
+        seoPageId: string | null;
+        coverImageId: string | null;
+        publishDate: Date | null;
+        challenge: string;
+        solution: string;
+        results: string;
+        clientName: string;
+    }>;
+    createCaseStudy(dto: CreateCaseStudyDto, user: JwtPayload): Promise<{
+        id: string;
+        createdAt: Date;
+        status: import(".prisma/client").$Enums.CaseStudyStatusEnum;
+        updatedAt: Date;
+        deletedAt: Date | null;
+        createdBy: string | null;
+        updatedBy: string | null;
+        title: string;
+        slug: string;
+        summary: string;
+        industry: string | null;
+        categoryId: string | null;
+        serviceId: string | null;
+        seoPageId: string | null;
+        coverImageId: string | null;
+        publishDate: Date | null;
+        challenge: string;
+        solution: string;
+        results: string;
+        clientName: string;
+    }>;
+    updateCaseStudy(id: string, dto: UpdateCaseStudyDto, user: JwtPayload): Promise<{
+        id: string;
+        createdAt: Date;
+        status: import(".prisma/client").$Enums.CaseStudyStatusEnum;
+        updatedAt: Date;
+        deletedAt: Date | null;
+        createdBy: string | null;
+        updatedBy: string | null;
+        title: string;
+        slug: string;
+        summary: string;
+        industry: string | null;
+        categoryId: string | null;
+        serviceId: string | null;
+        seoPageId: string | null;
+        coverImageId: string | null;
+        publishDate: Date | null;
+        challenge: string;
+        solution: string;
+        results: string;
+        clientName: string;
+    }>;
+    deleteCaseStudy(id: string, user: JwtPayload): Promise<{
+        success: boolean;
+    }>;
+    createCategory(dto: CreateCaseStudyCategoryDto): Promise<{
+        id: string;
+        createdAt: Date;
+        name: string;
+        updatedAt: Date;
+        deletedAt: Date | null;
+        description: string | null;
+        slug: string;
+    }>;
+    deleteCategory(id: string): Promise<{
+        success: boolean;
+    }>;
+    addMetric(dto: CreateCaseStudyMetricDto): Promise<{
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        value: string;
+        sortOrder: number;
+        label: string;
+        changePercentage: string | null;
+        caseStudyId: string;
+    }>;
+    deleteMetric(id: string): Promise<{
+        success: boolean;
+    }>;
+    addBeforeAfter(dto: CreateBeforeAfterDto): Promise<{
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        description: string | null;
+        title: string | null;
+        sortOrder: number;
+        caseStudyId: string;
+        beforeImageId: string;
+        afterImageId: string;
+    }>;
+    deleteBeforeAfter(id: string): Promise<{
+        success: boolean;
+    }>;
+}

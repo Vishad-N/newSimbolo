@@ -16,6 +16,9 @@ const shared_module_1 = require("./shared/shared.module");
 const auth_module_1 = require("./auth/auth.module");
 const users_module_1 = require("./users/users.module");
 const health_module_1 = require("./health/health.module");
+const roles_module_1 = require("./roles/roles.module");
+const permissions_module_1 = require("./permissions/permissions.module");
+const profiles_module_1 = require("./profiles/profiles.module");
 const global_exception_filter_1 = require("./common/filters/global-exception.filter");
 const transform_interceptor_1 = require("./common/interceptors/transform.interceptor");
 const logging_interceptor_1 = require("./common/interceptors/logging.interceptor");
@@ -23,7 +26,18 @@ const timeout_interceptor_1 = require("./common/interceptors/timeout.interceptor
 const validation_pipe_1 = require("./common/pipes/validation.pipe");
 const jwt_auth_guard_1 = require("./common/guards/jwt-auth.guard");
 const roles_guard_1 = require("./common/guards/roles.guard");
+const permissions_guard_1 = require("./common/guards/permissions.guard");
 const request_logger_middleware_1 = require("./common/middleware/request-logger.middleware");
+const media_module_1 = require("./media/media.module");
+const cms_module_1 = require("./cms/cms.module");
+const services_catalog_module_1 = require("./services-catalog/services-catalog.module");
+const packages_module_1 = require("./packages/packages.module");
+const blogs_module_1 = require("./blogs/blogs.module");
+const case_studies_module_1 = require("./case-studies/case-studies.module");
+const portfolio_module_1 = require("./portfolio/portfolio.module");
+const testimonials_module_1 = require("./testimonials/testimonials.module");
+const faq_module_1 = require("./faq/faq.module");
+const seo_module_1 = require("./seo/seo.module");
 let AppModule = class AppModule {
     configure(consumer) {
         consumer.apply(request_logger_middleware_1.RequestLoggerMiddleware).forRoutes('*');
@@ -38,7 +52,20 @@ exports.AppModule = AppModule = __decorate([
             shared_module_1.SharedModule,
             auth_module_1.AuthModule,
             users_module_1.UsersModule,
+            roles_module_1.RolesModule,
+            permissions_module_1.PermissionsModule,
+            profiles_module_1.ProfilesModule,
             health_module_1.HealthModule,
+            media_module_1.MediaModule,
+            cms_module_1.CmsModule,
+            services_catalog_module_1.ServicesCatalogModule,
+            packages_module_1.PackagesModule,
+            blogs_module_1.BlogsModule,
+            case_studies_module_1.CaseStudiesModule,
+            portfolio_module_1.PortfolioModule,
+            testimonials_module_1.TestimonialsModule,
+            faq_module_1.FaqModule,
+            seo_module_1.SeoModule,
             throttler_1.ThrottlerModule.forRoot([
                 {
                     name: 'default',
@@ -79,6 +106,10 @@ exports.AppModule = AppModule = __decorate([
             {
                 provide: core_1.APP_GUARD,
                 useClass: roles_guard_1.RolesGuard,
+            },
+            {
+                provide: core_1.APP_GUARD,
+                useClass: permissions_guard_1.PermissionsGuard,
             },
         ],
     })

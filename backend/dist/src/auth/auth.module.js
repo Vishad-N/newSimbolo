@@ -13,7 +13,13 @@ const jwt_1 = require("@nestjs/jwt");
 const config_1 = require("@nestjs/config");
 const jwt_strategy_1 = require("./strategies/jwt.strategy");
 const jwt_refresh_strategy_1 = require("./strategies/jwt-refresh.strategy");
+const google_strategy_1 = require("./strategies/google.strategy");
+const auth_service_1 = require("./auth.service");
+const auth_controller_1 = require("./auth.controller");
 const users_module_1 = require("../users/users.module");
+const prisma_module_1 = require("../prisma/prisma.module");
+const sessions_module_1 = require("../sessions/sessions.module");
+const shared_module_1 = require("../shared/shared.module");
 let AuthModule = class AuthModule {
 };
 exports.AuthModule = AuthModule;
@@ -21,6 +27,9 @@ exports.AuthModule = AuthModule = __decorate([
     (0, common_1.Module)({
         imports: [
             users_module_1.UsersModule,
+            prisma_module_1.PrismaModule,
+            sessions_module_1.SessionsModule,
+            shared_module_1.SharedModule,
             passport_1.PassportModule.register({ defaultStrategy: 'jwt' }),
             jwt_1.JwtModule.registerAsync({
                 inject: [config_1.ConfigService],
@@ -32,8 +41,9 @@ exports.AuthModule = AuthModule = __decorate([
                 }),
             }),
         ],
-        providers: [jwt_strategy_1.JwtStrategy, jwt_refresh_strategy_1.JwtRefreshStrategy],
-        exports: [passport_1.PassportModule, jwt_1.JwtModule, jwt_strategy_1.JwtStrategy, jwt_refresh_strategy_1.JwtRefreshStrategy],
+        controllers: [auth_controller_1.AuthController],
+        providers: [auth_service_1.AuthService, jwt_strategy_1.JwtStrategy, jwt_refresh_strategy_1.JwtRefreshStrategy, google_strategy_1.GoogleStrategy],
+        exports: [passport_1.PassportModule, jwt_1.JwtModule, auth_service_1.AuthService, jwt_strategy_1.JwtStrategy, jwt_refresh_strategy_1.JwtRefreshStrategy],
     })
 ], AuthModule);
 //# sourceMappingURL=auth.module.js.map

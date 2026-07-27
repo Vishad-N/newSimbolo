@@ -17,6 +17,9 @@ export interface AuthConfig {
   jwtRefreshSecret: string;
   jwtRefreshExpiresIn: string;
   bcryptRounds: number;
+  googleClientId?: string;
+  googleClientSecret?: string;
+  googleCallbackUrl?: string;
 }
 
 export interface StorageConfig {

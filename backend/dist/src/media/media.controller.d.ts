@@ -1,0 +1,115 @@
+import { MediaService } from './media.service';
+import { CreateMediaFolderDto } from './dto/create-media-folder.dto';
+import { UpdateMediaAssetDto } from './dto/update-media-asset.dto';
+import { MediaFilterDto } from './dto/media-filter.dto';
+import { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
+export declare class MediaController {
+    private readonly mediaService;
+    constructor(mediaService: MediaService);
+    uploadFile(file: Express.Multer.File, user: JwtPayload, folderId?: string): Promise<{
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        deletedAt: Date | null;
+        createdBy: string | null;
+        updatedBy: string | null;
+        fileName: string;
+        folderId: string | null;
+        mediaType: import(".prisma/client").$Enums.MediaTypeEnum;
+        originalName: string;
+        mimeType: string;
+        fileExtension: string;
+        sizeBytes: number;
+        width: number | null;
+        height: number | null;
+        cdnUrl: string;
+        storageKey: string;
+        storageBucket: string;
+        uploaderId: string | null;
+    }>;
+    getAssets(filter: MediaFilterDto): Promise<{
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        deletedAt: Date | null;
+        createdBy: string | null;
+        updatedBy: string | null;
+        fileName: string;
+        folderId: string | null;
+        mediaType: import(".prisma/client").$Enums.MediaTypeEnum;
+        originalName: string;
+        mimeType: string;
+        fileExtension: string;
+        sizeBytes: number;
+        width: number | null;
+        height: number | null;
+        cdnUrl: string;
+        storageKey: string;
+        storageBucket: string;
+        uploaderId: string | null;
+    }[]>;
+    getFolders(parentId?: string): Promise<{
+        id: string;
+        createdAt: Date;
+        name: string;
+        updatedAt: Date;
+        slug: string;
+        parentId: string | null;
+    }[]>;
+    createFolder(dto: CreateMediaFolderDto): Promise<{
+        id: string;
+        createdAt: Date;
+        name: string;
+        updatedAt: Date;
+        slug: string;
+        parentId: string | null;
+    }>;
+    deleteFolder(id: string): Promise<{
+        success: boolean;
+    }>;
+    getAssetById(id: string): Promise<{
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        deletedAt: Date | null;
+        createdBy: string | null;
+        updatedBy: string | null;
+        fileName: string;
+        folderId: string | null;
+        mediaType: import(".prisma/client").$Enums.MediaTypeEnum;
+        originalName: string;
+        mimeType: string;
+        fileExtension: string;
+        sizeBytes: number;
+        width: number | null;
+        height: number | null;
+        cdnUrl: string;
+        storageKey: string;
+        storageBucket: string;
+        uploaderId: string | null;
+    }>;
+    updateAsset(id: string, dto: UpdateMediaAssetDto): Promise<{
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        deletedAt: Date | null;
+        createdBy: string | null;
+        updatedBy: string | null;
+        fileName: string;
+        folderId: string | null;
+        mediaType: import(".prisma/client").$Enums.MediaTypeEnum;
+        originalName: string;
+        mimeType: string;
+        fileExtension: string;
+        sizeBytes: number;
+        width: number | null;
+        height: number | null;
+        cdnUrl: string;
+        storageKey: string;
+        storageBucket: string;
+        uploaderId: string | null;
+    }>;
+    deleteAsset(id: string): Promise<{
+        success: boolean;
+    }>;
+}
