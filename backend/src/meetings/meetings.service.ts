@@ -11,10 +11,10 @@ export class MeetingsService extends BaseService {
   }
 
   private readonly meetingInclude = {
-    host: { select: { id: true, firstName: true, lastName: true, email: true, avatar: true } },
+    host: { select: { id: true, firstName: true, lastName: true, email: true, avatarUrl: true } },
     client: { include: { user: { select: { id: true, firstName: true, lastName: true, email: true } } } },
     participants: {
-      include: { user: { select: { id: true, firstName: true, lastName: true, avatar: true } } },
+      include: { user: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } } },
     },
     calendarEvent: true,
   };
