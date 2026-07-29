@@ -31,13 +31,19 @@ describe('AuthController (e2e)', () => {
         }
         return Promise.resolve(null);
       }),
-      create: jest.fn().mockImplementation(({ data }) => Promise.resolve({ ...mockUser, email: data.email, firstName: data.firstName, lastName: data.lastName })),
+      create: jest
+        .fn()
+        .mockImplementation(({ data }) =>
+          Promise.resolve({ ...mockUser, email: data.email, firstName: data.firstName, lastName: data.lastName }),
+        ),
     },
     role: {
       findUnique: jest.fn().mockResolvedValue({ id: 'role-123', name: 'User', slug: 'user' }),
     },
     refreshToken: {
-      create: jest.fn().mockResolvedValue({ id: 'token-123', token: 'refresh-token', expiresAt: new Date(Date.now() + 10000) }),
+      create: jest
+        .fn()
+        .mockResolvedValue({ id: 'token-123', token: 'refresh-token', expiresAt: new Date(Date.now() + 10000) }),
       updateMany: jest.fn().mockResolvedValue({ count: 1 }),
     },
     session: {

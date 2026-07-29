@@ -5,10 +5,7 @@ import { AuditService } from '../shared/audit/audit.service';
 import { SessionsService } from '../sessions/sessions.service';
 import { UserStatusEnum } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
-import {
-  CustomUnauthorizedException,
-  BusinessException,
-} from '../common/exceptions/custom.exceptions';
+import { CustomUnauthorizedException, BusinessException } from '../common/exceptions/custom.exceptions';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 

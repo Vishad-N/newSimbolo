@@ -7,7 +7,11 @@ export class CreateSitemapEntryDto {
   @IsNotEmpty()
   loc!: string;
 
-  @ApiPropertyOptional({ example: 'weekly', default: 'weekly', description: 'Change frequency (always, hourly, daily, weekly, monthly, yearly, never)' })
+  @ApiPropertyOptional({
+    example: 'weekly',
+    default: 'weekly',
+    description: 'Change frequency (always, hourly, daily, weekly, monthly, yearly, never)',
+  })
   @IsOptional()
   @IsString()
   changefreq?: string;

@@ -11,7 +11,7 @@ export function HelpCategories() {
     <SectionCard className="p-5 sm:p-8">
       <div className="mb-6 flex items-center justify-between">
         <h2 className="text-[1.25rem] font-bold text-white">Browse by Category</h2>
-        <Link href="#" className="hidden sm:flex items-center gap-1.5 text-[0.85rem] font-medium text-[var(--accent)] transition hover:text-[var(--accent-hover)]">
+        <Link href="/help-center" className="hidden sm:flex items-center gap-1.5 text-[0.85rem] font-medium text-[var(--accent)] transition hover:text-[var(--accent-hover)]">
           View all categories <ArrowRight className="h-4 w-4" />
         </Link>
       </div>

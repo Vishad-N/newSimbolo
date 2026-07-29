@@ -18,7 +18,17 @@ let RequestLoggerMiddleware = class RequestLoggerMiddleware {
             const { statusCode } = res;
             const contentLength = res.get('content-length') || 0;
             const duration = Date.now() - start;
-            const logMessage = `${method} ${originalUrl} ${statusCode} ${contentLength}b - ${duration}ms - ${userAgent} ${ip}`;
+            const requestId = req.header('x-request-id') || 'missing-request-id';
+            const logMessage = JSON.stringify({
+                requestId,
+                method,
+                path: originalUrl,
+                statusCode,
+                contentLength: Number(contentLength),
+                durationMs: duration,
+                userAgent,
+                ip,
+            });
             if (statusCode >= 500) {
                 this.logger.error(logMessage);
             }

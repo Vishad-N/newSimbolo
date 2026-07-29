@@ -19,7 +19,10 @@ export class UpdateSettingDto {
   @MaxLength(255)
   description?: string;
 
-  @ApiPropertyOptional({ example: true, description: 'Whether this setting is publicly accessible without authentication' })
+  @ApiPropertyOptional({
+    example: true,
+    description: 'Whether this setting is publicly accessible without authentication',
+  })
   @IsOptional()
   @IsBoolean()
   isPublic?: boolean;

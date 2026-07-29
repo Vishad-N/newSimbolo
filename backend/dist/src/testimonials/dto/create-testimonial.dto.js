@@ -51,7 +51,10 @@ __decorate([
     __metadata("design:type", String)
 ], CreateTestimonialDto.prototype, "companyName", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 'The Simbolo completely transformed our inbound lead pipeline...', description: 'Testimonial quote text' }),
+    (0, swagger_1.ApiProperty)({
+        example: 'The Simbolo completely transformed our inbound lead pipeline...',
+        description: 'Testimonial quote text',
+    }),
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)

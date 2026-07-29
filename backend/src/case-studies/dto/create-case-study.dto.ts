@@ -8,7 +8,10 @@ export class CreateCaseStudyDto {
   @IsNotEmpty()
   title!: string;
 
-  @ApiProperty({ example: 'How we helped Acme FinTech dominate high-intent keywords...', description: 'Executive summary' })
+  @ApiProperty({
+    example: 'How we helped Acme FinTech dominate high-intent keywords...',
+    description: 'Executive summary',
+  })
   @IsString()
   @IsNotEmpty()
   summary!: string;
@@ -18,12 +21,18 @@ export class CreateCaseStudyDto {
   @IsNotEmpty()
   challenge!: string;
 
-  @ApiProperty({ example: 'We deployed a full technical SEO audit and topic cluster strategy...', description: 'The solution implemented' })
+  @ApiProperty({
+    example: 'We deployed a full technical SEO audit and topic cluster strategy...',
+    description: 'The solution implemented',
+  })
   @IsString()
   @IsNotEmpty()
   solution!: string;
 
-  @ApiProperty({ example: 'Within 6 months, organic traffic grew by 400%...', description: 'The measurable results achieved' })
+  @ApiProperty({
+    example: 'Within 6 months, organic traffic grew by 400%...',
+    description: 'The measurable results achieved',
+  })
   @IsString()
   @IsNotEmpty()
   results!: string;

@@ -1,6 +1,6 @@
 export type BillingCycle = "monthly" | "yearly";
 
-export type PackageTheme = "teal" | "blue" | "purple" | "orange";
+export type PackageTheme = "teal" | "blue" | "purple" | "orange" | "green" | "cyan" | "pink";
 
 export type PackageIconName = "send" | "rocket" | "crown" | "gem";
 

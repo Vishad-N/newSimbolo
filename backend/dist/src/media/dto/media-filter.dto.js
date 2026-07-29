@@ -30,7 +30,10 @@ __decorate([
     __metadata("design:type", String)
 ], MediaFilterDto.prototype, "mediaType", void 0);
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)({ example: 'c0a80123-4567-89ab-cdef-0123456789ab', description: 'Filter by folder UUID or "root"' }),
+    (0, swagger_1.ApiPropertyOptional)({
+        example: 'c0a80123-4567-89ab-cdef-0123456789ab',
+        description: 'Filter by folder UUID or "root"',
+    }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)

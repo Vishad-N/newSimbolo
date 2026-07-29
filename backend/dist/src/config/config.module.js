@@ -14,6 +14,9 @@ const database_config_1 = require("./database.config");
 const auth_config_1 = require("./auth.config");
 const storage_config_1 = require("./storage.config");
 const email_config_1 = require("./email.config");
+const razorpay_config_1 = require("./razorpay.config");
+const redis_config_1 = require("./redis.config");
+const observability_config_1 = require("./observability.config");
 let ConfigModule = class ConfigModule {
 };
 exports.ConfigModule = ConfigModule;
@@ -24,7 +27,16 @@ exports.ConfigModule = ConfigModule = __decorate([
                 isGlobal: true,
                 cache: true,
                 expandVariables: true,
-                load: [app_config_1.default, database_config_1.default, auth_config_1.default, storage_config_1.default, email_config_1.default],
+                load: [
+                    app_config_1.default,
+                    database_config_1.default,
+                    auth_config_1.default,
+                    storage_config_1.default,
+                    email_config_1.default,
+                    razorpay_config_1.default,
+                    redis_config_1.default,
+                    observability_config_1.default,
+                ],
             }),
         ],
         exports: [config_1.ConfigModule],

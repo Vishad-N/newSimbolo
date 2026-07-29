@@ -9,13 +9,7 @@ import { PrismaModule } from '../prisma/prisma.module';
 
 @Module({
   imports: [PrismaModule],
-  controllers: [
-    HomepageController,
-    AboutUsController,
-    HelpCenterController,
-    NavigationController,
-    FooterController,
-  ],
+  controllers: [HomepageController, AboutUsController, HelpCenterController, NavigationController, FooterController],
   providers: [CmsService],
   exports: [CmsService],
 })

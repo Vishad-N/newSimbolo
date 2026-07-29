@@ -35,13 +35,19 @@ __decorate([
     __metadata("design:type", String)
 ], CreateBlogDto.prototype, "title", void 0);
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)({ example: 'Discover how artificial intelligence is transforming digital advertising...', description: 'Short summary excerpt' }),
+    (0, swagger_1.ApiPropertyOptional)({
+        example: 'Discover how artificial intelligence is transforming digital advertising...',
+        description: 'Short summary excerpt',
+    }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CreateBlogDto.prototype, "excerpt", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: '# AI Marketing in 2026\n\nFull markdown or html article body...', description: 'Full article body content' }),
+    (0, swagger_1.ApiProperty)({
+        example: '# AI Marketing in 2026\n\nFull markdown or html article body...',
+        description: 'Full article body content',
+    }),
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)

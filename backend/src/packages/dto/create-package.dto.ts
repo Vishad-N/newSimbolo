@@ -8,7 +8,10 @@ export class CreatePackageDto {
   @IsNotEmpty()
   name!: string;
 
-  @ApiPropertyOptional({ example: 'Ideal for scaling businesses needing daily marketing management.', description: 'Description' })
+  @ApiPropertyOptional({
+    example: 'Ideal for scaling businesses needing daily marketing management.',
+    description: 'Description',
+  })
   @IsOptional()
   @IsString()
   description?: string;
@@ -28,7 +31,11 @@ export class CreatePackageDto {
   @Min(0)
   basePrice?: number;
 
-  @ApiPropertyOptional({ example: 'monthly', default: 'monthly', description: 'Billing interval (monthly, yearly, one-time)' })
+  @ApiPropertyOptional({
+    example: 'monthly',
+    default: 'monthly',
+    description: 'Billing interval (monthly, yearly, one-time)',
+  })
   @IsOptional()
   @IsString()
   billingInterval?: string;

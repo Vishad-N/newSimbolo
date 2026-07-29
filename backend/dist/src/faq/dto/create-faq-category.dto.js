@@ -29,7 +29,10 @@ __decorate([
     __metadata("design:type", String)
 ], CreateFaqCategoryDto.prototype, "name", void 0);
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)({ example: 'Questions regarding invoices, payment methods, and renewals', description: 'Description' }),
+    (0, swagger_1.ApiPropertyOptional)({
+        example: 'Questions regarding invoices, payment methods, and renewals',
+        description: 'Description',
+    }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)

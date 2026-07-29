@@ -16,15 +16,19 @@ export declare class ProfilesService extends BaseService {
             createdBy: string | null;
             updatedBy: string | null;
             slug: string;
+            gstNumber: string | null;
+            billingAddress: string | null;
             website: string | null;
             industry: string | null;
             size: string | null;
             logoUrl: string | null;
+            primaryContactId: string | null;
         } | null;
     } & {
         id: string;
         createdAt: Date;
         userId: string;
+        status: string;
         agencyId: string | null;
         updatedAt: Date;
         deletedAt: Date | null;
@@ -34,6 +38,8 @@ export declare class ProfilesService extends BaseService {
         billingAddress: string | null;
         timezone: string;
         companyId: string | null;
+        accountManagerId: string | null;
+        notes: string | null;
     }>;
     updateClientProfile(userId: string, dto: UpdateClientProfileDto): Promise<{
         company: {
@@ -45,15 +51,19 @@ export declare class ProfilesService extends BaseService {
             createdBy: string | null;
             updatedBy: string | null;
             slug: string;
+            gstNumber: string | null;
+            billingAddress: string | null;
             website: string | null;
             industry: string | null;
             size: string | null;
             logoUrl: string | null;
+            primaryContactId: string | null;
         } | null;
     } & {
         id: string;
         createdAt: Date;
         userId: string;
+        status: string;
         agencyId: string | null;
         updatedAt: Date;
         deletedAt: Date | null;
@@ -63,5 +73,7 @@ export declare class ProfilesService extends BaseService {
         billingAddress: string | null;
         timezone: string;
         companyId: string | null;
+        accountManagerId: string | null;
+        notes: string | null;
     }>;
 }

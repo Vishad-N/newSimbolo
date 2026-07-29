@@ -1,0 +1,27 @@
+{
+  "title": "The Simbolo Production Overview",
+  "schemaVersion": 39,
+  "version": 1,
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "HTTP Request Rate",
+      "targets": [{ "expr": "rate(simbolo_http_requests_total[5m])" }]
+    },
+    {
+      "type": "timeseries",
+      "title": "HTTP p95 Latency",
+      "targets": [{ "expr": "histogram_quantile(0.95, rate(simbolo_http_request_duration_seconds_bucket[5m]))" }]
+    },
+    {
+      "type": "stat",
+      "title": "WebSocket Connections",
+      "targets": [{ "expr": "simbolo_websocket_connections" }]
+    },
+    {
+      "type": "timeseries",
+      "title": "Process Memory",
+      "targets": [{ "expr": "simbolo_process_resident_memory_bytes" }]
+    }
+  ]
+}

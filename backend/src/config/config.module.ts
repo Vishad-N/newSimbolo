@@ -5,6 +5,9 @@ import databaseConfig from './database.config';
 import authConfig from './auth.config';
 import storageConfig from './storage.config';
 import emailConfig from './email.config';
+import razorpayConfig from './razorpay.config';
+import redisConfig from './redis.config';
+import observabilityConfig from './observability.config';
 
 @Module({
   imports: [
@@ -12,7 +15,16 @@ import emailConfig from './email.config';
       isGlobal: true,
       cache: true,
       expandVariables: true,
-      load: [appConfig, databaseConfig, authConfig, storageConfig, emailConfig],
+      load: [
+        appConfig,
+        databaseConfig,
+        authConfig,
+        storageConfig,
+        emailConfig,
+        razorpayConfig,
+        redisConfig,
+        observabilityConfig,
+      ],
     }),
   ],
   exports: [NestConfigModule],

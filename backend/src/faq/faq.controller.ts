@@ -1,14 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Patch,
-  Delete,
-  Body,
-  Param,
-  Query,
-  ParseUUIDPipe,
-} from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Body, Param, Query, ParseUUIDPipe } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
 import { FaqService } from './faq.service';
 import { CreateFaqDto } from './dto/create-faq.dto';
@@ -75,11 +65,7 @@ export class FaqController {
   @Permissions('faqs.update', 'content.update')
   @ApiOperation({ summary: 'Update FAQ question, answer, category, or order index' })
   @ApiResponse({ status: 200, description: 'FAQ updated' })
-  async updateFaq(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() dto: UpdateFaqDto,
-    @CurrentUser() user: JwtPayload,
-  ) {
+  async updateFaq(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateFaqDto, @CurrentUser() user: JwtPayload) {
     return this.faqService.updateFaq(id, dto, user?.sub);
   }
 

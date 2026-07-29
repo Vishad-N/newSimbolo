@@ -6,6 +6,7 @@ import { UpdateMediaAssetDto } from './dto/update-media-asset.dto';
 import { MediaFilterDto } from './dto/media-filter.dto';
 import { MediaTypeEnum, MediaAsset, MediaFolder } from '@prisma/client';
 import { CustomConflictException, BusinessException } from '../common/exceptions/custom.exceptions';
+import { StorageService } from '../storage/storage.service';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -13,7 +14,10 @@ import * as path from 'path';
 export class MediaService extends BaseService {
   private readonly uploadDir = path.join(process.cwd(), 'uploads');
 
-  constructor(private readonly prisma: PrismaService) {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly storageService: StorageService,
+  ) {
     super('MediaService');
     if (!fs.existsSync(this.uploadDir)) {
       fs.mkdirSync(this.uploadDir, { recursive: true });
@@ -59,18 +63,10 @@ export class MediaService extends BaseService {
     const storageKey = `${Date.now()}-${Math.round(Math.random() * 1e9)}.${fileExtension}`;
     const targetPath = path.join(this.uploadDir, storageKey);
 
-    try {
-      if (file.buffer) {
-        fs.writeFileSync(targetPath, file.buffer);
-      } else if (file.path && file.path !== targetPath) {
-        fs.copyFileSync(file.path, targetPath);
-      }
-    } catch (err) {
-      this.logger.error(`Failed to write file to local disk: ${err instanceof Error ? err.message : String(err)}`);
-    }
+    const storedObject = await this.storageService.upload(file, storageKey);
 
     const mediaType = this.determineMediaType(file.mimetype);
-    const cdnUrl = `/uploads/${storageKey}`;
+    const cdnUrl = storedObject.url;
 
     const asset = await this.prisma.mediaAsset.create({
       data: {
@@ -80,7 +76,7 @@ export class MediaService extends BaseService {
         fileExtension,
         sizeBytes: file.size,
         cdnUrl,
-        storageKey,
+        storageKey: storedObject.storageKey,
         mediaType,
         folderId: folderId || null,
         uploaderId: uploaderId || null,
@@ -137,15 +133,7 @@ export class MediaService extends BaseService {
 
   async deleteAsset(id: string): Promise<{ success: boolean }> {
     const asset = await this.getAssetById(id);
-    const filePath = path.join(this.uploadDir, asset.storageKey);
-
-    if (fs.existsSync(filePath)) {
-      try {
-        fs.unlinkSync(filePath);
-      } catch (err) {
-        this.logger.warn(`Failed to delete physical file ${filePath}: ${err instanceof Error ? err.message : String(err)}`);
-      }
-    }
+    await this.storageService.delete(asset.storageKey);
 
     await this.prisma.mediaAsset.delete({ where: { id } });
     this.logger.log(`Deleted media asset ID: ${id}`);
@@ -153,7 +141,10 @@ export class MediaService extends BaseService {
   }
 
   async createFolder(dto: CreateMediaFolderDto): Promise<MediaFolder> {
-    const slug = dto.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    const slug = dto.name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
     if (dto.parentId) {
       const parent = await this.prisma.mediaFolder.findUnique({ where: { id: dto.parentId } });
       this.checkEntityExists(parent, 'MediaFolder', dto.parentId);

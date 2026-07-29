@@ -21,13 +21,7 @@ exports.CmsModule = CmsModule;
 exports.CmsModule = CmsModule = __decorate([
     (0, common_1.Module)({
         imports: [prisma_module_1.PrismaModule],
-        controllers: [
-            homepage_controller_1.HomepageController,
-            about_us_controller_1.AboutUsController,
-            help_center_controller_1.HelpCenterController,
-            navigation_controller_1.NavigationController,
-            footer_controller_1.FooterController,
-        ],
+        controllers: [homepage_controller_1.HomepageController, about_us_controller_1.AboutUsController, help_center_controller_1.HelpCenterController, navigation_controller_1.NavigationController, footer_controller_1.FooterController],
         providers: [cms_service_1.CmsService],
         exports: [cms_service_1.CmsService],
     })

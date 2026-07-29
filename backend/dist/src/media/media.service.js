@@ -15,14 +15,17 @@ const base_service_1 = require("../shared/abstractions/base.service");
 const prisma_service_1 = require("../prisma/prisma.service");
 const client_1 = require("@prisma/client");
 const custom_exceptions_1 = require("../common/exceptions/custom.exceptions");
+const storage_service_1 = require("../storage/storage.service");
 const fs = require("fs");
 const path = require("path");
 let MediaService = class MediaService extends base_service_1.BaseService {
     prisma;
+    storageService;
     uploadDir = path.join(process.cwd(), 'uploads');
-    constructor(prisma) {
+    constructor(prisma, storageService) {
         super('MediaService');
         this.prisma = prisma;
+        this.storageService = storageService;
         if (!fs.existsSync(this.uploadDir)) {
             fs.mkdirSync(this.uploadDir, { recursive: true });
         }
@@ -62,19 +65,9 @@ let MediaService = class MediaService extends base_service_1.BaseService {
         const fileExtension = path.extname(file.originalname).toLowerCase().replace('.', '') || 'bin';
         const storageKey = `${Date.now()}-${Math.round(Math.random() * 1e9)}.${fileExtension}`;
         const targetPath = path.join(this.uploadDir, storageKey);
-        try {
-            if (file.buffer) {
-                fs.writeFileSync(targetPath, file.buffer);
-            }
-            else if (file.path && file.path !== targetPath) {
-                fs.copyFileSync(file.path, targetPath);
-            }
-        }
-        catch (err) {
-            this.logger.error(`Failed to write file to local disk: ${err instanceof Error ? err.message : String(err)}`);
-        }
+        const storedObject = await this.storageService.upload(file, storageKey);
         const mediaType = this.determineMediaType(file.mimetype);
-        const cdnUrl = `/uploads/${storageKey}`;
+        const cdnUrl = storedObject.url;
         const asset = await this.prisma.mediaAsset.create({
             data: {
                 fileName: file.originalname,
@@ -83,7 +76,7 @@ let MediaService = class MediaService extends base_service_1.BaseService {
                 fileExtension,
                 sizeBytes: file.size,
                 cdnUrl,
-                storageKey,
+                storageKey: storedObject.storageKey,
                 mediaType,
                 folderId: folderId || null,
                 uploaderId: uploaderId || null,
@@ -132,21 +125,16 @@ let MediaService = class MediaService extends base_service_1.BaseService {
     }
     async deleteAsset(id) {
         const asset = await this.getAssetById(id);
-        const filePath = path.join(this.uploadDir, asset.storageKey);
-        if (fs.existsSync(filePath)) {
-            try {
-                fs.unlinkSync(filePath);
-            }
-            catch (err) {
-                this.logger.warn(`Failed to delete physical file ${filePath}: ${err instanceof Error ? err.message : String(err)}`);
-            }
-        }
+        await this.storageService.delete(asset.storageKey);
         await this.prisma.mediaAsset.delete({ where: { id } });
         this.logger.log(`Deleted media asset ID: ${id}`);
         return { success: true };
     }
     async createFolder(dto) {
-        const slug = dto.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+        const slug = dto.name
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/(^-|-$)/g, '');
         if (dto.parentId) {
             const parent = await this.prisma.mediaFolder.findUnique({ where: { id: dto.parentId } });
             this.checkEntityExists(parent, 'MediaFolder', dto.parentId);
@@ -186,6 +174,7 @@ let MediaService = class MediaService extends base_service_1.BaseService {
 exports.MediaService = MediaService;
 exports.MediaService = MediaService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService,
+        storage_service_1.StorageService])
 ], MediaService);
 //# sourceMappingURL=media.service.js.map

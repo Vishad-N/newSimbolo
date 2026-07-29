@@ -9,7 +9,7 @@
   --color-surface: #0f172a;
 
   --font-heading: 'Montserrat', sans-serif;
-  --font-body: 'Open Sans', sans-serif;
+  --font-body: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 
   --radius-xl: 1rem;
 }

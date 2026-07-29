@@ -34,7 +34,10 @@ __decorate([
     __metadata("design:type", String)
 ], CreateFaqDto.prototype, "question", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 'Once you sign the retainer agreement, we schedule a kickoff call within 24 hours...', description: 'FAQ Answer' }),
+    (0, swagger_1.ApiProperty)({
+        example: 'Once you sign the retainer agreement, we schedule a kickoff call within 24 hours...',
+        description: 'FAQ Answer',
+    }),
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)

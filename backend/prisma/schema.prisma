@@ -31,7 +31,9 @@ enum UserStatusEnum {
 }
 
 enum ProjectStatusEnum {
+  PLANNING
   NOT_STARTED
+  ACTIVE
   IN_PROGRESS
   IN_REVIEW
   COMPLETED
@@ -132,7 +134,10 @@ enum MediaTypeEnum {
 }
 
 enum OrderStatusEnum {
+  DRAFT
+  PENDING
   PENDING_PAYMENT
+  CONFIRMED
   ACTIVE
   IN_PROGRESS
   UNDER_REVIEW
@@ -198,6 +203,38 @@ enum DeliverableStatusEnum {
   REVISION_REQUESTED
 }
 
+enum TaskStatusEnum {
+  TODO
+  IN_PROGRESS
+  REVIEW
+  COMPLETED
+  BLOCKED
+}
+
+enum TaskPriorityEnum {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum ProjectPriorityEnum {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum DocumentCategoryEnum {
+  CONTRACT
+  NDA
+  PROPOSAL
+  REPORT
+  BRIEF
+  PROJECT_FILE
+  OTHER
+}
+
 // ==========================================
 // AUTHENTICATION & IDENTITY MODELS
 // ==========================================
@@ -244,8 +281,14 @@ model User {
   referredUsers    Referral[]              @relation("ReferredUser")
   auditLogs        AuditLog[]              @relation("UserAuditLogs")
   blogAuthor       BlogAuthor?
-  hostedMeetings   Meeting[]               @relation("MeetingHost")
-  mediaUploaded    MediaAsset[]            @relation("MediaUploader")
+  hostedMeetings      Meeting[]               @relation("MeetingHost")
+  mediaUploaded       MediaAsset[]            @relation("MediaUploader")
+  managedClients      ClientProfile[]         @relation("AccountManager")
+  projectTeamMembers  ProjectTeamMember[]
+  taskComments        TaskComment[]
+  uploadedDocuments   Document[]              @relation("DocumentUploader")
+  meetingParticipants MeetingParticipant[]
+  activityTimelines   Timeline[]              @relation("UserActivity")
 
   @@index([email])
   @@index([status])
@@ -480,22 +523,26 @@ model TeamMember {
 /// Relationships: Belongs to User and Company. Has many Orders, Invoices, Subscriptions.
 /// Business responsibility: Connects identity to commercial billing and SLA history.
 model ClientProfile {
-  id             String    @id @default(uuid()) @db.Uuid
-  userId         String    @unique @db.Uuid
-  companyId      String?   @db.Uuid
-  agencyId       String?   @db.Uuid
-  gstNumber      String?
-  billingAddress String?
-  timezone       String    @default("Asia/Kolkata")
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-  deletedAt      DateTime?
-  createdBy      String?
-  updatedBy      String?
+  id               String    @id @default(uuid()) @db.Uuid
+  userId           String    @unique @db.Uuid
+  companyId        String?   @db.Uuid
+  agencyId         String?   @db.Uuid
+  accountManagerId String?   @db.Uuid
+  gstNumber        String?
+  billingAddress   String?
+  timezone         String    @default("Asia/Kolkata")
+  notes            String?
+  status           String    @default("ACTIVE")
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  deletedAt        DateTime?
+  createdBy        String?
+  updatedBy        String?
 
   user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   company        Company?        @relation(fields: [companyId], references: [id])
   agency         Agency?         @relation("AgencySubClients", fields: [agencyId], references: [id])
+  accountManager User?           @relation("AccountManager", fields: [accountManagerId], references: [id])
   orders         Order[]
   invoices       Invoice[]
   subscriptions  Subscription[]
@@ -503,10 +550,13 @@ model ClientProfile {
   supportTickets SupportTicket[]
   testimonials   Testimonial[]
   meetings       Meeting[]
+  documents      Document[]
+  timelines      Timeline[]
 
   @@index([userId])
   @@index([companyId])
   @@index([agencyId])
+  @@index([accountManagerId])
   @@map("client_profiles")
 }
 
@@ -514,20 +564,24 @@ model ClientProfile {
 /// Relationships: Has many ClientProfiles.
 /// Business responsibility: Stores corporate entity details and industry classification.
 model Company {
-  id        String    @id @default(uuid()) @db.Uuid
-  name      String
-  slug      String    @unique
-  website   String?
-  industry  String?
-  size      String?
-  logoUrl   String?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  deletedAt DateTime?
-  createdBy String?
-  updatedBy String?
+  id               String    @id @default(uuid()) @db.Uuid
+  name             String
+  slug             String    @unique
+  website          String?
+  industry         String?
+  size             String?
+  logoUrl          String?
+  gstNumber        String?
+  billingAddress   String?
+  primaryContactId String?   @db.Uuid
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  deletedAt        DateTime?
+  createdBy        String?
+  updatedBy        String?
 
-  clients ClientProfile[]
+  clients   ClientProfile[]
+  documents Document[]
 
   @@index([slug])
   @@map("companies")
@@ -565,6 +619,7 @@ model Service {
   caseStudies    CaseStudy[]
   portfolioItems PortfolioProject[]
   orders         Order[]
+  orderItems     OrderItem[]
   generalFaqs    FAQ[]
 
   @@index([slug])
@@ -661,6 +716,7 @@ model Package {
   pricings      PackagePricing[]
   comparisons   PackageComparison[]
   orders        Order[]
+  orderItems    OrderItem[]
   subscriptions Subscription[]
 
   @@index([slug])
@@ -743,8 +799,9 @@ model Order {
   netAmount      Float
   currency       String          @default("INR")
   clientId       String          @db.Uuid
-  packageId      String          @db.Uuid
-  serviceId      String          @db.Uuid
+  packageId      String?         @db.Uuid
+  serviceId      String?         @db.Uuid
+  notes          String?
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
   deletedAt      DateTime?
@@ -752,13 +809,14 @@ model Order {
   updatedBy      String?
 
   client      ClientProfile @relation(fields: [clientId], references: [id])
-  package     Package       @relation(fields: [packageId], references: [id])
-  service     Service       @relation(fields: [serviceId], references: [id])
+  package     Package?      @relation(fields: [packageId], references: [id])
+  service     Service?      @relation(fields: [serviceId], references: [id])
   project     Project?
   items       OrderItem[]
   payments    Payment[]
   invoices    Invoice[]
   commissions Commission[]
+  timelines   Timeline[]
 
   @@index([orderNumber])
   @@index([clientId])
@@ -772,6 +830,8 @@ model Order {
 model OrderItem {
   id          String   @id @default(uuid()) @db.Uuid
   orderId     String   @db.Uuid
+  serviceId   String?  @db.Uuid
+  packageId   String?  @db.Uuid
   name        String
   description String?
   quantity    Int      @default(1)
@@ -780,9 +840,13 @@ model OrderItem {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  order   Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  service Service? @relation(fields: [serviceId], references: [id])
+  package Package? @relation(fields: [packageId], references: [id])
 
   @@index([orderId])
+  @@index([serviceId])
+  @@index([packageId])
   @@map("order_items")
 }
 
@@ -916,38 +980,58 @@ model Subscription {
 /// Relationships: Belongs to Order, ClientProfile, manager User. Has many Milestones, Tasks, Deliverables.
 /// Business responsibility: Central hub for tracking client deliverables and staff timelines.
 model Project {
-  id            String            @id @default(uuid()) @db.Uuid
+  id            String              @id @default(uuid()) @db.Uuid
   name          String
-  slug          String            @unique
+  slug          String              @unique
   description   String?
-  status        ProjectStatusEnum @default(NOT_STARTED)
-  orderId       String            @unique @db.Uuid
-  clientId      String            @db.Uuid
-  managerId     String?           @db.Uuid
+  status        ProjectStatusEnum   @default(PLANNING)
+  priority      ProjectPriorityEnum @default(MEDIUM)
+  budget        Float?              @default(0.0)
+  orderId       String              @unique @db.Uuid
+  clientId      String              @db.Uuid
+  managerId     String?             @db.Uuid
   startDate     DateTime?
   targetEndDate DateTime?
   actualEndDate DateTime?
-  progress      Int               @default(0)
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
+  progress      Int                 @default(0)
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
   deletedAt     DateTime?
   createdBy     String?
   updatedBy     String?
 
-  order         Order              @relation(fields: [orderId], references: [id])
-  client        ClientProfile      @relation(fields: [clientId], references: [id])
-  manager       User?              @relation("ProjectManager", fields: [managerId], references: [id])
+  order         Order               @relation(fields: [orderId], references: [id])
+  client        ClientProfile       @relation(fields: [clientId], references: [id])
+  manager       User?               @relation("ProjectManager", fields: [managerId], references: [id])
   milestones    ProjectMilestone[]
   statusLogs    ProjectStatus[]
   tasks         Task[]
   deliverables  Deliverable[]
   timelines     Timeline[]
   conversations Conversation[]
+  teamMembers   ProjectTeamMember[]
+  documents     Document[]
 
   @@index([slug])
   @@index([clientId])
   @@index([status])
   @@map("projects")
+}
+
+model ProjectTeamMember {
+  id               String   @id @default(uuid()) @db.Uuid
+  projectId        String   @db.Uuid
+  userId           String   @db.Uuid
+  role             String   @default("MEMBER")
+  responsibilities String?
+  assignedAt       DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId, role])
+  @@index([userId])
+  @@map("project_team_members")
 }
 
 /// Purpose: Major milestone checkpoint within a project lifecycle.
@@ -961,13 +1045,18 @@ model ProjectMilestone {
   completedDate DateTime?
   status        MilestoneStatusEnum @default(PENDING)
   projectId     String              @db.Uuid
+  dependsOnId   String?             @db.Uuid
   sortOrder     Int                 @default(0)
   createdAt     DateTime            @default(now())
   updatedAt     DateTime            @updatedAt
 
-  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project             Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  dependsOn           ProjectMilestone?  @relation("MilestoneDependencies", fields: [dependsOnId], references: [id])
+  dependentMilestones ProjectMilestone[] @relation("MilestoneDependencies")
+  tasks               Task[]
 
   @@index([projectId])
+  @@index([dependsOnId])
   @@map("project_milestones")
 }
 
@@ -992,25 +1081,48 @@ model ProjectStatus {
 /// Relationships: Belongs to Project and assigned User.
 /// Business responsibility: Staff-level task tracking and deadline management.
 model Task {
-  id           String    @id @default(uuid()) @db.Uuid
-  title        String
-  description  String?
-  status       String    @default("TODO")
-  progress     Int       @default(0)
-  dueDate      DateTime?
-  projectId    String    @db.Uuid
-  assignedToId String?   @db.Uuid
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  createdBy    String?
-  updatedBy    String?
+  id             String           @id @default(uuid()) @db.Uuid
+  title          String
+  description    String?
+  status         TaskStatusEnum   @default(TODO)
+  priority       TaskPriorityEnum @default(MEDIUM)
+  progress       Int              @default(0)
+  estimatedHours Float?           @default(0.0)
+  actualHours    Float?           @default(0.0)
+  dueDate        DateTime?
+  projectId      String           @db.Uuid
+  milestoneId    String?          @db.Uuid
+  assignedToId   String?          @db.Uuid
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  createdBy      String?
+  updatedBy      String?
 
-  project  Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  assignee User?   @relation("TaskAssignee", fields: [assignedToId], references: [id])
+  project     Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  milestone   ProjectMilestone? @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
+  assignee    User?             @relation("TaskAssignee", fields: [assignedToId], references: [id])
+  comments    TaskComment[]
+  attachments Attachment[]
 
   @@index([projectId])
+  @@index([milestoneId])
   @@index([assignedToId])
   @@map("tasks")
+}
+
+model TaskComment {
+  id        String   @id @default(uuid()) @db.Uuid
+  taskId    String   @db.Uuid
+  senderId  String   @db.Uuid
+  message   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  task   Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  sender User @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
+  @@map("task_comments")
 }
 
 /// Purpose: Final completed asset uploaded for client review and sign-off.
@@ -1021,6 +1133,8 @@ model Deliverable {
   title          String
   description    String?
   status         DeliverableStatusEnum @default(PENDING)
+  version        Int                   @default(1)
+  revisionNotes  String?
   projectId      String                @db.Uuid
   mediaAssetId   String?               @db.Uuid
   submittedAt    DateTime?
@@ -1032,29 +1146,91 @@ model Deliverable {
   createdBy      String?
   updatedBy      String?
 
-  project    Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  mediaAsset MediaAsset? @relation(fields: [mediaAssetId], references: [id])
+  project        Project              @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  mediaAsset     MediaAsset?          @relation(fields: [mediaAssetId], references: [id])
+  versionHistory DeliverableVersion[]
+  timelines      Timeline[]
 
   @@index([projectId])
   @@index([status])
   @@map("deliverables")
 }
 
+model DeliverableVersion {
+  id            String   @id @default(uuid()) @db.Uuid
+  deliverableId String   @db.Uuid
+  versionNumber Int
+  mediaAssetId  String   @db.Uuid
+  notes         String?
+  uploadedAt    DateTime @default(now())
+
+  deliverable Deliverable @relation(fields: [deliverableId], references: [id], onDelete: Cascade)
+  mediaAsset  MediaAsset  @relation(fields: [mediaAssetId], references: [id])
+
+  @@index([deliverableId])
+  @@map("deliverable_versions")
+}
+
+model Document {
+  id            String               @id @default(uuid()) @db.Uuid
+  title         String
+  description   String?
+  category      DocumentCategoryEnum @default(OTHER)
+  version       Int                  @default(1)
+  fileUrl       String
+  fileSize      Int?
+  mimeType      String?
+  downloadCount Int                  @default(0)
+  isPublic      Boolean              @default(false)
+  clientId      String?              @db.Uuid
+  projectId     String?              @db.Uuid
+  companyId     String?              @db.Uuid
+  uploadedById  String?              @db.Uuid
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+  deletedAt     DateTime?
+
+  client     ClientProfile? @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  project    Project?       @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  company    Company?       @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  uploadedBy User?          @relation("DocumentUploader", fields: [uploadedById], references: [id], onDelete: SetNull)
+
+  @@index([clientId])
+  @@index([projectId])
+  @@index([companyId])
+  @@map("documents")
+}
+
 /// Purpose: Chronological project activity feed event.
 /// Relationships: Belongs to Project.
 /// Business responsibility: Powers project timeline visualization on client dashboard.
 model Timeline {
-  id          String   @id @default(uuid()) @db.Uuid
-  title       String
-  description String?
-  date        DateTime @default(now())
-  eventType   String
-  projectId   String   @db.Uuid
-  createdAt   DateTime @default(now())
+  id            String   @id @default(uuid()) @db.Uuid
+  title         String
+  description   String?
+  date          DateTime @default(now())
+  eventType     String
+  projectId     String?  @db.Uuid
+  clientId      String?  @db.Uuid
+  orderId       String?  @db.Uuid
+  ticketId      String?  @db.Uuid
+  meetingId     String?  @db.Uuid
+  deliverableId String?  @db.Uuid
+  userId        String?  @db.Uuid
+  metadata      String?
+  createdAt     DateTime @default(now())
 
-  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project     Project?       @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  client      ClientProfile? @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  order       Order?         @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  ticket      SupportTicket? @relation(fields: [ticketId], references: [id], onDelete: SetNull)
+  meeting     Meeting?       @relation(fields: [meetingId], references: [id], onDelete: SetNull)
+  deliverable Deliverable?   @relation(fields: [deliverableId], references: [id], onDelete: SetNull)
+  user        User?          @relation("UserActivity", fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([projectId])
+  @@index([clientId])
+  @@index([orderId])
   @@map("timelines")
 }
 
@@ -1066,30 +1242,49 @@ model Timeline {
 /// Relationships: Belongs to host User and ClientProfile. Has CalendarEvents.
 /// Business responsibility: Orchestrates consultation bookings and video room links.
 model Meeting {
-  id          String            @id @default(uuid()) @db.Uuid
-  title       String
-  description String?
-  status      MeetingStatusEnum @default(SCHEDULED)
-  startTime   DateTime
-  endTime     DateTime
-  timezone    String            @default("Asia/Kolkata")
-  meetUrl     String?
-  hostId      String            @db.Uuid
-  clientId    String?           @db.Uuid
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
-  deletedAt   DateTime?
-  createdBy   String?
-  updatedBy   String?
+  id           String            @id @default(uuid()) @db.Uuid
+  title        String
+  description  String?
+  agenda       String?
+  meetingNotes String?
+  status       MeetingStatusEnum @default(SCHEDULED)
+  startTime    DateTime
+  endTime      DateTime
+  timezone     String            @default("Asia/Kolkata")
+  meetUrl      String?
+  hostId       String            @db.Uuid
+  clientId     String?           @db.Uuid
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  deletedAt    DateTime?
+  createdBy    String?
+  updatedBy    String?
 
-  host          User           @relation("MeetingHost", fields: [hostId], references: [id])
-  client        ClientProfile? @relation(fields: [clientId], references: [id])
+  host          User                 @relation("MeetingHost", fields: [hostId], references: [id])
+  client        ClientProfile?       @relation(fields: [clientId], references: [id])
   calendarEvent CalendarEvent?
+  participants  MeetingParticipant[]
+  timelines     Timeline[]
 
   @@index([hostId])
   @@index([clientId])
   @@index([startTime])
   @@map("meetings")
+}
+
+model MeetingParticipant {
+  id        String   @id @default(uuid()) @db.Uuid
+  meetingId String   @db.Uuid
+  userId    String?  @db.Uuid
+  email     String?
+  status    String   @default("INVITED")
+  joinedAt  DateTime @default(now())
+
+  meeting Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  user    User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([meetingId])
+  @@map("meeting_participants")
 }
 
 /// Purpose: External calendar sync mapping (Google Calendar, Outlook).
@@ -1182,14 +1377,20 @@ model Message {
 /// Business responsibility: Enables seamless file sharing in realtime chat.
 model Attachment {
   id           String   @id @default(uuid()) @db.Uuid
-  messageId    String   @db.Uuid
+  messageId    String?  @db.Uuid
+  taskId       String?  @db.Uuid
+  ticketId     String?  @db.Uuid
   mediaAssetId String   @db.Uuid
   createdAt    DateTime @default(now())
 
-  message    Message    @relation(fields: [messageId], references: [id], onDelete: Cascade)
-  mediaAsset MediaAsset @relation(fields: [mediaAssetId], references: [id])
+  message    Message?       @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  task       Task?          @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  ticket     SupportTicket? @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  mediaAsset MediaAsset     @relation(fields: [mediaAssetId], references: [id])
 
   @@index([messageId])
+  @@index([taskId])
+  @@index([ticketId])
   @@map("attachments")
 }
 
@@ -1221,6 +1422,8 @@ model SupportTicket {
   assignee     User?         @relation("TicketAssignee", fields: [assignedToId], references: [id])
   replies      TicketReply[]
   conversation Conversation?
+  attachments  Attachment[]
+  timelines    Timeline[]
 
   @@index([ticketNumber])
   @@index([clientId])
@@ -1610,16 +1813,17 @@ model MediaAsset {
   createdBy     String?
   updatedBy     String?
 
-  folder            MediaFolder?            @relation(fields: [folderId], references: [id])
-  uploader          User?                   @relation("MediaUploader", fields: [uploaderId], references: [id])
-  deliverables      Deliverable[]
-  attachments       Attachment[]
-  blogCovers        Blog[]
-  caseStudyCovers   CaseStudy[]
-  beforeComparisons BeforeAfterComparison[] @relation("BeforeImage")
-  afterComparisons  BeforeAfterComparison[] @relation("AfterImage")
-  portfolioCovers   PortfolioProject[]
-  invoices          Invoice[]
+  folder              MediaFolder?            @relation(fields: [folderId], references: [id])
+  uploader            User?                   @relation("MediaUploader", fields: [uploaderId], references: [id])
+  deliverables        Deliverable[]
+  deliverableVersions DeliverableVersion[]
+  attachments         Attachment[]
+  blogCovers          Blog[]
+  caseStudyCovers     CaseStudy[]
+  beforeComparisons   BeforeAfterComparison[] @relation("BeforeImage")
+  afterComparisons    BeforeAfterComparison[] @relation("AfterImage")
+  portfolioCovers     PortfolioProject[]
+  invoices            Invoice[]
 
   @@index([storageKey])
   @@index([mediaType])

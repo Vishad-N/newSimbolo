@@ -30,12 +30,18 @@ __decorate([
     __metadata("design:type", String)
 ], UpdatePageSectionDto.prototype, "sectionKey", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: { title: 'AI Marketing', subtitle: 'Grow faster' }, description: 'JSON structure or JSON string containing section content' }),
+    (0, swagger_1.ApiProperty)({
+        example: { title: 'AI Marketing', subtitle: 'Grow faster' },
+        description: 'JSON structure or JSON string containing section content',
+    }),
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", Object)
 ], UpdatePageSectionDto.prototype, "content", void 0);
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)({ example: 'Main top hero section banner', description: 'Optional description of section purpose' }),
+    (0, swagger_1.ApiPropertyOptional)({
+        example: 'Main top hero section banner',
+        description: 'Optional description of section purpose',
+    }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.MaxLength)(255),

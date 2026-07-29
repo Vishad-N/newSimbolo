@@ -8,12 +8,18 @@ export class CreateBlogDto {
   @IsNotEmpty()
   title!: string;
 
-  @ApiPropertyOptional({ example: 'Discover how artificial intelligence is transforming digital advertising...', description: 'Short summary excerpt' })
+  @ApiPropertyOptional({
+    example: 'Discover how artificial intelligence is transforming digital advertising...',
+    description: 'Short summary excerpt',
+  })
   @IsOptional()
   @IsString()
   excerpt?: string;
 
-  @ApiProperty({ example: '# AI Marketing in 2026\n\nFull markdown or html article body...', description: 'Full article body content' })
+  @ApiProperty({
+    example: '# AI Marketing in 2026\n\nFull markdown or html article body...',
+    description: 'Full article body content',
+  })
   @IsString()
   @IsNotEmpty()
   content!: string;

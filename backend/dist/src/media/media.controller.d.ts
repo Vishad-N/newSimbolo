@@ -16,6 +16,7 @@ export declare class MediaController {
         fileName: string;
         folderId: string | null;
         mediaType: import(".prisma/client").$Enums.MediaTypeEnum;
+        storageKey: string;
         originalName: string;
         mimeType: string;
         fileExtension: string;
@@ -23,7 +24,6 @@ export declare class MediaController {
         width: number | null;
         height: number | null;
         cdnUrl: string;
-        storageKey: string;
         storageBucket: string;
         uploaderId: string | null;
     }>;
@@ -37,6 +37,7 @@ export declare class MediaController {
         fileName: string;
         folderId: string | null;
         mediaType: import(".prisma/client").$Enums.MediaTypeEnum;
+        storageKey: string;
         originalName: string;
         mimeType: string;
         fileExtension: string;
@@ -44,7 +45,6 @@ export declare class MediaController {
         width: number | null;
         height: number | null;
         cdnUrl: string;
-        storageKey: string;
         storageBucket: string;
         uploaderId: string | null;
     }[]>;
@@ -77,6 +77,7 @@ export declare class MediaController {
         fileName: string;
         folderId: string | null;
         mediaType: import(".prisma/client").$Enums.MediaTypeEnum;
+        storageKey: string;
         originalName: string;
         mimeType: string;
         fileExtension: string;
@@ -84,7 +85,6 @@ export declare class MediaController {
         width: number | null;
         height: number | null;
         cdnUrl: string;
-        storageKey: string;
         storageBucket: string;
         uploaderId: string | null;
     }>;
@@ -98,6 +98,7 @@ export declare class MediaController {
         fileName: string;
         folderId: string | null;
         mediaType: import(".prisma/client").$Enums.MediaTypeEnum;
+        storageKey: string;
         originalName: string;
         mimeType: string;
         fileExtension: string;
@@ -105,7 +106,6 @@ export declare class MediaController {
         width: number | null;
         height: number | null;
         cdnUrl: string;
-        storageKey: string;
         storageBucket: string;
         uploaderId: string | null;
     }>;

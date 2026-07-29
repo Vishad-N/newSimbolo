@@ -14,15 +14,19 @@ export declare class ProfilesController {
             createdBy: string | null;
             updatedBy: string | null;
             slug: string;
+            gstNumber: string | null;
+            billingAddress: string | null;
             website: string | null;
             industry: string | null;
             size: string | null;
             logoUrl: string | null;
+            primaryContactId: string | null;
         } | null;
     } & {
         id: string;
         createdAt: Date;
         userId: string;
+        status: string;
         agencyId: string | null;
         updatedAt: Date;
         deletedAt: Date | null;
@@ -32,6 +36,8 @@ export declare class ProfilesController {
         billingAddress: string | null;
         timezone: string;
         companyId: string | null;
+        accountManagerId: string | null;
+        notes: string | null;
     }>;
     updateClientProfile(user: JwtPayload, dto: UpdateClientProfileDto): Promise<{
         company: {
@@ -43,15 +49,19 @@ export declare class ProfilesController {
             createdBy: string | null;
             updatedBy: string | null;
             slug: string;
+            gstNumber: string | null;
+            billingAddress: string | null;
             website: string | null;
             industry: string | null;
             size: string | null;
             logoUrl: string | null;
+            primaryContactId: string | null;
         } | null;
     } & {
         id: string;
         createdAt: Date;
         userId: string;
+        status: string;
         agencyId: string | null;
         updatedAt: Date;
         deletedAt: Date | null;
@@ -61,5 +71,7 @@ export declare class ProfilesController {
         billingAddress: string | null;
         timezone: string;
         companyId: string | null;
+        accountManagerId: string | null;
+        notes: string | null;
     }>;
 }

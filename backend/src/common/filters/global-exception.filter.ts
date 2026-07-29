@@ -1,10 +1,13 @@
 import { ExceptionFilter, Catch, ArgumentsHost, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { ERROR_CODES } from '../constants/error-codes.constant';
+import { SentryService } from '../../observability/sentry.service';
 
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger(GlobalExceptionFilter.name);
+
+  constructor(private readonly sentryService: SentryService) {}
 
   catch(exception: unknown, host: ArgumentsHost): void {
     const ctx = host.switchToHttp();
@@ -53,6 +56,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
     // Log the exception
     if (statusCode >= 500) {
+      this.sentryService.captureException(exception);
       this.logger.error(
         `[${request.method}] ${request.url} - Status: ${statusCode} - Message: ${message}`,
         exception instanceof Error ? exception.stack : '',

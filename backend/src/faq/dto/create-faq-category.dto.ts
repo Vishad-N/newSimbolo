@@ -7,7 +7,10 @@ export class CreateFaqCategoryDto {
   @IsNotEmpty()
   name!: string;
 
-  @ApiPropertyOptional({ example: 'Questions regarding invoices, payment methods, and renewals', description: 'Description' })
+  @ApiPropertyOptional({
+    example: 'Questions regarding invoices, payment methods, and renewals',
+    description: 'Description',
+  })
   @IsOptional()
   @IsString()
   description?: string;

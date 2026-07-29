@@ -8,7 +8,10 @@ export class MediaFilterDto {
   @IsEnum(MediaTypeEnum)
   mediaType?: MediaTypeEnum;
 
-  @ApiPropertyOptional({ example: 'c0a80123-4567-89ab-cdef-0123456789ab', description: 'Filter by folder UUID or "root"' })
+  @ApiPropertyOptional({
+    example: 'c0a80123-4567-89ab-cdef-0123456789ab',
+    description: 'Filter by folder UUID or "root"',
+  })
   @IsOptional()
   @IsString()
   folderId?: string;

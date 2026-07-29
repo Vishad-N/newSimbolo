@@ -44,7 +44,10 @@ __decorate([
     __metadata("design:type", String)
 ], CreateSeoPageDto.prototype, "metaTitle", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 'Boost organic traffic and achieve page 1 Google rankings with our AI-powered SEO solutions.', description: 'Meta description tag' }),
+    (0, swagger_1.ApiProperty)({
+        example: 'Boost organic traffic and achieve page 1 Google rankings with our AI-powered SEO solutions.',
+        description: 'Meta description tag',
+    }),
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
@@ -68,13 +71,19 @@ __decorate([
     __metadata("design:type", String)
 ], CreateSeoPageDto.prototype, "ogTitle", void 0);
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)({ example: 'Boost organic traffic with our AI SEO solutions.', description: 'OpenGraph description' }),
+    (0, swagger_1.ApiPropertyOptional)({
+        example: 'Boost organic traffic with our AI SEO solutions.',
+        description: 'OpenGraph description',
+    }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CreateSeoPageDto.prototype, "ogDescription", void 0);
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)({ example: 'c0a80123-4567-89ab-cdef-0123456789ab', description: 'OpenGraph Image MediaAsset UUID' }),
+    (0, swagger_1.ApiPropertyOptional)({
+        example: 'c0a80123-4567-89ab-cdef-0123456789ab',
+        description: 'OpenGraph Image MediaAsset UUID',
+    }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsUUID)('4'),
     __metadata("design:type", Object)
@@ -86,7 +95,10 @@ __decorate([
     __metadata("design:type", String)
 ], CreateSeoPageDto.prototype, "twitterCard", void 0);
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)({ example: '{"@context": "https://schema.org", "@type": "Service"}', description: 'Structured JSON-LD schema string' }),
+    (0, swagger_1.ApiPropertyOptional)({
+        example: '{"@context": "https://schema.org", "@type": "Service"}',
+        description: 'Structured JSON-LD schema string',
+    }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)

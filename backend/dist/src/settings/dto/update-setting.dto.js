@@ -45,7 +45,10 @@ __decorate([
     __metadata("design:type", String)
 ], UpdateSettingDto.prototype, "description", void 0);
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)({ example: true, description: 'Whether this setting is publicly accessible without authentication' }),
+    (0, swagger_1.ApiPropertyOptional)({
+        example: true,
+        description: 'Whether this setting is publicly accessible without authentication',
+    }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsBoolean)(),
     __metadata("design:type", Boolean)

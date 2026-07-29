@@ -38,7 +38,10 @@ __decorate([
     __metadata("design:type", String)
 ], CreateCaseStudyDto.prototype, "title", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 'How we helped Acme FinTech dominate high-intent keywords...', description: 'Executive summary' }),
+    (0, swagger_1.ApiProperty)({
+        example: 'How we helped Acme FinTech dominate high-intent keywords...',
+        description: 'Executive summary',
+    }),
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
@@ -50,13 +53,19 @@ __decorate([
     __metadata("design:type", String)
 ], CreateCaseStudyDto.prototype, "challenge", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 'We deployed a full technical SEO audit and topic cluster strategy...', description: 'The solution implemented' }),
+    (0, swagger_1.ApiProperty)({
+        example: 'We deployed a full technical SEO audit and topic cluster strategy...',
+        description: 'The solution implemented',
+    }),
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
 ], CreateCaseStudyDto.prototype, "solution", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 'Within 6 months, organic traffic grew by 400%...', description: 'The measurable results achieved' }),
+    (0, swagger_1.ApiProperty)({
+        example: 'Within 6 months, organic traffic grew by 400%...',
+        description: 'The measurable results achieved',
+    }),
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)

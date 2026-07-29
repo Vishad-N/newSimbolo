@@ -112,7 +112,11 @@ export class PortfolioService extends BaseService {
   }
 
   async updateProject(id: string, dto: UpdatePortfolioProjectDto, updatedBy?: string): Promise<PortfolioProject> {
-    const proj = this.checkEntityExists(await this.prisma.portfolioProject.findUnique({ where: { id } }), 'PortfolioProject', id);
+    const proj = this.checkEntityExists(
+      await this.prisma.portfolioProject.findUnique({ where: { id } }),
+      'PortfolioProject',
+      id,
+    );
 
     let slug = proj.slug;
     if (dto.title && dto.title !== proj.title) {

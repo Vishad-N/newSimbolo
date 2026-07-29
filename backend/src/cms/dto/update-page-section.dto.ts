@@ -8,11 +8,17 @@ export class UpdatePageSectionDto {
   @MaxLength(100)
   sectionKey!: string;
 
-  @ApiProperty({ example: { title: 'AI Marketing', subtitle: 'Grow faster' }, description: 'JSON structure or JSON string containing section content' })
+  @ApiProperty({
+    example: { title: 'AI Marketing', subtitle: 'Grow faster' },
+    description: 'JSON structure or JSON string containing section content',
+  })
   @IsNotEmpty()
   content!: any;
 
-  @ApiPropertyOptional({ example: 'Main top hero section banner', description: 'Optional description of section purpose' })
+  @ApiPropertyOptional({
+    example: 'Main top hero section banner',
+    description: 'Optional description of section purpose',
+  })
   @IsOptional()
   @IsString()
   @MaxLength(255)

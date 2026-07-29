@@ -35,7 +35,10 @@ __decorate([
     __metadata("design:type", String)
 ], CreatePackageDto.prototype, "name", void 0);
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)({ example: 'Ideal for scaling businesses needing daily marketing management.', description: 'Description' }),
+    (0, swagger_1.ApiPropertyOptional)({
+        example: 'Ideal for scaling businesses needing daily marketing management.',
+        description: 'Description',
+    }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
@@ -59,7 +62,11 @@ __decorate([
     __metadata("design:type", Number)
 ], CreatePackageDto.prototype, "basePrice", void 0);
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)({ example: 'monthly', default: 'monthly', description: 'Billing interval (monthly, yearly, one-time)' }),
+    (0, swagger_1.ApiPropertyOptional)({
+        example: 'monthly',
+        default: 'monthly',
+        description: 'Billing interval (monthly, yearly, one-time)',
+    }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)

@@ -13,9 +13,9 @@ export declare class SeoController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        isActive: boolean;
         sourcePath: string;
         targetPath: string;
-        isActive: boolean;
     }[]>;
     getSitemapEntries(isActive?: string): Promise<{
         id: string;
@@ -111,9 +111,9 @@ export declare class SeoController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        isActive: boolean;
         sourcePath: string;
         targetPath: string;
-        isActive: boolean;
     }>;
     deleteRedirect(id: string): Promise<{
         success: boolean;

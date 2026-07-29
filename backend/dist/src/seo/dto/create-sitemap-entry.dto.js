@@ -30,7 +30,11 @@ __decorate([
     __metadata("design:type", String)
 ], CreateSitemapEntryDto.prototype, "loc", void 0);
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)({ example: 'weekly', default: 'weekly', description: 'Change frequency (always, hourly, daily, weekly, monthly, yearly, never)' }),
+    (0, swagger_1.ApiPropertyOptional)({
+        example: 'weekly',
+        default: 'weekly',
+        description: 'Change frequency (always, hourly, daily, weekly, monthly, yearly, never)',
+    }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)

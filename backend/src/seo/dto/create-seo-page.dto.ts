@@ -12,7 +12,10 @@ export class CreateSeoPageDto {
   @IsNotEmpty()
   metaTitle!: string;
 
-  @ApiProperty({ example: 'Boost organic traffic and achieve page 1 Google rankings with our AI-powered SEO solutions.', description: 'Meta description tag' })
+  @ApiProperty({
+    example: 'Boost organic traffic and achieve page 1 Google rankings with our AI-powered SEO solutions.',
+    description: 'Meta description tag',
+  })
   @IsString()
   @IsNotEmpty()
   metaDescription!: string;
@@ -32,12 +35,18 @@ export class CreateSeoPageDto {
   @IsString()
   ogTitle?: string;
 
-  @ApiPropertyOptional({ example: 'Boost organic traffic with our AI SEO solutions.', description: 'OpenGraph description' })
+  @ApiPropertyOptional({
+    example: 'Boost organic traffic with our AI SEO solutions.',
+    description: 'OpenGraph description',
+  })
   @IsOptional()
   @IsString()
   ogDescription?: string;
 
-  @ApiPropertyOptional({ example: 'c0a80123-4567-89ab-cdef-0123456789ab', description: 'OpenGraph Image MediaAsset UUID' })
+  @ApiPropertyOptional({
+    example: 'c0a80123-4567-89ab-cdef-0123456789ab',
+    description: 'OpenGraph Image MediaAsset UUID',
+  })
   @IsOptional()
   @IsUUID('4')
   ogImageId?: string | null;
@@ -47,7 +56,10 @@ export class CreateSeoPageDto {
   @IsString()
   twitterCard?: string;
 
-  @ApiPropertyOptional({ example: '{"@context": "https://schema.org", "@type": "Service"}', description: 'Structured JSON-LD schema string' })
+  @ApiPropertyOptional({
+    example: '{"@context": "https://schema.org", "@type": "Service"}',
+    description: 'Structured JSON-LD schema string',
+  })
   @IsOptional()
   @IsString()
   schemaJson?: string;

@@ -7,7 +7,10 @@ export class CreateBeforeAfterDto {
   @IsString()
   title?: string;
 
-  @ApiPropertyOptional({ example: 'Before: outdated layout vs After: high-converting design', description: 'Description' })
+  @ApiPropertyOptional({
+    example: 'Before: outdated layout vs After: high-converting design',
+    description: 'Description',
+  })
   @IsOptional()
   @IsString()
   description?: string;

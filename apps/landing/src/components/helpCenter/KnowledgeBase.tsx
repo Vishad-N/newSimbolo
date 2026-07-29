@@ -16,7 +16,7 @@ export function KnowledgeBase() {
           </div>
           <h2 className="text-[1.25rem] font-bold text-white">Knowledge Base</h2>
         </div>
-        <Link href="#" className="hidden sm:flex items-center gap-1.5 text-[0.85rem] font-medium text-[var(--accent)] transition hover:text-[var(--accent-hover)]">
+        <Link href="/help-center" className="hidden sm:flex items-center gap-1.5 text-[0.85rem] font-medium text-[var(--accent)] transition hover:text-[var(--accent-hover)]">
           View all articles <ArrowRight className="h-4 w-4" />
         </Link>
       </div>

@@ -8,7 +8,10 @@ export class CreateFaqDto {
   @IsNotEmpty()
   question!: string;
 
-  @ApiProperty({ example: 'Once you sign the retainer agreement, we schedule a kickoff call within 24 hours...', description: 'FAQ Answer' })
+  @ApiProperty({
+    example: 'Once you sign the retainer agreement, we schedule a kickoff call within 24 hours...',
+    description: 'FAQ Answer',
+  })
   @IsString()
   @IsNotEmpty()
   answer!: string;

@@ -6,7 +6,13 @@ import { UpdateCaseStudyDto } from './dto/update-case-study.dto';
 import { CreateCaseStudyCategoryDto } from './dto/create-case-study-category.dto';
 import { CreateCaseStudyMetricDto } from './dto/create-case-study-metric.dto';
 import { CreateBeforeAfterDto } from './dto/create-before-after.dto';
-import { CaseStudy, CaseStudyCategory, CaseStudyMetric, BeforeAfterComparison, CaseStudyStatusEnum } from '@prisma/client';
+import {
+  CaseStudy,
+  CaseStudyCategory,
+  CaseStudyMetric,
+  BeforeAfterComparison,
+  CaseStudyStatusEnum,
+} from '@prisma/client';
 import { CustomConflictException } from '../common/exceptions/custom.exceptions';
 
 @Injectable()

@@ -18,7 +18,10 @@ export class CreateTestimonialDto {
   @IsString()
   companyName?: string;
 
-  @ApiProperty({ example: 'The Simbolo completely transformed our inbound lead pipeline...', description: 'Testimonial quote text' })
+  @ApiProperty({
+    example: 'The Simbolo completely transformed our inbound lead pipeline...',
+    description: 'Testimonial quote text',
+  })
   @IsString()
   @IsNotEmpty()
   content!: string;

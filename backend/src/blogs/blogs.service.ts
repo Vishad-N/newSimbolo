@@ -77,7 +77,9 @@ export class BlogsService extends BaseService {
     const blog = await this.prisma.blog.findUnique({
       where: { slug },
       include: {
-        author: { include: { user: { select: { id: true, firstName: true, lastName: true, email: true, avatarUrl: true } } } },
+        author: {
+          include: { user: { select: { id: true, firstName: true, lastName: true, email: true, avatarUrl: true } } },
+        },
         category: true,
         coverImage: true,
         tags: true,

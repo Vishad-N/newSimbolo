@@ -32,7 +32,10 @@ __decorate([
     __metadata("design:type", String)
 ], CreateBeforeAfterDto.prototype, "title", void 0);
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)({ example: 'Before: outdated layout vs After: high-converting design', description: 'Description' }),
+    (0, swagger_1.ApiPropertyOptional)({
+        example: 'Before: outdated layout vs After: high-converting design',
+        description: 'Description',
+    }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
