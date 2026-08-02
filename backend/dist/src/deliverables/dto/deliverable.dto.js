@@ -62,7 +62,7 @@ class UpdateDeliverableDto {
     clientFeedback;
     mediaAssetId;
     static _OPENAPI_METADATA_FACTORY() {
-        return { title: { required: false, type: () => String }, description: { required: false, type: () => String }, status: { required: false, enum: ["APPROVED", "PENDING", "SUBMITTED", "REVISION_REQUESTED"] }, revisionNotes: { required: false, type: () => String }, clientFeedback: { required: false, type: () => String }, mediaAssetId: { required: false, type: () => String, format: "uuid" } };
+        return { title: { required: false, type: () => String }, description: { required: false, type: () => String }, status: { required: false, enum: ["PENDING", "APPROVED", "SUBMITTED", "REVISION_REQUESTED"] }, revisionNotes: { required: false, type: () => String }, clientFeedback: { required: false, type: () => String }, mediaAssetId: { required: false, type: () => String, format: "uuid" } };
     }
 }
 exports.UpdateDeliverableDto = UpdateDeliverableDto;

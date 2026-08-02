@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, PayloadTooLargeException } from '@nest
 import { ConfigService } from '@nestjs/config';
 import { BaseService } from '../shared/abstractions/base.service';
 import { LocalStorageProvider, StorageProvider, StoredObject } from './storage.provider';
+import { S3StorageProvider } from './s3.provider';
 
 const ALLOWED_MIME_PREFIXES = ['image/', 'video/', 'audio/', 'text/'];
 const ALLOWED_MIME_TYPES = [
@@ -20,6 +21,7 @@ export class StorageService extends BaseService {
   constructor(
     private readonly configService: ConfigService,
     private readonly localStorageProvider: LocalStorageProvider,
+    private readonly s3StorageProvider: S3StorageProvider,
   ) {
     super('StorageService');
     this.maxFileSizeBytes = parseInt(process.env.MAX_UPLOAD_BYTES || `${25 * 1024 * 1024}`, 10);
@@ -40,6 +42,15 @@ export class StorageService extends BaseService {
     return this.getProvider().getSignedUrl(storageKey, expiresInSeconds);
   }
 
+  async getPresignedUploadUrl(storageKey: string, mimeType: string, expiresInSeconds?: number) {
+    const provider = this.getProvider();
+    if ('getPresignedUploadUrl' in provider) {
+      return (provider as any).getPresignedUploadUrl(storageKey, mimeType, expiresInSeconds);
+    }
+    // Fallback for local
+    return `/uploads/presigned/${storageKey}`;
+  }
+
   async health() {
     return this.getProvider().health();
   }
@@ -56,8 +67,8 @@ export class StorageService extends BaseService {
   }
 
   private getProvider(): StorageProvider {
-    const provider = this.configService.get<string>('storage.provider', 'local');
-    if (provider === 'local' || provider === 's3' || provider === 'r2') return this.localStorageProvider;
+    const provider = this.configService.get<string>('storage.provider', 'r2'); // default to r2 for now
+    if (provider === 's3' || provider === 'r2') return this.s3StorageProvider;
     return this.localStorageProvider;
   }
 }

@@ -1,14 +1,20 @@
 "use client";
 
+import { useState } from "react";
 import { Card } from "@/components/ui/Card";
-import { FileText, Folder, File, FileImage, FileVideo, Download } from "lucide-react";
+import { FileText, Folder, File, FileImage, FileVideo, Download, Upload, FolderPlus, MoreVertical } from "lucide-react";
+import { UploadModal } from "@/components/documents/UploadModal";
+import { CreateFolderModal } from "@/components/documents/CreateFolderModal";
 
 export default function DocumentsPage() {
-  const folders = [
+  const [isUploadModalOpen, setUploadModalOpen] = useState(false);
+  const [isCreateFolderModalOpen, setCreateFolderModalOpen] = useState(false);
+
+  const [folders, setFolders] = useState([
     { name: "Contracts & Agreements", count: 3 },
     { name: "Invoices", count: 12 },
     { name: "Brand Assets", count: 45 },
-  ];
+  ]);
 
   const recentFiles = [
     { name: "Q3_SEO_Strategy.pdf", type: "pdf", date: "Oct 12, 2026", size: "2.4 MB" },
@@ -25,6 +31,33 @@ export default function DocumentsPage() {
             Documents & Files
           </h1>
           <p className="text-sm text-gray-400">Access your project deliverables, contracts, and assets.</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
+          <button 
+            onClick={() => setCreateFolderModalOpen(true)}
+            className="px-4 py-2 rounded-lg border border-white/10 text-white text-sm font-medium hover:bg-white/5 transition-colors flex items-center gap-2"
+          >
+            <FolderPlus className="w-4 h-4" />
+            New Folder
+          </button>
+          <button 
+            onClick={() => setUploadModalOpen(true)}
+            className="px-4 py-2 rounded-[12px] bg-[var(--primary)] text-black text-sm font-bold hover:scale-105 hover:shadow-[0_8px_16px_var(--primary-glow)] transition-all flex items-center gap-2"
+          >
+            <Upload className="w-4 h-4" />
+            Upload Documents
+          </button>
+        </div>
+      </div>
+
+      {/* Storage Usage Bar */}
+      <div className="bg-surface/40 border border-white/5 rounded-xl p-4 flex flex-col gap-2">
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-white font-medium">Storage Usage</span>
+          <span className="text-gray-400">2.4 GB / 10 GB</span>
+        </div>
+        <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+          <div className="h-full bg-[var(--primary)] w-[24%] rounded-full shadow-[0_0_10px_var(--primary-glow)]"></div>
         </div>
       </div>
 
@@ -66,14 +99,36 @@ export default function DocumentsPage() {
                     </div>
                   </div>
                 </div>
-                <button className="p-2 text-gray-400 hover:text-white bg-white/5 rounded-lg opacity-0 group-hover:opacity-100 transition-all">
-                  <Download className="w-4 h-4" />
-                </button>
+                <div className="flex items-center gap-2">
+                  <button className="p-2 text-gray-400 hover:text-white bg-white/5 rounded-lg opacity-0 group-hover:opacity-100 transition-all">
+                    <Download className="w-4 h-4" />
+                  </button>
+                  <button className="p-2 text-gray-400 hover:text-white bg-white/5 rounded-lg opacity-0 group-hover:opacity-100 transition-all">
+                    <MoreVertical className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             ))}
           </div>
         </Card>
       </div>
+
+      <UploadModal 
+        isOpen={isUploadModalOpen} 
+        onClose={() => setUploadModalOpen(false)} 
+        onUpload={async (files) => {
+          // Mock upload
+          await new Promise(r => setTimeout(r, 2000));
+          console.log("Uploaded files:", files);
+        }} 
+      />
+      <CreateFolderModal 
+        isOpen={isCreateFolderModalOpen} 
+        onClose={() => setCreateFolderModalOpen(false)} 
+        onCreate={(name) => {
+          setFolders(prev => [...prev, { name, count: 0 }]);
+        }} 
+      />
     </div>
   );
 }

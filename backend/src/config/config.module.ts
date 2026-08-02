@@ -8,6 +8,7 @@ import emailConfig from './email.config';
 import razorpayConfig from './razorpay.config';
 import redisConfig from './redis.config';
 import observabilityConfig from './observability.config';
+import { validate } from './env.validation';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import observabilityConfig from './observability.config';
       isGlobal: true,
       cache: true,
       expandVariables: true,
+      validate,
       load: [
         appConfig,
         databaseConfig,

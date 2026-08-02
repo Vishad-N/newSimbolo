@@ -177,8 +177,8 @@ export declare class SubscriptionsService extends BaseService {
             type: import(".prisma/client").$Enums.PackageTypeEnum;
             description: string | null;
             slug: string;
-            basePrice: number;
             serviceId: string;
+            basePrice: number;
             seoPageId: string | null;
             billingInterval: string;
             isPopular: boolean;
@@ -338,8 +338,8 @@ export declare class SubscriptionsService extends BaseService {
             type: import(".prisma/client").$Enums.PackageTypeEnum;
             description: string | null;
             slug: string;
-            basePrice: number;
             serviceId: string;
+            basePrice: number;
             seoPageId: string | null;
             billingInterval: string;
             isPopular: boolean;

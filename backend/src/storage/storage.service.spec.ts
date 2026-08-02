@@ -11,6 +11,13 @@ describe('StorageService', () => {
     getSignedUrl: jest.fn(),
     health: jest.fn(),
   };
+  const s3Provider = {
+    upload: jest.fn(),
+    delete: jest.fn(),
+    getSignedUrl: jest.fn(),
+    getPresignedUploadUrl: jest.fn(),
+    health: jest.fn(),
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -21,6 +28,7 @@ describe('StorageService', () => {
     const service = new StorageService(
       configService as unknown as ConfigService,
       provider as unknown as LocalStorageProvider,
+      s3Provider as any,
     );
 
     expect(() =>
@@ -35,6 +43,7 @@ describe('StorageService', () => {
     const service = new StorageService(
       configService as unknown as ConfigService,
       provider as unknown as LocalStorageProvider,
+      s3Provider as any,
     );
 
     expect(() =>

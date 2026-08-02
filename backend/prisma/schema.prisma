@@ -1,10 +1,12 @@
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [vector]
 }
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 // ==========================================
@@ -243,52 +245,56 @@ enum DocumentCategoryEnum {
 /// Relationships: Belongs to Role, Organization, Agency. Has many Orders, Projects, Notifications, AuditLogs.
 /// Business responsibility: Core identity and profile entity for authorization and accountability.
 model User {
-  id             String         @id @default(uuid()) @db.Uuid
-  email          String         @unique
+  id             String                      @id @default(uuid()) @db.Uuid
+  email          String                      @unique
   passwordHash   String?
   firstName      String
   lastName       String
+  embedding      Unsupported("vector(768)")?
   phone          String?
   avatarUrl      String?
-  status         UserStatusEnum @default(PENDING_VERIFICATION)
-  roleId         String         @db.Uuid
-  organizationId String?        @db.Uuid
-  agencyId       String?        @db.Uuid
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
+  status         UserStatusEnum              @default(PENDING_VERIFICATION)
+  roleId         String                      @db.Uuid
+  organizationId String?                     @db.Uuid
+  agencyId       String?                     @db.Uuid
+  createdAt      DateTime                    @default(now())
+  updatedAt      DateTime                    @updatedAt
   deletedAt      DateTime?
   createdBy      String?
   updatedBy      String?
 
-  role             Role                    @relation(fields: [roleId], references: [id])
-  organization     Organization?           @relation(fields: [organizationId], references: [id])
-  agency           Agency?                 @relation("AgencyUsers", fields: [agencyId], references: [id])
-  ownedAgency      Agency?                 @relation("AgencyOwner")
-  clientProfile    ClientProfile?
-  affiliateProfile Affiliate?              @relation("UserAffiliate")
-  refreshTokens    RefreshToken[]
-  sessions         Session[]
-  oauthAccounts    OAuthAccount[]
-  teamMembers      TeamMember[]
-  managedProjects  Project[]               @relation("ProjectManager")
-  assignedTasks    Task[]                  @relation("TaskAssignee")
-  assignedTickets  SupportTicket[]         @relation("TicketAssignee")
-  ticketReplies    TicketReply[]           @relation("TicketReplySender")
-  conversations    Participant[]           @relation("ConversationParticipant")
-  messages         Message[]               @relation("MessageSender")
-  notifications    Notification[]          @relation("UserNotifications")
-  preferences      NotificationPreference?
-  referredUsers    Referral[]              @relation("ReferredUser")
-  auditLogs        AuditLog[]              @relation("UserAuditLogs")
-  blogAuthor       BlogAuthor?
+  role                Role                    @relation(fields: [roleId], references: [id])
+  organization        Organization?           @relation(fields: [organizationId], references: [id])
+  agency              Agency?                 @relation("AgencyUsers", fields: [agencyId], references: [id])
+  ownedAgency         Agency?                 @relation("AgencyOwner")
+  clientProfile       ClientProfile?
+  affiliateProfile    Affiliate?              @relation("UserAffiliate")
+  refreshTokens       RefreshToken[]
+  sessions            Session[]
+  oauthAccounts       OAuthAccount[]
+  teamMembers         TeamMember[]
+  managedProjects     Project[]               @relation("ProjectManager")
+  assignedTasks       Task[]                  @relation("TaskAssignee")
+  assignedTickets     SupportTicket[]         @relation("TicketAssignee")
+  ticketReplies       TicketReply[]           @relation("TicketReplySender")
+  conversations       Participant[]           @relation("ConversationParticipant")
+  messages            Message[]               @relation("MessageSender")
+  notifications       Notification[]          @relation("UserNotifications")
+  preferences         NotificationPreference?
+  referredUsers       Referral[]              @relation("ReferredUser")
+  auditLogs           AuditLog[]              @relation("UserAuditLogs")
+  blogAuthor          BlogAuthor?
   hostedMeetings      Meeting[]               @relation("MeetingHost")
   mediaUploaded       MediaAsset[]            @relation("MediaUploader")
   managedClients      ClientProfile[]         @relation("AccountManager")
   projectTeamMembers  ProjectTeamMember[]
   taskComments        TaskComment[]
   uploadedDocuments   Document[]              @relation("DocumentUploader")
+  uploadedAssets      Asset[]                 @relation("AssetUploader")
+  uploadedVersions    AssetVersion[]          @relation("AssetVersionUploader")
   meetingParticipants MeetingParticipant[]
   activityTimelines   Timeline[]              @relation("UserActivity")
+  aiConversations     AiConversation[]
 
   @@index([email])
   @@index([status])
@@ -552,6 +558,8 @@ model ClientProfile {
   meetings       Meeting[]
   documents      Document[]
   timelines      Timeline[]
+  assetFolders   AssetFolder[]
+  assets         Asset[]
 
   @@index([userId])
   @@index([companyId])
@@ -595,18 +603,19 @@ model Company {
 /// Relationships: Belongs to ServiceCategory. Has many Packages, Features, FAQs, CaseStudies.
 /// Business responsibility: Catalog definition powering landing page catalogs and order creation.
 model Service {
-  id               String          @id @default(uuid()) @db.Uuid
-  name             String          @unique
-  slug             String          @unique
+  id               String                      @id @default(uuid()) @db.Uuid
+  name             String                      @unique
+  slug             String                      @unique
+  embedding        Unsupported("vector(768)")?
   shortDescription String
   fullDescription  String?
   iconUrl          String?
-  type             ServiceTypeEnum @default(RETAINER)
-  basePrice        Float           @default(0.0)
-  categoryId       String?         @db.Uuid
-  seoPageId        String?         @unique @db.Uuid
-  createdAt        DateTime        @default(now())
-  updatedAt        DateTime        @updatedAt
+  type             ServiceTypeEnum             @default(RETAINER)
+  basePrice        Float                       @default(0.0)
+  categoryId       String?                     @db.Uuid
+  seoPageId        String?                     @unique @db.Uuid
+  createdAt        DateTime                    @default(now())
+  updatedAt        DateTime                    @updatedAt
   deletedAt        DateTime?
   createdBy        String?
   updatedBy        String?
@@ -693,19 +702,20 @@ model ServiceFAQ {
 /// Relationships: Belongs to Service. Has many Features, Pricings, Orders, Subscriptions.
 /// Business responsibility: Commercial SKU purchased during client checkout.
 model Package {
-  id              String          @id @default(uuid()) @db.Uuid
+  id              String                      @id @default(uuid()) @db.Uuid
   name            String
-  slug            String          @unique
+  slug            String                      @unique
+  embedding       Unsupported("vector(768)")?
   description     String?
-  type            PackageTypeEnum @default(STARTER)
-  serviceId       String          @db.Uuid
-  basePrice       Float           @default(0.0)
-  billingInterval String          @default("monthly")
-  isPopular       Boolean         @default(false)
-  isCustom        Boolean         @default(false)
-  seoPageId       String?         @unique @db.Uuid
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
+  type            PackageTypeEnum             @default(STARTER)
+  serviceId       String                      @db.Uuid
+  basePrice       Float                       @default(0.0)
+  billingInterval String                      @default("monthly")
+  isPopular       Boolean                     @default(false)
+  isCustom        Boolean                     @default(false)
+  seoPageId       String?                     @unique @db.Uuid
+  createdAt       DateTime                    @default(now())
+  updatedAt       DateTime                    @updatedAt
   deletedAt       DateTime?
   createdBy       String?
   updatedBy       String?
@@ -1458,20 +1468,21 @@ model TicketReply {
 /// Relationships: Belongs to BlogAuthor, Category, SEOPage. Has many Tags.
 /// Business responsibility: Organic SEO traffic generation and thought leadership.
 model Blog {
-  id             String         @id @default(uuid()) @db.Uuid
+  id             String                      @id @default(uuid()) @db.Uuid
   title          String
-  slug           String         @unique
+  slug           String                      @unique
+  embedding      Unsupported("vector(768)")?
   excerpt        String?
   content        String
-  status         BlogStatusEnum @default(DRAFT)
+  status         BlogStatusEnum              @default(DRAFT)
   publishDate    DateTime?
-  readingTimeMin Int            @default(5)
-  authorId       String         @db.Uuid
-  coverImageId   String?        @db.Uuid
-  categoryId     String?        @db.Uuid
-  seoPageId      String?        @unique @db.Uuid
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
+  readingTimeMin Int                         @default(5)
+  authorId       String                      @db.Uuid
+  coverImageId   String?                     @db.Uuid
+  categoryId     String?                     @db.Uuid
+  seoPageId      String?                     @unique @db.Uuid
+  createdAt      DateTime                    @default(now())
+  updatedAt      DateTime                    @updatedAt
   deletedAt      DateTime?
   createdBy      String?
   updatedBy      String?
@@ -1546,23 +1557,24 @@ model BlogAuthor {
 /// Relationships: Belongs to Service and Category. Has Metrics, BeforeAfters, Testimonials.
 /// Business responsibility: Commercial proof-of-competence driving lead conversions.
 model CaseStudy {
-  id           String              @id @default(uuid()) @db.Uuid
+  id           String                      @id @default(uuid()) @db.Uuid
   title        String
-  slug         String              @unique
+  slug         String                      @unique
+  embedding    Unsupported("vector(768)")?
   summary      String
   challenge    String
   solution     String
   results      String
-  status       CaseStudyStatusEnum @default(DRAFT)
+  status       CaseStudyStatusEnum         @default(DRAFT)
   publishDate  DateTime?
   clientName   String
   industry     String?
-  serviceId    String?             @db.Uuid
-  categoryId   String?             @db.Uuid
-  coverImageId String?             @db.Uuid
-  seoPageId    String?             @unique @db.Uuid
-  createdAt    DateTime            @default(now())
-  updatedAt    DateTime            @updatedAt
+  serviceId    String?                     @db.Uuid
+  categoryId   String?                     @db.Uuid
+  coverImageId String?                     @db.Uuid
+  seoPageId    String?                     @unique @db.Uuid
+  createdAt    DateTime                    @default(now())
+  updatedAt    DateTime                    @updatedAt
   deletedAt    DateTime?
   createdBy    String?
   updatedBy    String?
@@ -1694,21 +1706,22 @@ model PortfolioCategory {
 /// Relationships: Belongs to ClientProfile, CaseStudy. References MediaAsset avatar.
 /// Business responsibility: Builds social proof and trust across landing pages.
 model Testimonial {
-  id             String                @id @default(uuid()) @db.Uuid
+  id             String                      @id @default(uuid()) @db.Uuid
   clientName     String
+  embedding      Unsupported("vector(768)")?
   clientTitle    String?
   companyName    String?
   content        String
-  rating         Int                   @default(5)
-  status         TestimonialStatusEnum @default(APPROVED)
-  isFeatured     Boolean               @default(false)
-  isVerified     Boolean               @default(true)
+  rating         Int                         @default(5)
+  status         TestimonialStatusEnum       @default(APPROVED)
+  isFeatured     Boolean                     @default(false)
+  isVerified     Boolean                     @default(true)
   avatarUrl      String?
   videoReviewUrl String?
-  clientId       String?               @db.Uuid
-  caseStudyId    String?               @db.Uuid
-  createdAt      DateTime              @default(now())
-  updatedAt      DateTime              @updatedAt
+  clientId       String?                     @db.Uuid
+  caseStudyId    String?                     @db.Uuid
+  createdAt      DateTime                    @default(now())
+  updatedAt      DateTime                    @updatedAt
   deletedAt      DateTime?
   createdBy      String?
   updatedBy      String?
@@ -2130,4 +2143,108 @@ model AuditLog {
   @@index([entityType, entityId])
   @@index([createdAt])
   @@map("audit_logs")
+}
+
+// ==========================================
+// CLIENT ASSET MANAGEMENT (CLOUDFLARE R2)
+// ==========================================
+
+/// Purpose: Represents a folder for organizing client assets.
+/// Relationships: Belongs to ClientProfile and optionally a parent AssetFolder.
+model AssetFolder {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  parentId  String?  @db.Uuid
+  clientId  String   @db.Uuid
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  client   ClientProfile @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  parent   AssetFolder?  @relation("ClientFolderHierarchy", fields: [parentId], references: [id])
+  children AssetFolder[] @relation("ClientFolderHierarchy")
+  assets   Asset[]
+
+  @@index([clientId])
+  @@index([parentId])
+  @@map("asset_folders")
+}
+
+/// Purpose: Represents a file uploaded for/by a client.
+/// Relationships: Belongs to ClientProfile, AssetFolder, and uploadedBy User. Has many AssetVersions.
+model Asset {
+  id              String    @id @default(uuid()) @db.Uuid
+  filename        String
+  originalName    String
+  mimeType        String
+  extension       String
+  sizeBytes       Int
+  folderId        String?   @db.Uuid
+  clientId        String    @db.Uuid
+  uploadedById    String?   @db.Uuid
+  storageKey      String    @unique
+  storageProvider String    @default("cloudflare-r2")
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  deletedAt       DateTime?
+
+  client     ClientProfile  @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  folder     AssetFolder?   @relation(fields: [folderId], references: [id])
+  uploadedBy User?          @relation("AssetUploader", fields: [uploadedById], references: [id], onDelete: SetNull)
+  versions   AssetVersion[]
+
+  @@index([clientId])
+  @@index([folderId])
+  @@index([storageKey])
+  @@map("assets")
+}
+
+/// Purpose: Tracks history and replacements of an Asset.
+/// Relationships: Belongs to Asset and uploadedBy User.
+model AssetVersion {
+  id            String   @id @default(uuid()) @db.Uuid
+  assetId       String   @db.Uuid
+  versionNumber Int
+  storageKey    String   @unique
+  sizeBytes     Int
+  uploadedById  String?  @db.Uuid
+  createdAt     DateTime @default(now())
+
+  asset      Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  uploadedBy User? @relation("AssetVersionUploader", fields: [uploadedById], references: [id], onDelete: SetNull)
+
+  @@index([assetId])
+  @@map("asset_versions")
+}
+
+// ==========================================
+// AI CONVERSATION MODELS
+// ==========================================
+
+model AiConversation {
+  id        String      @id @default(uuid()) @db.Uuid
+  sessionId String
+  userId    String?     @db.Uuid
+  title     String?
+  metadata  Json?
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  messages  AiMessage[]
+  user      User?       @relation(fields: [userId], references: [id])
+}
+
+model AiMessage {
+  id             String         @id @default(uuid()) @db.Uuid
+  conversationId String         @db.Uuid
+  role           String
+  content        String
+  intentDetected String?
+  createdAt      DateTime       @default(now())
+  conversation   AiConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+}
+
+model AiAnalytics {
+  id         String   @id @default(uuid()) @db.Uuid
+  actionType String
+  metadata   Json?
+  createdAt  DateTime @default(now())
 }

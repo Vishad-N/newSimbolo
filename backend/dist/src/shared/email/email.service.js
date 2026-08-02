@@ -15,60 +15,87 @@ const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
 const nodemailer = require("nodemailer");
 const base_service_1 = require("../abstractions/base.service");
+const queue_service_1 = require("../../queues/queue.service");
 let EmailService = EmailService_1 = class EmailService extends base_service_1.BaseService {
     configService;
+    queueService;
     transporter = null;
     fromEmail;
-    constructor(configService) {
+    constructor(configService, queueService) {
         super(EmailService_1.name);
         this.configService = configService;
+        this.queueService = queueService;
         this.fromEmail = this.configService.get('email.from', 'noreply@simbolo.ai');
         this.initializeTransporter();
+    }
+    onModuleInit() {
+        this.queueService.registerWorker('email', this.processEmailJob.bind(this));
     }
     initializeTransporter() {
         const host = this.configService.get('email.host');
         const port = this.configService.get('email.port', 2525);
         const user = this.configService.get('email.user');
         const pass = this.configService.get('email.pass');
+        const secure = this.configService.get('email.secure', false);
         const hasMockConfig = [host, user, pass].some((value) => value?.toLowerCase().includes('mock'));
         if (host && user && pass && !hasMockConfig) {
             this.transporter = nodemailer.createTransport({
                 host,
                 port,
+                secure,
                 auth: { user, pass },
                 connectionTimeout: 3000,
                 greetingTimeout: 3000,
                 socketTimeout: 5000,
             });
-            this.logger.log(`📧 Email transport configured for SMTP host: ${host}:${port}`);
+            this.logger.log(`📧 Email transport configured for SMTP host: ${host}:${port} (secure: ${secure})`);
         }
         else {
             this.logger.warn('📧 SMTP credentials not fully configured. Running EmailService in preview/mock mode.');
         }
     }
+    /**
+     * Pushes an email to the BullMQ 'email' queue to be processed asynchronously.
+     */
     async sendEmail(to, subject, htmlContent) {
         try {
-            if (this.transporter) {
-                await this.transporter.sendMail({
-                    from: `"The Simbolo Platform" <${this.fromEmail}>`,
-                    to,
-                    subject,
-                    html: htmlContent,
-                });
-                this.logger.log(`📧 Email sent successfully to ${to} [Subject: ${subject}]`);
-                return true;
+            const result = await this.queueService.add('email', 'send-email', {
+                to,
+                subject,
+                htmlContent,
+            });
+            if (!result.queued) {
+                this.logger.warn(`Failed to queue email to ${to} (BullMQ disabled)`);
+                return false;
             }
-            else {
-                this.logger.log(`📧 [MOCK EMAIL] To: ${to} | Subject: ${subject}`);
-                this.logger.debug(`📧 [MOCK EMAIL BODY]\n${htmlContent}`);
-                return true;
-            }
+            return true;
         }
         catch (error) {
-            this.logger.error(`Failed to send email to ${to}:`, error.stack);
+            this.logger.error(`Failed to enqueue email to ${to}:`, error.stack);
             return false;
         }
     }
+    /**
+     * BullMQ Job Processor
+     * Actually dispatches the email via SMTP.
+     */
+    async processEmailJob(job) {
+        const { to, subject, htmlContent } = job.data;
+        if (this.transporter) {
+            await this.transporter.sendMail({
+                from: `"The Simbolo Platform" <${this.fromEmail}>`,
+                to,
+                subject,
+                html: htmlContent,
+            });
+            this.logger.log(`📧 Email sent successfully to ${to} [Subject: ${subject}]`);
+        }
+        else {
+            this.logger.log(`📧 [MOCK EMAIL] To: ${to} | Subject: ${subject}`);
+            this.logger.debug(`📧 [MOCK EMAIL BODY]\n${htmlContent}`);
+        }
+    }
+    // ── Existing Email Templates ─────────────────────────────────────────
     async sendVerificationEmail(to, token, frontendUrl) {
         const baseUrl = frontendUrl || this.configService.get('app.frontendUrls', ['http://localhost:3000'])[0];
         const verificationLink = `${baseUrl}/verify-email?token=${encodeURIComponent(token)}&email=${encodeURIComponent(to)}`;
@@ -112,22 +139,6 @@ let EmailService = EmailService_1 = class EmailService extends base_service_1.Ba
     `;
         return this.sendEmail(to, 'Welcome to The Simbolo Platform!', html);
     }
-    async sendLoginAlertEmail(to, ip, userAgent, timestamp) {
-        const html = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
-        <h2 style="color: #3B82F6;">New Login Detected</h2>
-        <p>We noticed a new sign-in to your Simbolo account:</p>
-        <ul style="background-color: #f8fafc; padding: 15px 30px; border-radius: 6px; list-style: none;">
-          <li><strong>Time:</strong> ${timestamp.toUTCString()}</li>
-          <li><strong>IP Address:</strong> ${ip || 'Unknown'}</li>
-          <li><strong>Device/Browser:</strong> ${userAgent || 'Unknown'}</li>
-        </ul>
-        <p style="font-size: 13px; color: #666;">If this was you, no action is needed. If you do not recognize this activity, please change your password immediately and revoke active sessions in your profile.</p>
-      </div>
-    `;
-        return this.sendEmail(to, 'Security Alert: New login to your account', html);
-    }
-    // ── Phase 8 Email Templates ─────────────────────────────────────────
     async sendInvoiceEmail(to, name, invoiceNumber, amount, dueDate, currency = 'INR') {
         const symbol = currency === 'INR' ? '₹' : '$';
         const html = `
@@ -144,68 +155,6 @@ let EmailService = EmailService_1 = class EmailService extends base_service_1.Ba
       </div>
     `;
         return this.sendEmail(to, `Invoice ${invoiceNumber} from The Simbolo`, html);
-    }
-    async sendPaymentConfirmationEmail(to, name, amount, transactionId, currency = 'INR') {
-        const symbol = currency === 'INR' ? '₹' : '$';
-        const html = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
-        <h2 style="color: #10B981;">✅ Payment Confirmed</h2>
-        <p>Hi ${name},</p>
-        <p>We've successfully received your payment of <strong>${symbol}${amount.toLocaleString('en-IN')}</strong>.</p>
-        <div style="background-color: #f0fdf4; padding: 15px 20px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #10B981;">
-          <p style="margin: 0;"><strong>Amount Paid:</strong> ${symbol}${amount.toLocaleString('en-IN')}</p>
-          <p style="margin: 8px 0 0;"><strong>Transaction ID:</strong> ${transactionId}</p>
-          <p style="margin: 8px 0 0;"><strong>Date:</strong> ${new Date().toLocaleDateString('en-IN')}</p>
-        </div>
-        <p>Your project will be activated shortly. You can track progress in your dashboard.</p>
-        <p style="margin-top: 20px;">Thank you for your business!<br/><strong>The Simbolo Team</strong></p>
-      </div>
-    `;
-        return this.sendEmail(to, 'Payment Confirmed — The Simbolo', html);
-    }
-    async sendProjectCreatedEmail(to, name, projectName, projectId) {
-        const html = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
-        <h2 style="color: #8B5CF6;">🚀 Project Created</h2>
-        <p>Hi ${name},</p>
-        <p>Your project <strong>"${projectName}"</strong> has been created and our team is getting started.</p>
-        <p>You can track milestones, deliverables, and team activity from your dashboard.</p>
-        <p style="margin-top: 20px;">Best regards,<br/><strong>The Simbolo Team</strong></p>
-      </div>
-    `;
-        return this.sendEmail(to, `Project Created: ${projectName}`, html);
-    }
-    async sendMeetingReminderEmail(to, name, meetingTitle, startTime, meetUrl) {
-        const html = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
-        <h2 style="color: #F59E0B;">📅 Meeting Reminder</h2>
-        <p>Hi ${name},</p>
-        <p>This is a reminder for your upcoming meeting: <strong>${meetingTitle}</strong></p>
-        <div style="background-color: #fffbeb; padding: 15px 20px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #F59E0B;">
-          <p style="margin: 0;"><strong>Title:</strong> ${meetingTitle}</p>
-          <p style="margin: 8px 0 0;"><strong>Time:</strong> ${startTime.toLocaleString('en-IN', { dateStyle: 'full', timeStyle: 'short' })}</p>
-          ${meetUrl ? `<p style="margin: 8px 0 0;"><strong>Join Link:</strong> <a href="${meetUrl}">${meetUrl}</a></p>` : ''}
-        </div>
-        <p style="margin-top: 20px;">Best regards,<br/><strong>The Simbolo Team</strong></p>
-      </div>
-    `;
-        return this.sendEmail(to, `Meeting Reminder: ${meetingTitle}`, html);
-    }
-    async sendTicketUpdateEmail(to, name, ticketNumber, newStatus) {
-        const html = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
-        <h2 style="color: #3B82F6;">Support Ticket Updated</h2>
-        <p>Hi ${name},</p>
-        <p>Your support ticket <strong>${ticketNumber}</strong> has been updated.</p>
-        <div style="background-color: #f8fafc; padding: 15px 20px; border-radius: 6px; margin: 20px 0;">
-          <p style="margin: 0;"><strong>Ticket:</strong> ${ticketNumber}</p>
-          <p style="margin: 8px 0 0;"><strong>New Status:</strong> <span style="color: #14B8A6; font-weight: bold;">${newStatus}</span></p>
-        </div>
-        <p>Log in to your dashboard to view the latest updates and respond.</p>
-        <p style="margin-top: 20px;">Best regards,<br/><strong>The Simbolo Support Team</strong></p>
-      </div>
-    `;
-        return this.sendEmail(to, `Support Ticket ${ticketNumber} Updated`, html);
     }
     async sendSubscriptionRenewalReminder(to, name, planName, renewalDate, amount, currency = 'INR') {
         const symbol = currency === 'INR' ? '₹' : '$';
@@ -226,10 +175,30 @@ let EmailService = EmailService_1 = class EmailService extends base_service_1.Ba
     `;
         return this.sendEmail(to, `Subscription Renewal Reminder: ${planName}`, html);
     }
+    // ── Generic Notification Template ─────────────────────────────────────────
+    async sendNotificationEmail(to, title, message, deepLink) {
+        const baseUrl = this.configService.get('app.frontendUrls', ['https://app.simbolo.ai'])[0];
+        const linkUrl = deepLink ? (deepLink.startsWith('http') ? deepLink : `${baseUrl}${deepLink}`) : baseUrl;
+        const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
+        <h2 style="color: #3B82F6;">${title}</h2>
+        <p>${message}</p>
+        <div style="margin: 30px 0;">
+          <a href="${linkUrl}" style="background-color: #3B82F6; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: bold;">View in Dashboard</a>
+        </div>
+        <p style="font-size: 13px; color: #666; margin-top: 30px;">
+          You received this email because of your notification preferences. 
+          To stop receiving these alerts, you can update your preferences in your account settings.
+        </p>
+      </div>
+    `;
+        return this.sendEmail(to, title, html);
+    }
 };
 exports.EmailService = EmailService;
 exports.EmailService = EmailService = EmailService_1 = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [config_1.ConfigService])
+    __metadata("design:paramtypes", [config_1.ConfigService,
+        queue_service_1.QueueService])
 ], EmailService);
 //# sourceMappingURL=email.service.js.map

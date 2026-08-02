@@ -56,6 +56,7 @@ export declare class DashboardController {
             date: Date;
             description: string | null;
             title: string;
+            metadata: string | null;
             clientId: string | null;
             orderId: string | null;
             eventType: string;
@@ -63,7 +64,6 @@ export declare class DashboardController {
             ticketId: string | null;
             meetingId: string | null;
             deliverableId: string | null;
-            metadata: string | null;
         })[];
     }>;
     getAdminRevenueOverview(): Promise<{
@@ -361,6 +361,7 @@ export declare class DashboardController {
             date: Date;
             description: string | null;
             title: string;
+            metadata: string | null;
             clientId: string | null;
             orderId: string | null;
             eventType: string;
@@ -368,7 +369,6 @@ export declare class DashboardController {
             ticketId: string | null;
             meetingId: string | null;
             deliverableId: string | null;
-            metadata: string | null;
         }[];
     }>;
     getClientBillingDashboard(clientId: string): Promise<{
@@ -508,6 +508,7 @@ export declare class DashboardController {
             date: Date;
             description: string | null;
             title: string;
+            metadata: string | null;
             clientId: string | null;
             orderId: string | null;
             eventType: string;
@@ -515,7 +516,6 @@ export declare class DashboardController {
             ticketId: string | null;
             meetingId: string | null;
             deliverableId: string | null;
-            metadata: string | null;
         }[];
     }>;
     getProjectStats(projectId: string): Promise<{

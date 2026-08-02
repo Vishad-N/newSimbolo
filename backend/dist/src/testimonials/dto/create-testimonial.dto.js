@@ -28,7 +28,7 @@ class CreateTestimonialDto {
     clientId;
     caseStudyId;
     static _OPENAPI_METADATA_FACTORY() {
-        return { clientName: { required: true, type: () => String }, clientTitle: { required: false, type: () => String }, companyName: { required: false, type: () => String }, content: { required: true, type: () => String }, rating: { required: false, type: () => Number, minimum: 1, maximum: 5 }, status: { required: false, enum: ["APPROVED", "PENDING", "REJECTED", "FEATURED"] }, isFeatured: { required: false, type: () => Boolean }, isVerified: { required: false, type: () => Boolean }, avatarUrl: { required: false, type: () => String }, videoReviewUrl: { required: false, type: () => String }, clientId: { required: false, type: () => String, nullable: true, format: "uuid" }, caseStudyId: { required: false, type: () => String, nullable: true, format: "uuid" } };
+        return { clientName: { required: true, type: () => String }, clientTitle: { required: false, type: () => String }, companyName: { required: false, type: () => String }, content: { required: true, type: () => String }, rating: { required: false, type: () => Number, minimum: 1, maximum: 5 }, status: { required: false, enum: ["PENDING", "APPROVED", "REJECTED", "FEATURED"] }, isFeatured: { required: false, type: () => Boolean }, isVerified: { required: false, type: () => Boolean }, avatarUrl: { required: false, type: () => String }, videoReviewUrl: { required: false, type: () => String }, clientId: { required: false, type: () => String, nullable: true, format: "uuid" }, caseStudyId: { required: false, type: () => String, nullable: true, format: "uuid" } };
     }
 }
 exports.CreateTestimonialDto = CreateTestimonialDto;

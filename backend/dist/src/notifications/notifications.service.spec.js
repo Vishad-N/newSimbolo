@@ -12,7 +12,8 @@ describe('NotificationsService', () => {
                 create: jest.fn(),
             },
         };
-        const service = new notifications_service_1.NotificationsService(prisma);
+        const emailServiceMock = { sendNotificationEmail: jest.fn().mockResolvedValue(true) };
+        const service = new notifications_service_1.NotificationsService(prisma, emailServiceMock);
         await expect(service.sendNotification({
             userId: 'user-id',
             type: client_1.NotificationTypeEnum.PROJECT,

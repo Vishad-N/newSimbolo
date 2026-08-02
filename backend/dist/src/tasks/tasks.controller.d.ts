@@ -45,9 +45,9 @@ export declare class TasksController {
         createdBy: string | null;
         updatedBy: string | null;
         priority: import(".prisma/client").$Enums.TaskPriorityEnum;
+        progress: number;
         description: string | null;
         title: string;
-        progress: number;
         assignedToId: string | null;
         projectId: string;
         estimatedHours: number | null;
@@ -63,9 +63,9 @@ export declare class TasksController {
         createdBy: string | null;
         updatedBy: string | null;
         priority: import(".prisma/client").$Enums.TaskPriorityEnum;
+        progress: number;
         description: string | null;
         title: string;
-        progress: number;
         assignedToId: string | null;
         projectId: string;
         estimatedHours: number | null;
@@ -81,9 +81,9 @@ export declare class TasksController {
         createdBy: string | null;
         updatedBy: string | null;
         priority: import(".prisma/client").$Enums.TaskPriorityEnum;
+        progress: number;
         description: string | null;
         title: string;
-        progress: number;
         assignedToId: string | null;
         projectId: string;
         estimatedHours: number | null;
@@ -99,9 +99,9 @@ export declare class TasksController {
         createdBy: string | null;
         updatedBy: string | null;
         priority: import(".prisma/client").$Enums.TaskPriorityEnum;
+        progress: number;
         description: string | null;
         title: string;
-        progress: number;
         assignedToId: string | null;
         projectId: string;
         estimatedHours: number | null;

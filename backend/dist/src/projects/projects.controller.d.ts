@@ -18,7 +18,7 @@ export declare class ProjectsController {
                     id: string;
                     firstName: string;
                     lastName: string;
-                    avatar: never;
+                    avatarUrl: string | null;
                 };
             } & {
                 role: string;
@@ -77,10 +77,10 @@ export declare class ProjectsController {
             createdBy: string | null;
             updatedBy: string | null;
             priority: import(".prisma/client").$Enums.ProjectPriorityEnum;
-            description: string | null;
-            slug: string;
             progress: number;
             startDate: Date | null;
+            description: string | null;
+            slug: string;
             clientId: string;
             budget: number | null;
             orderId: string;
@@ -105,10 +105,10 @@ export declare class ProjectsController {
         createdBy: string | null;
         updatedBy: string | null;
         priority: import(".prisma/client").$Enums.ProjectPriorityEnum;
-        description: string | null;
-        slug: string;
         progress: number;
         startDate: Date | null;
+        description: string | null;
+        slug: string;
         clientId: string;
         budget: number | null;
         orderId: string;
@@ -130,10 +130,10 @@ export declare class ProjectsController {
         createdBy: string | null;
         updatedBy: string | null;
         priority: import(".prisma/client").$Enums.ProjectPriorityEnum;
-        description: string | null;
-        slug: string;
         progress: number;
         startDate: Date | null;
+        description: string | null;
+        slug: string;
         clientId: string;
         budget: number | null;
         orderId: string;
@@ -151,10 +151,10 @@ export declare class ProjectsController {
         createdBy: string | null;
         updatedBy: string | null;
         priority: import(".prisma/client").$Enums.ProjectPriorityEnum;
-        description: string | null;
-        slug: string;
         progress: number;
         startDate: Date | null;
+        description: string | null;
+        slug: string;
         clientId: string;
         budget: number | null;
         orderId: string;

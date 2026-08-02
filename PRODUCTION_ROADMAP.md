@@ -24,6 +24,7 @@ flowchart TD
     D --> E[Phase 4: Production Email Transport]
     E --> F[Phase 5: Observability & Sentry]
     F --> G[Phase 6: CI/CD & Production Deploy]
+    G --> H[Phase 7: AI Feature Backend Integrations]
 ```
 
 ---
@@ -83,6 +84,14 @@ flowchart TD
 - [ ] **Docker Compose & Deployment Script**:
   - Test production build pipelines using `docker compose -f infrastructure/docker-compose.prod.yml up -d`.
   - Validate SSL termination via Nginx certbot / Cloudflare SSL.
+
+---
+
+### Phase 7: AI Feature Backend Integrations (Planned)
+- [ ] **AI Search API Integration**:
+  - Connect the AI Search UI in `@simbolo/landing` to real backend AI service endpoints.
+  - Replace the mock data currently defined in `apps/landing/src/mock/ai-search.ts` with real API calls returning data matching the `SearchResponse` interface defined in `apps/landing/src/types/search.ts`.
+  - Ensure the backend properly aggregates matching experts, packages, services, and generates the AI summary dynamically.
 
 ---
 

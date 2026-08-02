@@ -68,6 +68,7 @@ import { AppCacheModule } from './cache/cache.module';
 import { QueuesModule } from './queues/queues.module';
 import { ObservabilityModule } from './observability/observability.module';
 import { StorageModule } from './storage/storage.module';
+import { AssetsModule } from './assets/assets.module';
 
 @Module({
   imports: [
@@ -137,6 +138,7 @@ import { StorageModule } from './storage/storage.module';
         limit: 30, // Rate limit chat messages: 30 per 10 seconds
       },
     ]),
+    AssetsModule,
   ],
   providers: [
     {

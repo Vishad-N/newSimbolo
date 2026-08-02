@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { DataTable } from "@/components/ui/DataTable";
 import { mockApi } from "@/services/api";
-import { ShoppingCart, Download, ExternalLink } from "lucide-react";
+import { ShoppingCart, Download, ExternalLink, Layers } from "lucide-react";
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<any[]>([]);
@@ -62,8 +62,8 @@ export default function OrdersPage() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
         <div>
           <h1 className="text-2xl font-heading font-bold text-white flex items-center gap-2">
-            <ShoppingCart className="w-6 h-6 text-primary" />
-            Order History
+            <Layers className="w-6 h-6 text-primary" />
+            My Services
           </h1>
           <p className="text-sm text-gray-400">View and manage all your purchased services and packages.</p>
         </div>

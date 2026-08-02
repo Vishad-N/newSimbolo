@@ -1,5 +1,6 @@
 import { PrismaService } from '../prisma/prisma.service';
 import { BaseService } from '../shared/abstractions/base.service';
+import { EmailService } from '../shared/email/email.service';
 import { UpdateNotificationPreferencesDto } from './dto/notification.dto';
 import { NotificationTypeEnum, NotificationChannelEnum } from '@prisma/client';
 export interface SendNotificationOptions {
@@ -12,7 +13,8 @@ export interface SendNotificationOptions {
 }
 export declare class NotificationsService extends BaseService {
     private readonly prisma;
-    constructor(prisma: PrismaService);
+    private readonly emailService;
+    constructor(prisma: PrismaService, emailService: EmailService);
     /**
      * Central notification dispatch — creates an in-app notification record.
      * Checks user preferences before creating.

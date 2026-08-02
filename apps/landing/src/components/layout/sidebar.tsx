@@ -110,9 +110,11 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
             Go Pro
           </div>
           <p className="mb-4 text-[0.84rem] leading-5 text-[var(--muted)]">Unlock premium features and grow faster.</p>
-          <button className="h-9 w-full rounded-[16px] bg-amber-400 text-[0.88rem] font-extrabold text-black transition duration-300 hover:bg-amber-500 hover:-translate-y-[2px] hover:shadow-[0_12px_28px_rgba(251,191,36,0.25)] active:bg-amber-600">
-            Upgrade Now
-          </button>
+          <Link href="/packages" className="block w-full">
+            <button className="h-9 w-full rounded-[16px] bg-amber-400 text-[0.88rem] font-extrabold text-black transition duration-300 hover:bg-amber-500 hover:-translate-y-[2px] hover:shadow-[0_12px_28px_rgba(251,191,36,0.25)] active:bg-amber-600">
+              Upgrade Now
+            </button>
+          </Link>
         </div>
       </div>
     </aside>

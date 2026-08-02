@@ -34,10 +34,10 @@ export declare class SettingsController {
         createdAt: Date;
         updatedAt: Date;
         updatedBy: string | null;
+        key: string;
         description: string | null;
         value: string;
         isPublic: boolean;
-        key: string;
         category: string;
     }[]>;
     getGlobalSettings(category?: string): Promise<{
@@ -45,10 +45,10 @@ export declare class SettingsController {
         createdAt: Date;
         updatedAt: Date;
         updatedBy: string | null;
+        key: string;
         description: string | null;
         value: string;
         isPublic: boolean;
-        key: string;
         category: string;
     }[]>;
     getSettingByKey(key: string): Promise<{
@@ -56,10 +56,10 @@ export declare class SettingsController {
         createdAt: Date;
         updatedAt: Date;
         updatedBy: string | null;
+        key: string;
         description: string | null;
         value: string;
         isPublic: boolean;
-        key: string;
         category: string;
     }>;
     upsertSetting(dto: UpdateSettingDto, user: JwtPayload): Promise<{
@@ -67,10 +67,10 @@ export declare class SettingsController {
         createdAt: Date;
         updatedAt: Date;
         updatedBy: string | null;
+        key: string;
         description: string | null;
         value: string;
         isPublic: boolean;
-        key: string;
         category: string;
     }>;
     deleteSetting(key: string): Promise<{

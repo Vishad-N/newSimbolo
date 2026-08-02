@@ -7,4 +7,5 @@ export default registerAs('email', (): EmailConfig => ({
   user: process.env.SMTP_USER || '',
   pass: process.env.SMTP_PASS || '',
   from: process.env.SMTP_FROM || 'noreply@simbolo.ai',
+  secure: process.env.SMTP_SECURE === 'true',
 }));

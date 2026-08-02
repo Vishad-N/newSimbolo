@@ -5,10 +5,3 @@
    ▲ Next.js 15.5.9
 
    Creating an optimized production build ...
-npm error Lifecycle script `build` failed with error:
-npm error code 3221226505
-npm error path C:\Users\visha\simbolonew\apps\landing
-npm error workspace @simbolo/landing@0.1.0
-npm error location C:\Users\visha\simbolonew\apps\landing
-npm error command failed
-npm error command C:\WINDOWS\system32\cmd.exe /d /s /c next build

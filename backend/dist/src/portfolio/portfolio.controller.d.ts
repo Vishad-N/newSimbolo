@@ -27,8 +27,8 @@ export declare class PortfolioController {
         description: string | null;
         title: string;
         slug: string;
-        categoryId: string | null;
         serviceId: string | null;
+        categoryId: string | null;
         coverImageId: string | null;
         clientName: string | null;
         liveUrl: string | null;
@@ -46,8 +46,8 @@ export declare class PortfolioController {
         description: string | null;
         title: string;
         slug: string;
-        categoryId: string | null;
         serviceId: string | null;
+        categoryId: string | null;
         coverImageId: string | null;
         clientName: string | null;
         liveUrl: string | null;
@@ -65,8 +65,8 @@ export declare class PortfolioController {
         description: string | null;
         title: string;
         slug: string;
-        categoryId: string | null;
         serviceId: string | null;
+        categoryId: string | null;
         coverImageId: string | null;
         clientName: string | null;
         liveUrl: string | null;
@@ -84,8 +84,8 @@ export declare class PortfolioController {
         description: string | null;
         title: string;
         slug: string;
-        categoryId: string | null;
         serviceId: string | null;
+        categoryId: string | null;
         coverImageId: string | null;
         clientName: string | null;
         liveUrl: string | null;

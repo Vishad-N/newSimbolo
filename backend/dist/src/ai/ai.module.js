@@ -9,16 +9,34 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AiModule = void 0;
 const common_1 = require("@nestjs/common");
 const ai_controller_1 = require("./ai.controller");
-const ai_provider_1 = require("./ai.provider");
 const ai_service_1 = require("./ai.service");
+const gemini_provider_1 = require("./providers/gemini.provider");
+const ai_embedding_service_1 = require("./ai-embedding.service");
+const prisma_module_1 = require("../prisma/prisma.module");
+const conversation_controller_1 = require("./conversation/conversation.controller");
+const conversation_memory_1 = require("./conversation/conversation.memory");
+const agent_orchestrator_1 = require("./conversation/agent.orchestrator");
+const search_agent_1 = require("./conversation/agents/search.agent");
+const clarification_agent_1 = require("./conversation/agents/clarification.agent");
+const budget_agent_1 = require("./conversation/agents/budget.agent");
 let AiModule = class AiModule {
 };
 exports.AiModule = AiModule;
 exports.AiModule = AiModule = __decorate([
     (0, common_1.Module)({
-        controllers: [ai_controller_1.AiController],
-        providers: [ai_service_1.AiService, ai_provider_1.MockAiProvider],
-        exports: [ai_service_1.AiService],
+        imports: [prisma_module_1.PrismaModule],
+        controllers: [ai_controller_1.AiController, conversation_controller_1.ConversationController],
+        providers: [
+            ai_service_1.AiService,
+            gemini_provider_1.GeminiProvider,
+            ai_embedding_service_1.AiEmbeddingService,
+            conversation_memory_1.SessionMemory,
+            agent_orchestrator_1.AgentOrchestrator,
+            search_agent_1.SearchAgent,
+            clarification_agent_1.ClarificationAgent,
+            budget_agent_1.BudgetAgent
+        ],
+        exports: [ai_service_1.AiService, ai_embedding_service_1.AiEmbeddingService, agent_orchestrator_1.AgentOrchestrator],
     })
 ], AiModule);
 //# sourceMappingURL=ai.module.js.map

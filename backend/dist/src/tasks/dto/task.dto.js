@@ -25,7 +25,7 @@ class CreateTaskDto {
     estimatedHours;
     dueDate;
     static _OPENAPI_METADATA_FACTORY() {
-        return { projectId: { required: true, type: () => String, format: "uuid" }, milestoneId: { required: false, type: () => String, format: "uuid" }, title: { required: true, type: () => String }, description: { required: false, type: () => String }, assignedToId: { required: false, type: () => String, format: "uuid" }, status: { required: false, enum: ["IN_PROGRESS", "COMPLETED", "TODO", "REVIEW", "BLOCKED"] }, priority: { required: false, enum: ["LOW", "MEDIUM", "HIGH", "URGENT"] }, estimatedHours: { required: false, type: () => Number, minimum: 0 }, dueDate: { required: false, type: () => String } };
+        return { projectId: { required: true, type: () => String, format: "uuid" }, milestoneId: { required: false, type: () => String, format: "uuid" }, title: { required: true, type: () => String }, description: { required: false, type: () => String }, assignedToId: { required: false, type: () => String, format: "uuid" }, status: { required: false, enum: ["COMPLETED", "IN_PROGRESS", "TODO", "REVIEW", "BLOCKED"] }, priority: { required: false, enum: ["LOW", "MEDIUM", "HIGH", "URGENT"] }, estimatedHours: { required: false, type: () => Number, minimum: 0 }, dueDate: { required: false, type: () => String } };
     }
 }
 exports.CreateTaskDto = CreateTaskDto;
@@ -99,7 +99,7 @@ class UpdateTaskDto {
     dueDate;
     milestoneId;
     static _OPENAPI_METADATA_FACTORY() {
-        return { title: { required: false, type: () => String }, description: { required: false, type: () => String }, assignedToId: { required: false, type: () => String, format: "uuid" }, status: { required: false, enum: ["IN_PROGRESS", "COMPLETED", "TODO", "REVIEW", "BLOCKED"] }, priority: { required: false, enum: ["LOW", "MEDIUM", "HIGH", "URGENT"] }, estimatedHours: { required: false, type: () => Number, minimum: 0 }, actualHours: { required: false, type: () => Number, minimum: 0 }, progress: { required: false, type: () => Number, minimum: 0, maximum: 100 }, dueDate: { required: false, type: () => String }, milestoneId: { required: false, type: () => String, format: "uuid" } };
+        return { title: { required: false, type: () => String }, description: { required: false, type: () => String }, assignedToId: { required: false, type: () => String, format: "uuid" }, status: { required: false, enum: ["COMPLETED", "IN_PROGRESS", "TODO", "REVIEW", "BLOCKED"] }, priority: { required: false, enum: ["LOW", "MEDIUM", "HIGH", "URGENT"] }, estimatedHours: { required: false, type: () => Number, minimum: 0 }, actualHours: { required: false, type: () => Number, minimum: 0 }, progress: { required: false, type: () => Number, minimum: 0, maximum: 100 }, dueDate: { required: false, type: () => String }, milestoneId: { required: false, type: () => String, format: "uuid" } };
     }
 }
 exports.UpdateTaskDto = UpdateTaskDto;

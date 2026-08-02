@@ -25,9 +25,9 @@ export declare class FaqController {
         deletedAt: Date | null;
         createdBy: string | null;
         updatedBy: string | null;
+        serviceId: string | null;
         categoryId: string | null;
         sortOrder: number;
-        serviceId: string | null;
         question: string;
         answer: string;
         isFeatured: boolean;
@@ -40,9 +40,9 @@ export declare class FaqController {
         deletedAt: Date | null;
         createdBy: string | null;
         updatedBy: string | null;
+        serviceId: string | null;
         categoryId: string | null;
         sortOrder: number;
-        serviceId: string | null;
         question: string;
         answer: string;
         isFeatured: boolean;
@@ -55,9 +55,9 @@ export declare class FaqController {
         deletedAt: Date | null;
         createdBy: string | null;
         updatedBy: string | null;
+        serviceId: string | null;
         categoryId: string | null;
         sortOrder: number;
-        serviceId: string | null;
         question: string;
         answer: string;
         isFeatured: boolean;
@@ -70,9 +70,9 @@ export declare class FaqController {
         deletedAt: Date | null;
         createdBy: string | null;
         updatedBy: string | null;
+        serviceId: string | null;
         categoryId: string | null;
         sortOrder: number;
-        serviceId: string | null;
         question: string;
         answer: string;
         isFeatured: boolean;

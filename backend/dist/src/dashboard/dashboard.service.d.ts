@@ -57,6 +57,7 @@ export declare class DashboardService extends BaseService {
             date: Date;
             description: string | null;
             title: string;
+            metadata: string | null;
             clientId: string | null;
             orderId: string | null;
             eventType: string;
@@ -64,7 +65,6 @@ export declare class DashboardService extends BaseService {
             ticketId: string | null;
             meetingId: string | null;
             deliverableId: string | null;
-            metadata: string | null;
         })[];
     }>;
     getClientDashboard(clientId: string): Promise<{
@@ -92,6 +92,7 @@ export declare class DashboardService extends BaseService {
             date: Date;
             description: string | null;
             title: string;
+            metadata: string | null;
             clientId: string | null;
             orderId: string | null;
             eventType: string;
@@ -99,7 +100,6 @@ export declare class DashboardService extends BaseService {
             ticketId: string | null;
             meetingId: string | null;
             deliverableId: string | null;
-            metadata: string | null;
         }[];
     }>;
     getProjectStats(projectId: string): Promise<{
@@ -528,6 +528,7 @@ export declare class DashboardService extends BaseService {
             date: Date;
             description: string | null;
             title: string;
+            metadata: string | null;
             clientId: string | null;
             orderId: string | null;
             eventType: string;
@@ -535,7 +536,6 @@ export declare class DashboardService extends BaseService {
             ticketId: string | null;
             meetingId: string | null;
             deliverableId: string | null;
-            metadata: string | null;
         }[];
     }>;
     getDashboardKpis(): Promise<{

@@ -53,6 +53,7 @@ export declare class ActivityService extends BaseService {
             date: Date;
             description: string | null;
             title: string;
+            metadata: string | null;
             clientId: string | null;
             orderId: string | null;
             eventType: string;
@@ -60,7 +61,6 @@ export declare class ActivityService extends BaseService {
             ticketId: string | null;
             meetingId: string | null;
             deliverableId: string | null;
-            metadata: string | null;
         })[];
         meta: {
             total: number;
@@ -88,6 +88,7 @@ export declare class ActivityService extends BaseService {
             date: Date;
             description: string | null;
             title: string;
+            metadata: string | null;
             clientId: string | null;
             orderId: string | null;
             eventType: string;
@@ -95,7 +96,6 @@ export declare class ActivityService extends BaseService {
             ticketId: string | null;
             meetingId: string | null;
             deliverableId: string | null;
-            metadata: string | null;
         })[];
         meta: {
             total: number;
@@ -126,6 +126,7 @@ export declare class ActivityService extends BaseService {
             date: Date;
             description: string | null;
             title: string;
+            metadata: string | null;
             clientId: string | null;
             orderId: string | null;
             eventType: string;
@@ -133,7 +134,6 @@ export declare class ActivityService extends BaseService {
             ticketId: string | null;
             meetingId: string | null;
             deliverableId: string | null;
-            metadata: string | null;
         })[];
         meta: {
             total: number;
@@ -161,6 +161,7 @@ export declare class ActivityService extends BaseService {
         date: Date;
         description: string | null;
         title: string;
+        metadata: string | null;
         clientId: string | null;
         orderId: string | null;
         eventType: string;
@@ -168,7 +169,6 @@ export declare class ActivityService extends BaseService {
         ticketId: string | null;
         meetingId: string | null;
         deliverableId: string | null;
-        metadata: string | null;
     }>;
     getEventTypes(): Promise<{
         eventTypes: string[];

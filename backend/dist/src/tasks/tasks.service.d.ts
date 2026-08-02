@@ -46,9 +46,9 @@ export declare class TasksService extends BaseService {
         createdBy: string | null;
         updatedBy: string | null;
         priority: import(".prisma/client").$Enums.TaskPriorityEnum;
+        progress: number;
         description: string | null;
         title: string;
-        progress: number;
         assignedToId: string | null;
         projectId: string;
         estimatedHours: number | null;

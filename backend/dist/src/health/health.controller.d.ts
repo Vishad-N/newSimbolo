@@ -18,7 +18,7 @@ export declare class HealthController {
             status: "up" | "unreachable";
         };
         redis: {
-            status: "up" | "disabled" | "down";
+            status: "disabled" | "up" | "down";
         };
         queues: {
             status: string;
@@ -44,7 +44,7 @@ export declare class HealthController {
             status: "up" | "unreachable";
         };
         redis: {
-            status: "up" | "disabled" | "down";
+            status: "disabled" | "up" | "down";
         };
         queues: {
             status: string;

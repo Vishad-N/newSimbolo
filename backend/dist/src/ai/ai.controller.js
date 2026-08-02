@@ -19,6 +19,8 @@ const swagger_1 = require("@nestjs/swagger");
 const permissions_decorator_1 = require("../common/decorators/permissions.decorator");
 const ai_service_1 = require("./ai.service");
 const ai_dto_1 = require("./dto/ai.dto");
+const ai_search_dto_1 = require("./dto/ai-search.dto");
+const public_decorator_1 = require("../common/decorators/public.decorator");
 let AiController = class AiController {
     aiService;
     constructor(aiService) {
@@ -30,10 +32,17 @@ let AiController = class AiController {
     generate(dto) {
         return this.aiService.generate(dto);
     }
+    search(dto) {
+        return this.aiService.search(dto);
+    }
+    syncEmbeddings() {
+        return this.aiService.triggerInitialEmbeddingSync();
+    }
 };
 exports.AiController = AiController;
 __decorate([
     (0, common_1.Get)('capabilities'),
+    (0, swagger_1.ApiBearerAuth)('JWT-auth'),
     (0, permissions_decorator_1.Permissions)('ai.use'),
     (0, swagger_1.ApiOperation)({ summary: 'List available AI content and recommendation capabilities' }),
     openapi.ApiResponse({ status: 200 }),
@@ -43,17 +52,37 @@ __decorate([
 ], AiController.prototype, "getCapabilities", null);
 __decorate([
     (0, common_1.Post)('generate'),
+    (0, swagger_1.ApiBearerAuth)('JWT-auth'),
     (0, permissions_decorator_1.Permissions)('ai.use'),
     (0, swagger_1.ApiOperation)({ summary: 'Generate AI-assisted content using the configured AI provider abstraction' }),
-    openapi.ApiResponse({ status: 201, type: Object }),
+    openapi.ApiResponse({ status: 201 }),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [ai_dto_1.AiGenerationDto]),
     __metadata("design:returntype", void 0)
 ], AiController.prototype, "generate", null);
+__decorate([
+    (0, common_1.Post)('search'),
+    (0, public_decorator_1.Public)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Generate AI-assisted search response using Gemini' }),
+    openapi.ApiResponse({ status: 201 }),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [ai_search_dto_1.AiSearchDto]),
+    __metadata("design:returntype", void 0)
+], AiController.prototype, "search", null);
+__decorate([
+    (0, common_1.Post)('sync-embeddings'),
+    (0, swagger_1.ApiBearerAuth)('JWT-auth'),
+    (0, permissions_decorator_1.Permissions)('ai.manage'),
+    (0, swagger_1.ApiOperation)({ summary: 'Queue embedding generation for all existing records' }),
+    openapi.ApiResponse({ status: 201 }),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], AiController.prototype, "syncEmbeddings", null);
 exports.AiController = AiController = __decorate([
     (0, swagger_1.ApiTags)('AI'),
-    (0, swagger_1.ApiBearerAuth)('JWT-auth'),
     (0, common_1.Controller)('ai'),
     __metadata("design:paramtypes", [ai_service_1.AiService])
 ], AiController);

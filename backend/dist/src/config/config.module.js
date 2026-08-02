@@ -17,6 +17,7 @@ const email_config_1 = require("./email.config");
 const razorpay_config_1 = require("./razorpay.config");
 const redis_config_1 = require("./redis.config");
 const observability_config_1 = require("./observability.config");
+const env_validation_1 = require("./env.validation");
 let ConfigModule = class ConfigModule {
 };
 exports.ConfigModule = ConfigModule;
@@ -27,6 +28,7 @@ exports.ConfigModule = ConfigModule = __decorate([
                 isGlobal: true,
                 cache: true,
                 expandVariables: true,
+                validate: env_validation_1.validate,
                 load: [
                     app_config_1.default,
                     database_config_1.default,

@@ -13,12 +13,15 @@ exports.NotificationsService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
 const base_service_1 = require("../shared/abstractions/base.service");
+const email_service_1 = require("../shared/email/email.service");
 const client_1 = require("@prisma/client");
 let NotificationsService = class NotificationsService extends base_service_1.BaseService {
     prisma;
-    constructor(prisma) {
+    emailService;
+    constructor(prisma, emailService) {
         super('NotificationsService');
         this.prisma = prisma;
+        this.emailService = emailService;
     }
     /**
      * Central notification dispatch — creates an in-app notification record.
@@ -38,6 +41,17 @@ let NotificationsService = class NotificationsService extends base_service_1.Bas
             data: { userId, type, channel, title, message, deepLink: deepLink ?? null },
         });
         this.logger.log(`🔔 Notification sent to user ${userId}: ${title}`);
+        // Bridge: Trigger email if user wants order updates (we map most system alerts to this for now)
+        const shouldSendEmail = !preferences || preferences.emailOrderUpdates;
+        if (shouldSendEmail) {
+            const user = await this.prisma.user.findUnique({ where: { id: userId }, select: { email: true } });
+            if (user?.email) {
+                // Send email asynchronously in the background
+                this.emailService.sendNotificationEmail(user.email, title, message, deepLink).catch((err) => {
+                    this.logger.error(`Failed to bridge notification to email for ${userId}: ${err.message}`);
+                });
+            }
+        }
         return notification;
     }
     async sendBulkNotification(userIds, type, title, message, deepLink) {
@@ -187,6 +201,7 @@ let NotificationsService = class NotificationsService extends base_service_1.Bas
 exports.NotificationsService = NotificationsService;
 exports.NotificationsService = NotificationsService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService,
+        email_service_1.EmailService])
 ], NotificationsService);
 //# sourceMappingURL=notifications.service.js.map

@@ -19,8 +19,8 @@ export declare class PackagesController {
         type: import(".prisma/client").$Enums.PackageTypeEnum;
         description: string | null;
         slug: string;
-        basePrice: number;
         serviceId: string;
+        basePrice: number;
         seoPageId: string | null;
         billingInterval: string;
         isPopular: boolean;
@@ -37,8 +37,8 @@ export declare class PackagesController {
         type: import(".prisma/client").$Enums.PackageTypeEnum;
         description: string | null;
         slug: string;
-        basePrice: number;
         serviceId: string;
+        basePrice: number;
         seoPageId: string | null;
         billingInterval: string;
         isPopular: boolean;
@@ -55,8 +55,8 @@ export declare class PackagesController {
         type: import(".prisma/client").$Enums.PackageTypeEnum;
         description: string | null;
         slug: string;
-        basePrice: number;
         serviceId: string;
+        basePrice: number;
         seoPageId: string | null;
         billingInterval: string;
         isPopular: boolean;
@@ -73,8 +73,8 @@ export declare class PackagesController {
         type: import(".prisma/client").$Enums.PackageTypeEnum;
         description: string | null;
         slug: string;
-        basePrice: number;
         serviceId: string;
+        basePrice: number;
         seoPageId: string | null;
         billingInterval: string;
         isPopular: boolean;

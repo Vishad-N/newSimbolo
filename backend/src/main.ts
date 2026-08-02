@@ -25,6 +25,7 @@ async function bootstrap() {
   const isProduction = configService.get<string>('app.nodeEnv') === 'production';
 
   app.getHttpAdapter().getInstance().set('trust proxy', 1);
+  logger.log('Trust Proxy enabled for Reverse Proxy (Cloudflare/Nginx) compatibility.', 'Bootstrap');
 
   // Security headers
   app.use(
@@ -39,9 +40,21 @@ async function bootstrap() {
   app.use(compression());
   app.use(cookieParser(process.env.COOKIE_SECRET || process.env.JWT_SECRET));
 
-  // CORS configuration
+  // CORS configuration (Strict in Production)
   app.enableCors({
-    origin: frontendUrls,
+    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+      // Allow requests with no origin (like curl) only in development
+      if (!origin && !isProduction) {
+        return callback(null, true);
+      }
+
+      if (origin && frontendUrls.includes(origin)) {
+        return callback(null, true);
+      }
+
+      logger.warn(`Blocked CORS request from unauthorized origin: ${origin}`, 'CORS');
+      callback(new Error('Not allowed by CORS'));
+    },
     credentials: true,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     allowedHeaders: 'Content-Type, Accept, Authorization, X-Requested-With, x-request-id',
@@ -49,8 +62,12 @@ async function bootstrap() {
 
   // WebSocket adapter (Socket.IO) with optional Redis adapter for horizontal scaling
   const redisIoAdapter = new RedisIoAdapter(app);
-  await redisIoAdapter.connectToRedis();
-  app.useWebSocketAdapter(redisIoAdapter);
+  try {
+    await redisIoAdapter.connectToRedis();
+    app.useWebSocketAdapter(redisIoAdapter);
+  } catch (err) {
+    logger.warn('Failed to connect to Redis for WebSockets. Falling back to default adapter.', 'Bootstrap');
+  }
 
   // Global prefix & URI Versioning
   app.setGlobalPrefix(prefix);

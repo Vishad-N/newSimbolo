@@ -29,9 +29,7 @@ import {
 const mainNavItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/projects", label: "My Projects", icon: FolderKanban },
-  { href: "/services", label: "My Services", icon: Layers },
-  { href: "/orders", label: "Orders", icon: ShoppingCart },
-  { href: "/tasks", label: "Task Progress", icon: CheckSquare },
+  { href: "/orders", label: "My Services", icon: Layers },
   { href: "/messages", label: "Messages", icon: MessageSquare },
   { href: "/documents", label: "Documents", icon: FileText },
   { href: "/meetings", label: "Meetings", icon: Video },
@@ -39,7 +37,6 @@ const mainNavItems = [
 ];
 
 const billingNavItems = [
-  { href: "/invoices", label: "Invoices", icon: Receipt },
   { href: "/payments", label: "Payments", icon: CreditCard },
 ];
 

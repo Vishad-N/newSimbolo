@@ -33,7 +33,7 @@ export function PricingToggle({ value, onChange }: PricingToggleProps) {
             {selected && (
               <motion.span
                 layoutId="pricing-toggle-pill"
-                className="absolute inset-0 -z-10 rounded-full bg-[var(--primary)] shadow-[0_0_24px_rgba(185,255,0,0.38)]"
+                className="absolute inset-0 -z-10 rounded-full bg-[#22D3EE] shadow-[0_0_24px_rgba(34,211,238,0.35)]"
                 transition={{ type: "spring", stiffness: 380, damping: 32 }}
               />
             )}

@@ -7,5 +7,6 @@ exports.default = (0, config_1.registerAs)('email', () => ({
     user: process.env.SMTP_USER || '',
     pass: process.env.SMTP_PASS || '',
     from: process.env.SMTP_FROM || 'noreply@simbolo.ai',
+    secure: process.env.SMTP_SECURE === 'true',
 }));
 //# sourceMappingURL=email.config.js.map

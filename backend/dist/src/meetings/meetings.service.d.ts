@@ -23,7 +23,7 @@ export declare class MeetingsService extends BaseService {
                 id: string;
                 firstName: string;
                 lastName: string;
-                avatar: never;
+                avatarUrl: string | null;
             };
             client: ({
                 user: {
@@ -54,7 +54,7 @@ export declare class MeetingsService extends BaseService {
                     id: string;
                     firstName: string;
                     lastName: string;
-                    avatar: never;
+                    avatarUrl: string | null;
                 } | null;
             } & {
                 email: string | null;

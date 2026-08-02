@@ -38,6 +38,7 @@ export interface EmailConfig {
   user: string;
   pass: string;
   from: string;
+  secure: boolean;
 }
 
 export interface Configuration {

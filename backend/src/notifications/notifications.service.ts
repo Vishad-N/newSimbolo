@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { BaseService } from '../shared/abstractions/base.service';
+import { EmailService } from '../shared/email/email.service';
 import { UpdateNotificationPreferencesDto } from './dto/notification.dto';
 import { NotificationTypeEnum, NotificationChannelEnum } from '@prisma/client';
 
@@ -15,7 +16,10 @@ export interface SendNotificationOptions {
 
 @Injectable()
 export class NotificationsService extends BaseService {
-  constructor(private readonly prisma: PrismaService) {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly emailService: EmailService,
+  ) {
     super('NotificationsService');
   }
 
@@ -47,6 +51,19 @@ export class NotificationsService extends BaseService {
     });
 
     this.logger.log(`🔔 Notification sent to user ${userId}: ${title}`);
+
+    // Bridge: Trigger email if user wants order updates (we map most system alerts to this for now)
+    const shouldSendEmail = !preferences || preferences.emailOrderUpdates;
+    if (shouldSendEmail) {
+      const user = await this.prisma.user.findUnique({ where: { id: userId }, select: { email: true } });
+      if (user?.email) {
+        // Send email asynchronously in the background
+        this.emailService.sendNotificationEmail(user.email, title, message, deepLink).catch((err) => {
+          this.logger.error(`Failed to bridge notification to email for ${userId}: ${err.message}`);
+        });
+      }
+    }
+
     return notification;
   }
 

@@ -36,7 +36,7 @@ let ProjectsService = class ProjectsService extends base_service_1.BaseService {
         },
         manager: { select: { id: true, firstName: true, lastName: true, email: true } },
         teamMembers: {
-            include: { user: { select: { id: true, firstName: true, lastName: true, avatar: true } } },
+            include: { user: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } } },
         },
         _count: {
             select: { milestones: true, tasks: true, deliverables: true },

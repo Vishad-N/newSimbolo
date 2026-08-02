@@ -10,19 +10,26 @@ describe('StorageService', () => {
         getSignedUrl: jest.fn(),
         health: jest.fn(),
     };
+    const s3Provider = {
+        upload: jest.fn(),
+        delete: jest.fn(),
+        getSignedUrl: jest.fn(),
+        getPresignedUploadUrl: jest.fn(),
+        health: jest.fn(),
+    };
     beforeEach(() => {
         jest.clearAllMocks();
         process.env.MAX_UPLOAD_BYTES = '10';
     });
     it('rejects files above the configured size limit', () => {
-        const service = new storage_service_1.StorageService(configService, provider);
+        const service = new storage_service_1.StorageService(configService, provider, s3Provider);
         expect(() => service.validateFile({
             size: 11,
             mimetype: 'image/png',
         })).toThrow(common_1.PayloadTooLargeException);
     });
     it('rejects unsupported MIME types', () => {
-        const service = new storage_service_1.StorageService(configService, provider);
+        const service = new storage_service_1.StorageService(configService, provider, s3Provider);
         expect(() => service.validateFile({
             size: 1,
             mimetype: 'application/x-msdownload',

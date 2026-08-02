@@ -30,8 +30,8 @@ export declare class CaseStudiesController {
         slug: string;
         summary: string;
         industry: string | null;
-        categoryId: string | null;
         serviceId: string | null;
+        categoryId: string | null;
         seoPageId: string | null;
         coverImageId: string | null;
         publishDate: Date | null;
@@ -52,8 +52,8 @@ export declare class CaseStudiesController {
         slug: string;
         summary: string;
         industry: string | null;
-        categoryId: string | null;
         serviceId: string | null;
+        categoryId: string | null;
         seoPageId: string | null;
         coverImageId: string | null;
         publishDate: Date | null;
@@ -74,8 +74,8 @@ export declare class CaseStudiesController {
         slug: string;
         summary: string;
         industry: string | null;
-        categoryId: string | null;
         serviceId: string | null;
+        categoryId: string | null;
         seoPageId: string | null;
         coverImageId: string | null;
         publishDate: Date | null;
@@ -96,8 +96,8 @@ export declare class CaseStudiesController {
         slug: string;
         summary: string;
         industry: string | null;
-        categoryId: string | null;
         serviceId: string | null;
+        categoryId: string | null;
         seoPageId: string | null;
         coverImageId: string | null;
         publishDate: Date | null;

@@ -77,6 +77,7 @@ const cache_module_1 = require("./cache/cache.module");
 const queues_module_1 = require("./queues/queues.module");
 const observability_module_1 = require("./observability/observability.module");
 const storage_module_1 = require("./storage/storage.module");
+const assets_module_1 = require("./assets/assets.module");
 let AppModule = class AppModule {
     configure(consumer) {
         consumer.apply(request_context_middleware_1.RequestContextMiddleware, request_logger_middleware_1.RequestLoggerMiddleware, csrf_middleware_1.CsrfMiddleware).forRoutes('*');
@@ -154,6 +155,7 @@ exports.AppModule = AppModule = __decorate([
                     limit: 30, // Rate limit chat messages: 30 per 10 seconds
                 },
             ]),
+            assets_module_1.AssetsModule,
         ],
         providers: [
             {

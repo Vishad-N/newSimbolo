@@ -6,8 +6,22 @@ import { motion } from "framer-motion";
 import { useState } from "react";
 import { categoryChips } from "@/data/landing";
 
-export function Hero() {
+export function Hero({ onSearch }: { onSearch?: (query: string) => void }) {
   const [selectedChip, setSelectedChip] = useState(categoryChips[0]?.label ?? "");
+  const [inputValue, setInputValue] = useState("");
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      onSearch?.(inputValue);
+    } else if (e.key === "Escape") {
+      setInputValue("");
+      onSearch?.("");
+    }
+  };
+
+  const handleSearchClick = () => {
+    onSearch?.(inputValue);
+  };
 
   return (
     <section className="relative overflow-hidden px-4 pb-6 pt-0 sm:px-8 lg:px-10">
@@ -56,10 +70,16 @@ export function Hero() {
                   aria-label="Describe your marketing challenge"
                   className="w-full bg-transparent text-[0.85rem] font-medium text-[var(--text-primary)] outline-none placeholder:text-[#64748B]"
                   placeholder="Describe your business, industry, goals, budget or marketing challenge..."
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyDown={handleKeyDown}
                 />
                 <Mic className="h-5 w-5 shrink-0 text-[#2DD4BF]" />
               </label>
-              <button className="inline-flex min-h-12 items-center justify-center gap-3 rounded-[16px] bg-[var(--primary)] px-6 text-[0.95rem] font-heading font-semibold tracking-[0.2px] normal-case text-white shadow-[0_10px_24px_var(--primary-glow)] transition duration-300 hover:scale-[1.02] hover:bg-[var(--primary-hover)] sm:w-[160px]">
+              <button 
+                onClick={handleSearchClick}
+                className="inline-flex min-h-12 items-center justify-center gap-3 rounded-[16px] bg-[var(--primary)] px-6 text-[0.95rem] font-heading font-semibold tracking-[0.2px] normal-case text-white shadow-[0_10px_24px_var(--primary-glow)] transition duration-300 hover:scale-[1.02] hover:bg-[var(--primary-hover)] sm:w-[160px]"
+              >
                 AI Search
                 <ArrowRight className="h-5 w-5" />
               </button>
@@ -80,7 +100,11 @@ export function Hero() {
               return (
                 <button
                   key={chip.label}
-                  onClick={() => setSelectedChip(chip.label)}
+                  onClick={() => {
+                    setSelectedChip(chip.label);
+                    setInputValue(chip.label);
+                    onSearch?.(chip.label);
+                  }}
                   className={`group relative inline-flex h-8 min-w-0 items-center justify-center gap-2 overflow-hidden rounded-full border px-2.5 text-[0.75rem] font-medium text-white backdrop-blur-md transition duration-300 hover:-translate-y-1 hover:shadow-[0_10px_24px_var(--primary-glow)] lg:px-3 xl:text-[0.75rem] ${
                     isSelected
                       ? "scale-[1.025] border-[var(--primary)] bg-[var(--primary)]/20 text-white shadow-none"

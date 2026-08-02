@@ -26,7 +26,7 @@ class CreateProjectDto {
     startDate;
     targetEndDate;
     static _OPENAPI_METADATA_FACTORY() {
-        return { name: { required: true, type: () => String }, description: { required: false, type: () => String }, orderId: { required: true, type: () => String, format: "uuid" }, clientId: { required: true, type: () => String, format: "uuid" }, managerId: { required: false, type: () => String, format: "uuid" }, status: { required: false, enum: ["ACTIVE", "IN_REVIEW", "PLANNING", "NOT_STARTED", "IN_PROGRESS", "COMPLETED", "ON_HOLD", "CANCELLED"] }, priority: { required: false, enum: ["LOW", "MEDIUM", "HIGH", "URGENT"] }, budget: { required: false, type: () => Number, minimum: 0 }, startDate: { required: false, type: () => String }, targetEndDate: { required: false, type: () => String } };
+        return { name: { required: true, type: () => String }, description: { required: false, type: () => String }, orderId: { required: true, type: () => String, format: "uuid" }, clientId: { required: true, type: () => String, format: "uuid" }, managerId: { required: false, type: () => String, format: "uuid" }, status: { required: false, enum: ["ACTIVE", "COMPLETED", "IN_REVIEW", "PLANNING", "NOT_STARTED", "IN_PROGRESS", "ON_HOLD", "CANCELLED"] }, priority: { required: false, enum: ["LOW", "MEDIUM", "HIGH", "URGENT"] }, budget: { required: false, type: () => Number, minimum: 0 }, startDate: { required: false, type: () => String }, targetEndDate: { required: false, type: () => String } };
     }
 }
 exports.CreateProjectDto = CreateProjectDto;

@@ -14,6 +14,7 @@ const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
 const base_service_1 = require("../shared/abstractions/base.service");
 const storage_provider_1 = require("./storage.provider");
+const s3_provider_1 = require("./s3.provider");
 const ALLOWED_MIME_PREFIXES = ['image/', 'video/', 'audio/', 'text/'];
 const ALLOWED_MIME_TYPES = [
     'application/pdf',
@@ -26,11 +27,13 @@ const ALLOWED_MIME_TYPES = [
 let StorageService = class StorageService extends base_service_1.BaseService {
     configService;
     localStorageProvider;
+    s3StorageProvider;
     maxFileSizeBytes;
-    constructor(configService, localStorageProvider) {
+    constructor(configService, localStorageProvider, s3StorageProvider) {
         super('StorageService');
         this.configService = configService;
         this.localStorageProvider = localStorageProvider;
+        this.s3StorageProvider = s3StorageProvider;
         this.maxFileSizeBytes = parseInt(process.env.MAX_UPLOAD_BYTES || `${25 * 1024 * 1024}`, 10);
     }
     async upload(file, storageKey) {
@@ -44,6 +47,14 @@ let StorageService = class StorageService extends base_service_1.BaseService {
     }
     async getSignedUrl(storageKey, expiresInSeconds) {
         return this.getProvider().getSignedUrl(storageKey, expiresInSeconds);
+    }
+    async getPresignedUploadUrl(storageKey, mimeType, expiresInSeconds) {
+        const provider = this.getProvider();
+        if ('getPresignedUploadUrl' in provider) {
+            return provider.getPresignedUploadUrl(storageKey, mimeType, expiresInSeconds);
+        }
+        // Fallback for local
+        return `/uploads/presigned/${storageKey}`;
     }
     async health() {
         return this.getProvider().health();
@@ -60,9 +71,9 @@ let StorageService = class StorageService extends base_service_1.BaseService {
             throw new common_1.BadRequestException(`Unsupported file type: ${file.mimetype}`);
     }
     getProvider() {
-        const provider = this.configService.get('storage.provider', 'local');
-        if (provider === 'local' || provider === 's3' || provider === 'r2')
-            return this.localStorageProvider;
+        const provider = this.configService.get('storage.provider', 'r2'); // default to r2 for now
+        if (provider === 's3' || provider === 'r2')
+            return this.s3StorageProvider;
         return this.localStorageProvider;
     }
 };
@@ -70,6 +81,7 @@ exports.StorageService = StorageService;
 exports.StorageService = StorageService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [config_1.ConfigService,
-        storage_provider_1.LocalStorageProvider])
+        storage_provider_1.LocalStorageProvider,
+        s3_provider_1.S3StorageProvider])
 ], StorageService);
 //# sourceMappingURL=storage.service.js.map

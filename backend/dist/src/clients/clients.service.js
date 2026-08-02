@@ -21,7 +21,7 @@ let ClientsService = class ClientsService extends base_service_1.BaseService {
     }
     clientInclude = {
         user: {
-            select: { id: true, firstName: true, lastName: true, email: true, phone: true, avatar: true, status: true },
+            select: { id: true, firstName: true, lastName: true, email: true, phone: true, avatarUrl: true, status: true },
         },
         company: {
             select: { id: true, name: true, slug: true, industry: true, logoUrl: true },

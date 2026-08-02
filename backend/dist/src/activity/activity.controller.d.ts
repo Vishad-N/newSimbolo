@@ -46,6 +46,7 @@ export declare class ActivityController {
             date: Date;
             description: string | null;
             title: string;
+            metadata: string | null;
             clientId: string | null;
             orderId: string | null;
             eventType: string;
@@ -53,7 +54,6 @@ export declare class ActivityController {
             ticketId: string | null;
             meetingId: string | null;
             deliverableId: string | null;
-            metadata: string | null;
         })[];
         meta: {
             total: number;
@@ -84,6 +84,7 @@ export declare class ActivityController {
             date: Date;
             description: string | null;
             title: string;
+            metadata: string | null;
             clientId: string | null;
             orderId: string | null;
             eventType: string;
@@ -91,7 +92,6 @@ export declare class ActivityController {
             ticketId: string | null;
             meetingId: string | null;
             deliverableId: string | null;
-            metadata: string | null;
         })[];
         meta: {
             total: number;
@@ -122,6 +122,7 @@ export declare class ActivityController {
             date: Date;
             description: string | null;
             title: string;
+            metadata: string | null;
             clientId: string | null;
             orderId: string | null;
             eventType: string;
@@ -129,7 +130,6 @@ export declare class ActivityController {
             ticketId: string | null;
             meetingId: string | null;
             deliverableId: string | null;
-            metadata: string | null;
         })[];
         meta: {
             total: number;

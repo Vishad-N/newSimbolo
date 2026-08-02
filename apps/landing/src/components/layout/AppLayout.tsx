@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useState, Suspense, type ReactNode } from "react";
 import { Navbar } from "@/components/layout/navbar";
 import { Sidebar } from "@/components/layout/sidebar";
+import { AuthModals } from "@/components/auth/auth-modals";
 
 export function AppLayout({ children }: { children: ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -14,6 +15,9 @@ export function AppLayout({ children }: { children: ReactNode }) {
         <Navbar />
         {children}
       </main>
+      <Suspense fallback={null}>
+        <AuthModals />
+      </Suspense>
     </div>
   );
 }

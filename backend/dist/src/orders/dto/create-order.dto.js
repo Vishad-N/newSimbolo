@@ -26,7 +26,7 @@ class CreateOrderDto {
     notes;
     status;
     static _OPENAPI_METADATA_FACTORY() {
-        return { clientId: { required: true, type: () => String, format: "uuid" }, packageId: { required: false, type: () => String, format: "uuid" }, serviceId: { required: false, type: () => String, format: "uuid" }, totalAmount: { required: true, type: () => Number, minimum: 0 }, taxAmount: { required: false, type: () => Number, minimum: 0 }, discountAmount: { required: false, type: () => Number, minimum: 0 }, netAmount: { required: true, type: () => Number, minimum: 0 }, currency: { required: false, type: () => String }, notes: { required: false, type: () => String }, status: { required: false, enum: ["ACTIVE", "DRAFT", "PENDING", "IN_PROGRESS", "COMPLETED", "CANCELLED", "PENDING_PAYMENT", "CONFIRMED", "UNDER_REVIEW", "REFUNDED"] } };
+        return { clientId: { required: true, type: () => String, format: "uuid" }, packageId: { required: false, type: () => String, format: "uuid" }, serviceId: { required: false, type: () => String, format: "uuid" }, totalAmount: { required: true, type: () => Number, minimum: 0 }, taxAmount: { required: false, type: () => Number, minimum: 0 }, discountAmount: { required: false, type: () => Number, minimum: 0 }, netAmount: { required: true, type: () => Number, minimum: 0 }, currency: { required: false, type: () => String }, notes: { required: false, type: () => String }, status: { required: false, enum: ["ACTIVE", "COMPLETED", "PENDING", "DRAFT", "IN_PROGRESS", "CANCELLED", "PENDING_PAYMENT", "CONFIRMED", "UNDER_REVIEW", "REFUNDED"] } };
     }
 }
 exports.CreateOrderDto = CreateOrderDto;

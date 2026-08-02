@@ -13,8 +13,8 @@ export declare class ClientsController {
                 firstName: string;
                 lastName: string;
                 phone: string | null;
+                avatarUrl: string | null;
                 status: import(".prisma/client").$Enums.UserStatusEnum;
-                avatar: never;
             };
             company: {
                 id: string;
@@ -100,6 +100,7 @@ export declare class ClientsController {
             date: Date;
             description: string | null;
             title: string;
+            metadata: string | null;
             clientId: string | null;
             orderId: string | null;
             eventType: string;
@@ -107,7 +108,6 @@ export declare class ClientsController {
             ticketId: string | null;
             meetingId: string | null;
             deliverableId: string | null;
-            metadata: string | null;
         }[];
         meta: {
             total: number;

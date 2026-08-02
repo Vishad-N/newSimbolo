@@ -22,7 +22,7 @@ export function PackageHero({ billing, onBillingChange }: PackageHeroProps) {
 
         <h1 className="mx-auto mt-4 max-w-[720px] text-balance text-[2.1rem] font-heading font-bold tracking-tight text-[var(--text-primary)] sm:text-[3rem] lg:text-[3.35rem]">
           Choose the perfect package
-          <span className="mt-3 block mx-auto w-fit rounded-[20px] bg-[#0B1120] px-6 py-1.5 text-[var(--primary)] shadow-[0_0_30px_rgba(185,255,0,0.2)]">to grow your business</span>
+          <span className="mt-3 block mx-auto w-fit rounded-[20px] bg-[#0B1120] px-6 py-1.5 text-[#22D3EE] shadow-[0_0_30px_rgba(34,211,238,0.35)]">to grow your business</span>
         </h1>
         <p className="mt-4 text-[1rem] font-medium text-white/88">Transparent pricing. No hidden fees. Cancel anytime.</p>
         <PricingToggle value={billing} onChange={onBillingChange} />

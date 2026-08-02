@@ -75,8 +75,8 @@ export declare class PaymentsService extends BaseService {
                 createdAt: Date;
                 status: string;
                 type: string;
-                currency: string;
                 metadata: string | null;
+                currency: string;
                 amount: number;
                 transactionId: string;
                 paymentId: string;
@@ -152,8 +152,8 @@ export declare class PaymentsService extends BaseService {
             createdAt: Date;
             status: string;
             type: string;
-            currency: string;
             metadata: string | null;
+            currency: string;
             amount: number;
             transactionId: string;
             paymentId: string;
@@ -194,8 +194,8 @@ export declare class PaymentsService extends BaseService {
                 createdAt: Date;
                 status: string;
                 type: string;
-                currency: string;
                 metadata: string | null;
+                currency: string;
                 amount: number;
                 transactionId: string;
                 paymentId: string;

@@ -112,8 +112,8 @@ export declare class ServicesCatalogController {
         name: string;
         updatedAt: Date;
         description: string | null;
-        sortOrder: number;
         serviceId: string;
+        sortOrder: number;
         isIncluded: boolean;
     }>;
     deleteFeature(id: string): Promise<{
@@ -123,8 +123,8 @@ export declare class ServicesCatalogController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        sortOrder: number;
         serviceId: string;
+        sortOrder: number;
         question: string;
         answer: string;
     }>;
