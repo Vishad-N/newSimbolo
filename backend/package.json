@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "npm run start:dev",
-    "prebuild": "rimraf dist",
-    "build": "npx prisma generate && nest build",
+    "prebuild": "rm -rf dist || true",
+    "build": "npm install --include=dev && npx prisma generate && npx nest build",
     "build:hostinger": "npm install && npx prisma generate && npx nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
