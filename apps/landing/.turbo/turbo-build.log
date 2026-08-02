@@ -2,3 +2,51 @@
 > @simbolo/landing@0.1.0 build
 > cross-env NODE_OPTIONS=--max_old_space_size=8192 next build
 
+   ▲ Next.js 15.5.9
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 53s
+   Skipping validation of types
+   Skipping linting
+   Collecting page data ...
+   Generating static pages (0/23) ...
+   Generating static pages (5/23) 
+   Generating static pages (11/23) 
+   Generating static pages (17/23) 
+ ✓ Generating static pages (23/23)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                 Size  First Load JS
+┌ ○ /                                     9.4 kB         166 kB
+├ ○ /_not-found                            992 B         104 kB
+├ ○ /about-us                            11.5 kB         159 kB
+├ ○ /admin/blogs                         5.52 kB         112 kB
+├ ○ /admin/blogs/editor                  5.94 kB         112 kB
+├ ○ /admin/graphic-design/categories     5.81 kB         108 kB
+├ ○ /admin/packages                      7.35 kB         110 kB
+├ ○ /admin/video-editing/services        5.83 kB         108 kB
+├ ○ /affiliate-program                   9.88 kB         163 kB
+├ ○ /blogs                               6.49 kB         113 kB
+├ ƒ /blogs/[slug]                        41.4 kB         148 kB
+├ ○ /case-studies                        2.17 kB         120 kB
+├ ƒ /case-studies/[slug]                 3.69 kB         121 kB
+├ ○ /help-center                         9.27 kB         157 kB
+├ ○ /packages                            10.9 kB         164 kB
+├ ○ /services                            13.7 kB         167 kB
+├ ○ /services/ecommerce                  11.6 kB         168 kB
+├ ○ /services/google-ads                 7.47 kB         159 kB
+├ ○ /services/graphic-design             11.8 kB         168 kB
+├ ○ /services/meta-ads                   6.58 kB         158 kB
+├ ○ /services/seo                        9.42 kB         157 kB
+├ ○ /services/video-editing              14.9 kB         168 kB
+└ ○ /services/website-design              8.1 kB         167 kB
++ First Load JS shared by all             103 kB
+  ├ chunks/18-f90a2cd1d449c47a.js        46.3 kB
+  ├ chunks/87c73c54-09e1ba5c70e60a51.js  54.2 kB
+  └ other shared chunks (total)          2.01 kB
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
