@@ -24,11 +24,8 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
     } catch (error: any) {
       this.logger.error(`Database connection failed during bootstrap: ${error.message}`);
       this.logger.warn(
-        '⚠️ Please check your DATABASE_URL in `backend/.env` and verify your PostgreSQL username and password. If using Docker, ensure containers are running with `docker-compose up -d`.',
+        '⚠️ Hostinger deployment note: Please verify DATABASE_URL is set in Hostinger Environment Variables. Ensure special characters in database password are URL encoded.',
       );
-      if (process.env.NODE_ENV === 'production') {
-        throw error;
-      }
     }
   }
 

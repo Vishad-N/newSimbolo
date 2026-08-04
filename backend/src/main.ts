@@ -18,7 +18,7 @@ async function bootstrap() {
   app.useLogger(logger);
 
   const configService = app.get(ConfigService);
-  const port = configService.get<number>('app.port', 3001);
+  const port = Number(process.env.PORT || configService.get<number>('app.port', 3000));
   const prefix = configService.get<string>('app.prefix', 'api');
   const version = configService.get<string>('app.version', '1').replace(/^v/i, '');
   const frontendUrls = configService.get<string[]>('app.frontendUrls', ['http://localhost:3000']);
@@ -126,7 +126,7 @@ async function bootstrap() {
     },
   });
 
-  await app.listen(port);
+  await app.listen(port, '0.0.0.0');
   logger.log(`==========================================================`, 'Bootstrap');
   logger.log(`🚀 The Simbolo Backend is running on: http://localhost:${port}/${prefix}/v${version}`, 'Bootstrap');
   logger.log(`📚 Swagger Documentation accessible at: http://localhost:${port}/docs`, 'Bootstrap');
