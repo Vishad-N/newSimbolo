@@ -11,8 +11,9 @@ class EnvironmentVariables {
   @IsEnum(Environment)
   NODE_ENV: Environment;
 
+  @IsOptional()
   @IsNumber()
-  API_PORT: number;
+  API_PORT?: number;
 
   @IsString()
   DATABASE_URL: string;
