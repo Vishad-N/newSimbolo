@@ -25,7 +25,8 @@ export function SearchResults({ query, onClear, onSearch }: SearchResultsProps) 
     const fetchResults = async () => {
       setIsSearching(true);
       try {
-        const response = await fetch('http://localhost:3001/api/v1/ai/search', {
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api/v1";
+        const response = await fetch(`${API_BASE_URL}/ai/search`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ query }),

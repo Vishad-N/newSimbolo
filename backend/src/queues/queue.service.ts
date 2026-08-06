@@ -13,6 +13,8 @@ export class QueueService extends BaseService implements OnModuleDestroy {
   private readonly queues = new Map<QueueName, Queue>();
   private readonly workers = new Map<QueueName, Worker>();
   private readonly deadLetterQueue?: Queue;
+  private lastQueueCountsTime = 0;
+  private lastQueueCounts: any[] = [];
 
   constructor(private readonly configService: ConfigService) {
     super('QueueService');
@@ -49,6 +51,10 @@ export class QueueService extends BaseService implements OnModuleDestroy {
     const worker = new Worker<T>(queueName, async (job) => processor(job), {
       connection: this.connection,
       concurrency: 5,
+      settings: {
+        stalledInterval: 300000,
+      },
+      drainDelay: 300,
     });
     worker.on('failed', async (job, error) => {
       this.logger.error(`Job failed: ${queueName}/${job?.name} - ${error.message}`, error.stack);
@@ -67,15 +73,21 @@ export class QueueService extends BaseService implements OnModuleDestroy {
     if (!this.connection) return { status: 'disabled', queues: [] };
     try {
       await this.connection.ping();
-      const queues = await Promise.all(
-        Array.from(this.queues.entries()).map(async ([name, queue]) => ({
-          name,
-          waiting: await queue.getWaitingCount(),
-          active: await queue.getActiveCount(),
-          failed: await queue.getFailedCount(),
-        })),
-      );
-      return { status: 'up', queues };
+      
+      const now = Date.now();
+      if (now - this.lastQueueCountsTime > 60000) {
+        this.lastQueueCounts = await Promise.all(
+          Array.from(this.queues.entries()).map(async ([name, queue]) => ({
+            name,
+            waiting: await queue.getWaitingCount(),
+            active: await queue.getActiveCount(),
+            failed: await queue.getFailedCount(),
+          })),
+        );
+        this.lastQueueCountsTime = now;
+      }
+
+      return { status: 'up', queues: this.lastQueueCounts };
     } catch {
       return { status: 'down', queues: [] };
     }
