@@ -51,9 +51,7 @@ export class QueueService extends BaseService implements OnModuleDestroy {
     const worker = new Worker<T>(queueName, async (job) => processor(job), {
       connection: this.connection,
       concurrency: 5,
-      settings: {
-        stalledInterval: 300000,
-      },
+      stalledInterval: 300000,
       drainDelay: 300,
     });
     worker.on('failed', async (job, error) => {

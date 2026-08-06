@@ -1,0 +1,113 @@
+import { PackagesService } from './packages.service';
+import { CreatePackageDto } from './dto/create-package.dto';
+import { UpdatePackageDto } from './dto/update-package.dto';
+import { CreatePackageFeatureDto } from './dto/create-package-feature.dto';
+import { PackagePricingDto } from './dto/package-pricing.dto';
+import { PackageTypeEnum } from '@prisma/client';
+import { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
+export declare class PackagesController {
+    private readonly packagesService;
+    constructor(packagesService: PackagesService);
+    getPackages(serviceId?: string, type?: PackageTypeEnum): Promise<{
+        id: string;
+        createdAt: Date;
+        name: string;
+        updatedAt: Date;
+        deletedAt: Date | null;
+        createdBy: string | null;
+        updatedBy: string | null;
+        type: import(".prisma/client").$Enums.PackageTypeEnum;
+        description: string | null;
+        slug: string;
+        serviceId: string;
+        basePrice: number;
+        seoPageId: string | null;
+        billingInterval: string;
+        isPopular: boolean;
+        isCustom: boolean;
+    }[]>;
+    getPackageBySlug(slug: string): Promise<{
+        id: string;
+        createdAt: Date;
+        name: string;
+        updatedAt: Date;
+        deletedAt: Date | null;
+        createdBy: string | null;
+        updatedBy: string | null;
+        type: import(".prisma/client").$Enums.PackageTypeEnum;
+        description: string | null;
+        slug: string;
+        serviceId: string;
+        basePrice: number;
+        seoPageId: string | null;
+        billingInterval: string;
+        isPopular: boolean;
+        isCustom: boolean;
+    }>;
+    createPackage(dto: CreatePackageDto, user: JwtPayload): Promise<{
+        id: string;
+        createdAt: Date;
+        name: string;
+        updatedAt: Date;
+        deletedAt: Date | null;
+        createdBy: string | null;
+        updatedBy: string | null;
+        type: import(".prisma/client").$Enums.PackageTypeEnum;
+        description: string | null;
+        slug: string;
+        serviceId: string;
+        basePrice: number;
+        seoPageId: string | null;
+        billingInterval: string;
+        isPopular: boolean;
+        isCustom: boolean;
+    }>;
+    updatePackage(id: string, dto: UpdatePackageDto, user: JwtPayload): Promise<{
+        id: string;
+        createdAt: Date;
+        name: string;
+        updatedAt: Date;
+        deletedAt: Date | null;
+        createdBy: string | null;
+        updatedBy: string | null;
+        type: import(".prisma/client").$Enums.PackageTypeEnum;
+        description: string | null;
+        slug: string;
+        serviceId: string;
+        basePrice: number;
+        seoPageId: string | null;
+        billingInterval: string;
+        isPopular: boolean;
+        isCustom: boolean;
+    }>;
+    deletePackage(id: string, user: JwtPayload): Promise<{
+        success: boolean;
+    }>;
+    addFeature(dto: CreatePackageFeatureDto): Promise<{
+        id: string;
+        createdAt: Date;
+        name: string;
+        updatedAt: Date;
+        description: string | null;
+        sortOrder: number;
+        isIncluded: boolean;
+        packageId: string;
+        limitValue: string | null;
+    }>;
+    deleteFeature(id: string): Promise<{
+        success: boolean;
+    }>;
+    upsertPricing(dto: PackagePricingDto): Promise<{
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        packageId: string;
+        currency: string;
+        price: number;
+        billingPeriod: string;
+        discountPercentage: number;
+    }>;
+    deletePricing(id: string): Promise<{
+        success: boolean;
+    }>;
+}
