@@ -60,11 +60,11 @@ export function GoogleAdsHero({ benefits }: GoogleAdsHeroProps) {
       benefitIcon={CheckCircle2}
       primaryCta={{
         text: "Get Free Google Ads Audit",
-        href: "/contact?service=google-ads-audit",
+        href: "?auth=register&checkout=google-ads-audit",
       }}
       secondaryCta={{
         text: "Talk to Expert",
-        href: "/contact?service=google-ads-expert",
+        href: "?auth=register&checkout=google-ads-expert",
       }}
       visual={<HeroArt />}
     />

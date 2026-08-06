@@ -62,11 +62,11 @@ export function MetaAdsHero({ benefits }: MetaAdsHeroProps) {
       benefitIcon={CheckCircle2}
       primaryCta={{
         text: "Get Free Ad Audit",
-        href: "/contact?service=meta-ads-audit",
+        href: "?auth=register&checkout=meta-ads-audit",
       }}
       secondaryCta={{
         text: "Talk to Expert",
-        href: "/contact?service=meta-ads-expert",
+        href: "?auth=register&checkout=meta-ads-expert",
       }}
       visual={<HeroArt />}
     />

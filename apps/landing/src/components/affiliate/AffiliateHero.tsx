@@ -78,7 +78,7 @@ function HeroVisual() {
             </li>
           </ul>
 
- <Link href="/contact?type=affiliate" className="relative mt-6 inline-flex h-11 w-full items-center justify-center gap-2 rounded-[8px] bg-[var(--primary)] text-[0.9rem] font-bold text-[#ffffff] transition hover:bg-[var(--primary-hover)] hover:-translate-y-[2px] hover:shadow-[0_12px_28px_var(--primary-glow)] active:bg-[var(--primary-active)]">
+ <Link href="?auth=register&checkout=affiliate" className="relative mt-6 inline-flex h-11 w-full items-center justify-center gap-2 rounded-[8px] bg-[var(--primary)] text-[0.9rem] font-bold text-[#ffffff] transition hover:bg-[var(--primary-hover)] hover:-translate-y-[2px] hover:shadow-[0_12px_28px_var(--primary-glow)] active:bg-[var(--primary-active)]">
             Join Now for Free
             <ArrowRight className="h-4 w-4" />
           </Link>
@@ -114,7 +114,7 @@ export function AffiliateHero({ benefits }: AffiliateHeroProps) {
           ))}
         </div>
         <div className="mt-4 flex flex-col gap-3 sm:flex-row">
- <Link href="/contact?type=affiliate" className="inline-flex h-11 items-center justify-center gap-2.5 rounded-[8px] bg-[var(--primary)] px-6 text-[0.88rem] font-heading font-semibold normal-case tracking-[0.2px] text-[#ffffff] transition duration-300 hover:bg-[var(--primary-hover)] hover:-translate-y-[2px] hover:shadow-[0_12px_28px_var(--primary-glow)] active:bg-[var(--primary-active)]">
+ <Link href="?auth=register&checkout=affiliate" className="inline-flex h-11 items-center justify-center gap-2.5 rounded-[8px] bg-[var(--primary)] px-6 text-[0.88rem] font-heading font-semibold normal-case tracking-[0.2px] text-[#ffffff] transition duration-300 hover:bg-[var(--primary-hover)] hover:-translate-y-[2px] hover:shadow-[0_12px_28px_var(--primary-glow)] active:bg-[var(--primary-active)]">
             Join Affiliate Program
             <ArrowRight className="h-4 w-4 shrink-0" />
           </Link>

@@ -108,11 +108,14 @@ async function bootstrap() {
             filter: true,
         },
     });
-    await app.listen(port, '0.0.0.0');
+    const server = await app.listen(port, '0.0.0.0');
+    const address = server.address();
+    const actualPort = typeof address === 'object' && address ? address.port : port;
     logger.log(`==========================================================`, 'Bootstrap');
-    logger.log(`🚀 The Simbolo Backend is running on: http://localhost:${port}/${prefix}/v${version}`, 'Bootstrap');
-    logger.log(`📚 Swagger Documentation accessible at: http://localhost:${port}/docs`, 'Bootstrap');
-    logger.log(`🔌 WebSocket Chat Gateway: ws://localhost:${port}/chat`, 'Bootstrap');
+    logger.log(`🚀 The Simbolo Backend is running on: http://localhost:${actualPort}/${prefix}/v${version}`, 'Bootstrap');
+    logger.log(`📚 Swagger Documentation accessible at: http://localhost:${actualPort}/docs`, 'Bootstrap');
+    logger.log(`🔌 WebSocket Chat Gateway: ws://localhost:${actualPort}/chat`, 'Bootstrap');
+    logger.log(`✅ System successfully bound to 0.0.0.0 on port ${actualPort} (Railway PORT env: ${process.env.PORT})`, 'Bootstrap');
     logger.log(`==========================================================`, 'Bootstrap');
 }
 bootstrap().catch((err) => {

@@ -1,9 +1,9 @@
 "use client";
 
 import { useBlogs } from "@/hooks/useBlogs";
-import { BlogReadingLayout } from "@/components/blog/BlogReadingLayout";
+import { BlogDetailLayout } from "@/components/blog/detail/BlogDetailLayout";
 import { notFound } from "next/navigation";
-import { use } from "react";
+import { use, useMemo } from "react";
 
 export default function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
@@ -31,12 +31,23 @@ export default function BlogPostPage({ params }: { params: Promise<{ slug: strin
     .filter(b => b.id !== post.id && b.status === "published" && (b.categoryId === post.categoryId || b.tags.some(t => post.tags.includes(t))))
     .slice(0, 3);
 
+  // Compute prev/next posts based on publish date
+  const publishedBlogs = blogs
+    .filter(b => b.status === "published")
+    .sort((a, b) => new Date(b.publishDate).getTime() - new Date(a.publishDate).getTime());
+  
+  const currentIndex = publishedBlogs.findIndex(b => b.id === post.id);
+  const nextPost = currentIndex > 0 ? publishedBlogs[currentIndex - 1] : undefined;
+  const prevPost = currentIndex < publishedBlogs.length - 1 ? publishedBlogs[currentIndex + 1] : undefined;
+
   return (
-    <BlogReadingLayout 
+    <BlogDetailLayout 
       post={post} 
       author={author} 
       category={category} 
-      relatedPosts={relatedPosts} 
+      relatedPosts={relatedPosts}
+      prevPost={prevPost}
+      nextPost={nextPost}
     />
   );
 }

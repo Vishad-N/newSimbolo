@@ -21,7 +21,7 @@ export function BottomCTA() {
 
         <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
           <Link
-            href="/contact"
+            href="?auth=register&checkout=custom"
  className="group flex h-14 w-full items-center justify-center gap-2 rounded-full bg-[var(--primary)] px-8 text-[1rem] font-bold text-[#ffffff] transition-all duration-300 hover:bg-[var(--primary-hover)] hover:-translate-y-[2px] hover:shadow-[0_12px_28px_var(--primary-glow)] active:bg-[var(--primary-active)] sm:w-auto"
           >
             Talk To Expert

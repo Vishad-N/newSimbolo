@@ -94,11 +94,11 @@ export function WebsiteDesignHero({ benefits }: WebsiteDesignHeroProps) {
       benefits={benefits}
       primaryCta={{
         text: "Get Free Website Consultation",
-        href: "/contact?service=website-design-audit",
+        href: "?auth=register&checkout=website-design-audit",
       }}
       secondaryCta={{
         text: "Talk to Expert",
-        href: "/contact?service=website-design-expert",
+        href: "?auth=register&checkout=website-design-expert",
       }}
       visual={<HeroVisual />}
     />

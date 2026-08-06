@@ -65,7 +65,7 @@ export function BottomCTA() {
             </div>
           </div>
           
- <Link href="/contact?type=affiliate" className="mt-2 inline-flex h-12 w-full items-center justify-center gap-2 rounded-[8px] bg-[var(--primary)] px-8 text-[0.95rem] font-heading font-semibold tracking-[0.2px] normal-case text-[#ffffff] transition hover:bg-[var(--primary-hover)] hover:-translate-y-[2px] hover:shadow-[0_12px_28px_var(--primary-glow)] active:bg-[var(--primary-active)] md:w-auto">
+ <Link href="?auth=register&checkout=affiliate" className="mt-2 inline-flex h-12 w-full items-center justify-center gap-2 rounded-[8px] bg-[var(--primary)] px-8 text-[0.95rem] font-heading font-semibold tracking-[0.2px] normal-case text-[#ffffff] transition hover:bg-[var(--primary-hover)] hover:-translate-y-[2px] hover:shadow-[0_12px_28px_var(--primary-glow)] active:bg-[var(--primary-active)] md:w-auto">
             Join Affiliate Program
             <ArrowRight className="h-4 w-4" />
           </Link>

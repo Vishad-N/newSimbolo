@@ -9,7 +9,7 @@ export const googleAdsPackages: GoogleAdsPackage[] = [
     priceYearly: 95990,
     currency: "INR",
     buttonText: "Choose Plan",
-    buttonLink: "/contact?package=ads-starter",
+    buttonLink: "?auth=register&checkout=ads-starter",
     features: ["Account Setup & Optimization", "Keyword Research", "Ad Creation (Up to 5 Ads)", "Conversion Tracking", "Weekly Performance Report"],
   },
   {
@@ -22,7 +22,7 @@ export const googleAdsPackages: GoogleAdsPackage[] = [
     isPopular: true,
     badge: "Most Popular",
     buttonText: "Choose Plan",
-    buttonLink: "/contact?package=ads-growth",
+    buttonLink: "?auth=register&checkout=ads-growth",
     features: ["Everything in Starter", "Competitor Research", "Ad Creation (Up to 15 Ads)", "A/B Testing", "Landing Page Suggestions", "Weekly Optimization", "Detailed Reporting"],
   },
   {
@@ -33,7 +33,7 @@ export const googleAdsPackages: GoogleAdsPackage[] = [
     priceYearly: 335990,
     currency: "INR",
     buttonText: "Choose Plan",
-    buttonLink: "/contact?package=ads-scale",
+    buttonLink: "?auth=register&checkout=ads-scale",
     features: ["Everything in Growth", "Advanced Targeting", "Bid Strategy Management", "Ad Extensions Setup", "Conversion Rate Optimization", "2x Weekly Optimization", "Detailed Reporting"],
   },
   {
@@ -44,7 +44,7 @@ export const googleAdsPackages: GoogleAdsPackage[] = [
     priceYearly: 575990,
     currency: "INR",
     buttonText: "Contact Us",
-    buttonLink: "/contact?package=ads-premium",
+    buttonLink: "?auth=register&checkout=ads-premium",
     features: ["Everything in Scale", "Performance Max Campaigns", "Remarketing Strategy", "Custom Audience Creation", "Dedicated Google Ads Expert", "Daily Optimization", "Priority Support"],
   },
 ];

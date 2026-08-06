@@ -9,7 +9,7 @@ export const metaAdsPackages: SharedPackage[] = [
     priceYearly: 119988,
     currency: "INR",
     buttonText: "Choose Plan",
-    buttonLink: "/contact",
+    buttonLink: "?auth=register&checkout=custom",
     features: [
       "Audience Research",
       "1 Campaign Setup",
@@ -28,7 +28,7 @@ export const metaAdsPackages: SharedPackage[] = [
     isPopular: true,
     badge: "Most Popular",
     buttonText: "Choose Plan",
-    buttonLink: "/contact",
+    buttonLink: "?auth=register&checkout=custom",
     features: [
       "Everything in Starter",
       "3 Campaigns",
@@ -46,7 +46,7 @@ export const metaAdsPackages: SharedPackage[] = [
     priceYearly: 419988,
     currency: "INR",
     buttonText: "Choose Plan",
-    buttonLink: "/contact",
+    buttonLink: "?auth=register&checkout=custom",
     features: [
       "Everything in Growth",
       "5 Campaigns",
@@ -64,7 +64,7 @@ export const metaAdsPackages: SharedPackage[] = [
     priceYearly: 719988,
     currency: "INR",
     buttonText: "Contact Us",
-    buttonLink: "/contact",
+    buttonLink: "?auth=register&checkout=custom",
     features: [
       "Everything in Scale",
       "Unlimited Campaigns",

@@ -33,7 +33,7 @@ export function AdminPackageEditor({ pkg, onClose }: AdminPackageEditorProps) {
       status: "published",
       displayOrder: 1,
       buttonText: "Get Started",
-      buttonLink: "/contact",
+      buttonLink: "?auth=register&checkout=custom",
       themeColor: "teal",
     }
   );

@@ -58,7 +58,7 @@ function HeroVisual() {
           <p className="text-[0.75rem] text-white/70 mt-2 leading-relaxed relative">
             Tell us your requirements and we&apos;ll create the perfect design solution for you.
           </p>
- <Link href="/contact?service=graphic-design-custom" className="relative mt-4 inline-flex h-9 w-full items-center justify-center rounded-[6px] bg-[var(--primary)] text-[0.8rem] font-bold text-[#ffffff] transition hover:bg-[var(--primary-hover)] hover:-translate-y-[2px] hover:shadow-[0_12px_28px_var(--primary-glow)] active:bg-[var(--primary-active)]">
+ <Link href="?auth=register&checkout=graphic-design-custom" className="relative mt-4 inline-flex h-9 w-full items-center justify-center rounded-[6px] bg-[var(--primary)] text-[0.8rem] font-bold text-[#ffffff] transition hover:bg-[var(--primary-hover)] hover:-translate-y-[2px] hover:shadow-[0_12px_28px_var(--primary-glow)] active:bg-[var(--primary-active)]">
             Request Custom Design
           </Link>
         </div>
@@ -92,11 +92,11 @@ export function GraphicDesignHero({ benefits }: GraphicDesignHeroProps) {
       benefits={benefits}
       primaryCta={{
         text: "Get Free Design Quote",
-        href: "/contact?service=graphic-design-quote",
+        href: "?auth=register&checkout=graphic-design-quote",
       }}
       secondaryCta={{
         text: "Talk to Expert",
-        href: "/contact?service=graphic-design-expert",
+        href: "?auth=register&checkout=graphic-design-expert",
       }}
       visual={<HeroVisual />}
     />

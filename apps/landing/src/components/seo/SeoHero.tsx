@@ -114,11 +114,11 @@ export function SeoHero({ benefits }: SeoHeroProps) {
       benefits={benefits}
       primaryCta={{
         text: "Get Free SEO Audit",
-        href: "/contact?service=seo-audit",
+        href: "?auth=register&checkout=seo-audit",
       }}
       secondaryCta={{
         text: "Talk to Expert",
-        href: "/contact?service=seo-expert",
+        href: "?auth=register&checkout=seo-expert",
       }}
       visual={<HeroVisual />}
     />

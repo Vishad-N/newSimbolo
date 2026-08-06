@@ -38,7 +38,7 @@ export function ServicesHero() {
                 Explore Services
                 <ArrowRight className="h-4 w-4" />
               </Link>
-              <Link href="/contact" className="inline-flex h-11 items-center justify-center gap-2 rounded-[8px] border border-white/20 bg-white/5 px-6 text-[0.9rem] font-bold text-white transition duration-300 hover:bg-white/10">
+              <Link href="?auth=register&checkout=custom" className="inline-flex h-11 items-center justify-center gap-2 rounded-[8px] border border-white/20 bg-white/5 px-6 text-[0.9rem] font-bold text-white transition duration-300 hover:bg-white/10">
                 Talk To Expert
               </Link>
             </div>

@@ -164,7 +164,7 @@ export function ExpandedPackageModal({ pkg, isOpen, onClose, defaultBilling = "m
                   <ArrowRight className="h-4 w-4" />
                 </Link>
                 <Link
-                  href="/contact"
+                  href="?auth=register&checkout=custom"
                   className="flex h-12 w-full items-center justify-center rounded-[8px] border border-white/10 bg-transparent text-[0.95rem] font-bold text-white transition-colors hover:bg-white/5"
                 >
                   Talk to an Expert
