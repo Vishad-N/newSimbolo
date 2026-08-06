@@ -5,9 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowRight, Mail, Lock, User, Phone, Building2, Loader2, CheckCircle2, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL?.replace('/api/v1', '') || "http://localhost:4000";
-
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api/v1";
 export function AuthModals() {
   const router = useRouter();
   const searchParams = useSearchParams();
