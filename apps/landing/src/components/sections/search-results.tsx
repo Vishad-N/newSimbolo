@@ -19,11 +19,13 @@ export function SearchResults({ query, onClear, onSearch }: SearchResultsProps) 
   const [selectedExpert, setSelectedExpert] = useState<Expert | null>(null);
   const [isSearching, setIsSearching] = useState(true);
   const [searchResponse, setSearchResponse] = useState<SearchResponse | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
     const fetchResults = async () => {
       setIsSearching(true);
+      setError(null);
       try {
         const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api/v1";
         const response = await fetch(`${API_BASE_URL}/ai/search`, {
@@ -36,9 +38,11 @@ export function SearchResults({ query, onClear, onSearch }: SearchResultsProps) 
           if (active) setSearchResponse(data);
         } else {
           console.error("Failed to fetch search results");
+          if (active) setError("AI is currently unavailable. Please try again later.");
         }
-      } catch (error) {
-        console.error("Error fetching search results:", error);
+      } catch (err) {
+        console.error("Error fetching search results:", err);
+        if (active) setError("AI is currently unavailable. Please try again later.");
       } finally {
         if (active) setIsSearching(false);
       }
@@ -100,7 +104,20 @@ export function SearchResults({ query, onClear, onSearch }: SearchResultsProps) 
           </div>
         </div>
 
-        {isSearching || !searchResponse ? (
+        {error ? (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <div className="relative mb-6 h-20 w-20">
+              <div className="absolute inset-0 rounded-full bg-red-500/20" />
+              <div className="absolute inset-2 rounded-full border-4 border-transparent border-t-red-500 border-r-red-500" />
+              <X className="absolute inset-0 m-auto h-8 w-8 text-red-500" />
+            </div>
+            <h2 className="text-xl font-bold text-white">Oops! Something went wrong</h2>
+            <p className="mt-2 text-sm text-[var(--muted)]">{error}</p>
+            <button onClick={() => onSearch(inputValue)} className="mt-6 rounded-full bg-[var(--primary)] px-6 py-2 text-sm font-bold text-white transition hover:bg-[var(--primary-hover)]">
+              Try Again
+            </button>
+          </div>
+        ) : isSearching || !searchResponse ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <div className="relative mb-6 h-20 w-20">
               <div className="absolute inset-0 animate-ping rounded-full bg-[var(--primary)]/20" />
