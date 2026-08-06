@@ -13,7 +13,7 @@ exports.RazorpayGateway = void 0;
 const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
 const crypto = require("crypto");
-const razorpay_1 = require("razorpay");
+const Razorpay = require('razorpay');
 const base_service_1 = require("../shared/abstractions/base.service");
 /**
  * Razorpay implementation of IPaymentGateway.
@@ -32,7 +32,7 @@ let RazorpayGateway = class RazorpayGateway extends base_service_1.BaseService {
         this.keySecret = this.configService.get('razorpay.keySecret', 'mock-razorpay-key-secret');
         this.isMockMode = this.keyId.startsWith('mock-') || this.keyId.startsWith('rzp_test_') === false;
         if (!this.isMockMode) {
-            this.razorpayInstance = new razorpay_1.default({ key_id: this.keyId, key_secret: this.keySecret });
+            this.razorpayInstance = new Razorpay({ key_id: this.keyId, key_secret: this.keySecret });
             this.logger.log('💳 Razorpay gateway initialized in LIVE mode');
         }
         else {
