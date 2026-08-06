@@ -70,7 +70,7 @@ export class AiService extends BaseService {
         SELECT id, name, "shortDescription",
         COALESCE(1 - (embedding <=> $1::vector), 0) as similarity,
         (CASE WHEN name ILIKE $2 THEN 0.5 ELSE 0 END) as keyword_score
-        FROM "Service"
+        FROM "services"
         ORDER BY COALESCE(1 - (embedding <=> $1::vector), 0) + (CASE WHEN name ILIKE $2 THEN 0.5 ELSE 0 END) DESC
         LIMIT 5
       `, vectorString, keywordPattern);
@@ -80,7 +80,7 @@ export class AiService extends BaseService {
         SELECT id, name, description,
         COALESCE(1 - (embedding <=> $1::vector), 0) as similarity,
         (CASE WHEN name ILIKE $2 THEN 0.5 ELSE 0 END) as keyword_score
-        FROM "Package"
+        FROM "packages"
         ORDER BY COALESCE(1 - (embedding <=> $1::vector), 0) + (CASE WHEN name ILIKE $2 THEN 0.5 ELSE 0 END) DESC
         LIMIT 5
       `, vectorString, keywordPattern);
@@ -90,7 +90,7 @@ export class AiService extends BaseService {
         SELECT id, name, "shortDescription",
         0 as similarity,
         (CASE WHEN name ILIKE $1 THEN 0.5 ELSE 0 END) as keyword_score
-        FROM "Service"
+        FROM "services"
         WHERE name ILIKE $1 OR "shortDescription" ILIKE $1
         ORDER BY keyword_score DESC
         LIMIT 5
@@ -100,7 +100,7 @@ export class AiService extends BaseService {
         SELECT id, name, description,
         0 as similarity,
         (CASE WHEN name ILIKE $1 THEN 0.5 ELSE 0 END) as keyword_score
-        FROM "Package"
+        FROM "packages"
         WHERE name ILIKE $1 OR description ILIKE $1
         ORDER BY keyword_score DESC
         LIMIT 5
