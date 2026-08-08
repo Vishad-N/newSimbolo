@@ -24,6 +24,7 @@ RUN addgroup -g 1001 -S nodejs && \
     adduser -S nestjs -u 1001
 
 COPY package.json package-lock.json ./
+COPY prisma.config.ts ./prisma.config.ts
 COPY backend/package.json ./backend/package.json
 RUN npm ci --omit=dev --workspace backend --include-workspace-root=false && npm cache clean --force
 

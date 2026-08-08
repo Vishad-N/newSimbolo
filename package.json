@@ -12,6 +12,11 @@
     "dev": "turbo run dev",
     "build": "turbo run build",
     "start": "turbo run start",
+    "start:prod": "npm run start:prod --workspace backend",
+    "deploy:migrate": "npm run prisma:deploy --workspace backend",
+    "prisma:deploy": "npm run prisma:deploy --workspace backend",
+    "prisma:generate": "npm run prisma:generate --workspace backend",
+    "prisma:validate": "npm run prisma:validate --workspace backend",
     "lint": "turbo run lint"
   },
   "devDependencies": {
