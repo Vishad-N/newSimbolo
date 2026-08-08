@@ -22,12 +22,14 @@ let AiEmbeddingService = AiEmbeddingService_1 = class AiEmbeddingService {
     configService;
     logger = new common_1.Logger(AiEmbeddingService_1.name);
     genAI;
+    embeddingModel;
     constructor(queueService, prisma, configService) {
         this.queueService = queueService;
         this.prisma = prisma;
         this.configService = configService;
         const apiKey = this.configService.get('GEMINI_API_KEY') || '';
         this.genAI = new generative_ai_1.GoogleGenerativeAI(apiKey);
+        this.embeddingModel = this.configService.get('GEMINI_EMBEDDING_MODEL') || 'gemini-embedding-2';
     }
     onModuleInit() {
         this.queueService.registerWorker('ai', async (job) => {
@@ -42,9 +44,9 @@ let AiEmbeddingService = AiEmbeddingService_1 = class AiEmbeddingService {
         });
     }
     async getEmbedding(text) {
-        const model = this.genAI.getGenerativeModel({ model: 'text-embedding-004' });
+        const model = this.genAI.getGenerativeModel({ model: this.embeddingModel });
         const result = await model.embedContent(text);
-        return result.embedding.values;
+        return result.embedding.values.slice(0, 768);
     }
     async processEmbeddingJob(data) {
         this.logger.log(`Generating embedding for ${data.entityType} ${data.entityId}`);

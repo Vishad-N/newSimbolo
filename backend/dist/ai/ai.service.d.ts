@@ -22,6 +22,8 @@ export declare class AiService extends BaseService {
     private tableExists;
     private queryCatalogTable;
     private isMissingRelationError;
+    private buildFallbackSearchResponse;
+    private inferServiceName;
     triggerInitialEmbeddingSync(): Promise<{
         message: string;
     }>;

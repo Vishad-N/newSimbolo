@@ -4,7 +4,8 @@ import { SearchResponse } from '../interfaces/search-response.interface';
 export declare class GeminiProvider implements AIProvider {
     private readonly configService;
     private readonly logger;
-    private genAI;
+    private readonly genAI;
+    private readonly generationModel;
     constructor(configService: ConfigService);
     search(prompt: string): Promise<SearchResponse>;
     chat<T = any>(history: any[], prompt: string, schema?: any): Promise<T>;

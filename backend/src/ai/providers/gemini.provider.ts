@@ -7,7 +7,8 @@ import { SearchResponse } from '../interfaces/search-response.interface';
 @Injectable()
 export class GeminiProvider implements AIProvider {
   private readonly logger = new Logger(GeminiProvider.name);
-  private genAI: GoogleGenerativeAI;
+  private readonly genAI: GoogleGenerativeAI;
+  private readonly generationModel: string;
   
   constructor(private readonly configService: ConfigService) {
     const apiKey = this.configService.get<string>('GEMINI_API_KEY') || '';
@@ -15,11 +16,12 @@ export class GeminiProvider implements AIProvider {
       this.logger.warn('GEMINI_API_KEY is not configured');
     }
     this.genAI = new GoogleGenerativeAI(apiKey);
+    this.generationModel = this.configService.get<string>('GEMINI_GENERATION_MODEL') || 'gemini-3.5-flash';
   }
 
   async search(prompt: string): Promise<SearchResponse> {
     const model = this.genAI.getGenerativeModel({
-      model: 'gemini-1.5-pro',
+      model: this.generationModel,
       generationConfig: {
         responseMimeType: "application/json",
         responseSchema: this.getSchema(),
@@ -38,7 +40,7 @@ export class GeminiProvider implements AIProvider {
 
   async chat<T = any>(history: any[], prompt: string, schema?: any): Promise<T> {
     const model = this.genAI.getGenerativeModel({
-      model: 'gemini-1.5-pro',
+      model: this.generationModel,
       generationConfig: schema ? {
         responseMimeType: "application/json",
         responseSchema: schema as Schema,

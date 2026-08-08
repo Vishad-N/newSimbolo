@@ -12,7 +12,8 @@ export declare class AiEmbeddingService implements OnModuleInit {
     private readonly prisma;
     private readonly configService;
     private readonly logger;
-    private genAI;
+    private readonly genAI;
+    private readonly embeddingModel;
     constructor(queueService: QueueService, prisma: PrismaService, configService: ConfigService);
     onModuleInit(): void;
     queueEmbeddingGeneration(entityType: EmbeddingJob['entityType'], entityId: string, textToEmbed: string): Promise<{

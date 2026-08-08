@@ -18,6 +18,7 @@ let GeminiProvider = GeminiProvider_1 = class GeminiProvider {
     configService;
     logger = new common_1.Logger(GeminiProvider_1.name);
     genAI;
+    generationModel;
     constructor(configService) {
         this.configService = configService;
         const apiKey = this.configService.get('GEMINI_API_KEY') || '';
@@ -25,10 +26,11 @@ let GeminiProvider = GeminiProvider_1 = class GeminiProvider {
             this.logger.warn('GEMINI_API_KEY is not configured');
         }
         this.genAI = new generative_ai_1.GoogleGenerativeAI(apiKey);
+        this.generationModel = this.configService.get('GEMINI_GENERATION_MODEL') || 'gemini-3.5-flash';
     }
     async search(prompt) {
         const model = this.genAI.getGenerativeModel({
-            model: 'gemini-1.5-pro',
+            model: this.generationModel,
             generationConfig: {
                 responseMimeType: "application/json",
                 responseSchema: this.getSchema(),
@@ -46,7 +48,7 @@ let GeminiProvider = GeminiProvider_1 = class GeminiProvider {
     }
     async chat(history, prompt, schema) {
         const model = this.genAI.getGenerativeModel({
-            model: 'gemini-1.5-pro',
+            model: this.generationModel,
             generationConfig: schema ? {
                 responseMimeType: "application/json",
                 responseSchema: schema,

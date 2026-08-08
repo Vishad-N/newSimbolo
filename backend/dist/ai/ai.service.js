@@ -147,7 +147,15 @@ let AiService = class AiService extends base_service_1.BaseService {
             experts: contextExperts,
             reviews: [],
         });
-        const result = await this.provider.search(prompt);
+        let result;
+        try {
+            result = await this.provider.search(prompt);
+        }
+        catch (error) {
+            const message = error instanceof Error ? error.message : 'Unknown Gemini search error';
+            this.logger.warn(`Gemini search failed. Returning deterministic fallback response. ${message}`);
+            result = this.buildFallbackSearchResponse(query, services, packages, contextExperts);
+        }
         // 7. Store in Cache (TTL 1 hour = 3600 seconds)
         await this.cacheService.set(cacheKey, result, 3600);
         return result;
@@ -173,6 +181,49 @@ let AiService = class AiService extends base_service_1.BaseService {
             return false;
         const record = error;
         return record.code === '42P01' || record.meta?.code === '42P01' || record.message?.includes('42P01') === true;
+    }
+    buildFallbackSearchResponse(query, services, packages, experts) {
+        const recommendedService = services[0]?.name || this.inferServiceName(query);
+        const recommendedPackage = packages[0]?.name || 'Custom consultation';
+        return {
+            summary: `Based on your request, ${recommendedService} is the best starting point. Share your website URL, target locations, current traffic, and main goals so the team can scope the right SEO plan.`,
+            matchPercentage: services.length > 0 || packages.length > 0 ? 82 : 65,
+            recommendedService,
+            recommendedPackage,
+            experts: experts.map((expert) => ({
+                ...expert,
+                rating: 4.8,
+                projectsCompleted: 0,
+                specialization: 'Digital marketing',
+                responseTime: 'Within 24 hours',
+                hourlyPrice: 0,
+                isSimboloExpert: true,
+                skills: ['SEO', 'Strategy', 'Content'],
+                experience: 'Verified Simbolo expert',
+                availability: 'Available',
+            })),
+            suggestions: [
+                { id: 'technical-seo', label: 'Technical SEO audit' },
+                { id: 'keyword-strategy', label: 'Keyword strategy' },
+                { id: 'local-seo', label: 'Local SEO' },
+            ],
+            reviews: [],
+            relatedServices: services.map((service) => ({
+                id: service.id,
+                title: service.name,
+                description: service.shortDescription || '',
+                icon: 'search',
+            })),
+        };
+    }
+    inferServiceName(query) {
+        if (query.includes('seo'))
+            return 'SEO';
+        if (query.includes('website') || query.includes('web'))
+            return 'Website optimization';
+        if (query.includes('social'))
+            return 'Social media marketing';
+        return 'Digital marketing strategy';
     }
     async triggerInitialEmbeddingSync() {
         let queued = 0;

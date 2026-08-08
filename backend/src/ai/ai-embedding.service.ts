@@ -13,7 +13,8 @@ interface EmbeddingJob extends Record<string, unknown> {
 @Injectable()
 export class AiEmbeddingService implements OnModuleInit {
   private readonly logger = new Logger(AiEmbeddingService.name);
-  private genAI: GoogleGenerativeAI;
+  private readonly genAI: GoogleGenerativeAI;
+  private readonly embeddingModel: string;
   
   constructor(
     private readonly queueService: QueueService,
@@ -22,6 +23,7 @@ export class AiEmbeddingService implements OnModuleInit {
   ) {
     const apiKey = this.configService.get<string>('GEMINI_API_KEY') || '';
     this.genAI = new GoogleGenerativeAI(apiKey);
+    this.embeddingModel = this.configService.get<string>('GEMINI_EMBEDDING_MODEL') || 'gemini-embedding-2';
   }
 
   onModuleInit() {
@@ -39,9 +41,9 @@ export class AiEmbeddingService implements OnModuleInit {
   }
 
   public async getEmbedding(text: string): Promise<number[]> {
-    const model = this.genAI.getGenerativeModel({ model: 'text-embedding-004' });
+    const model = this.genAI.getGenerativeModel({ model: this.embeddingModel });
     const result = await model.embedContent(text);
-    return result.embedding.values;
+    return result.embedding.values.slice(0, 768);
   }
 
   private async processEmbeddingJob(data: EmbeddingJob) {
