@@ -8,6 +8,10 @@ import { AiGenerationDto } from './dto/ai.dto';
 import { CacheService } from '../cache/cache.service';
 import { AiEmbeddingService } from './ai-embedding.service';
 
+interface TablePresenceResult {
+  exists: boolean;
+}
+
 @Injectable()
 export class AiService extends BaseService {
   constructor(
@@ -61,50 +65,70 @@ export class AiService extends BaseService {
     let packages: any[] = [];
 
     const keywordPattern = `%${query}%`;
+    const [hasServicesTable, hasPackagesTable] = await Promise.all([
+      this.tableExists('services'),
+      this.tableExists('packages'),
+    ]);
+
+    if (!hasServicesTable) {
+      this.logger.warn('AI search skipped services lookup because table "services" does not exist.');
+    }
+
+    if (!hasPackagesTable) {
+      this.logger.warn('AI search skipped packages lookup because table "packages" does not exist.');
+    }
 
     if (queryEmbedding.length > 0) {
       const vectorString = `[${queryEmbedding.join(',')}]`;
 
       // 3. Hybrid Search Services
-      services = await this.prisma.$queryRawUnsafe<any[]>(`
-        SELECT id, name, "shortDescription",
-        COALESCE(1 - (embedding <=> $1::vector), 0) as similarity,
-        (CASE WHEN name ILIKE $2 THEN 0.5 ELSE 0 END) as keyword_score
-        FROM "services"
-        ORDER BY COALESCE(1 - (embedding <=> $1::vector), 0) + (CASE WHEN name ILIKE $2 THEN 0.5 ELSE 0 END) DESC
-        LIMIT 5
-      `, vectorString, keywordPattern);
+      if (hasServicesTable) {
+        services = await this.queryCatalogTable<any>(`
+          SELECT id, name, "shortDescription",
+          COALESCE(1 - (embedding <=> $1::vector), 0) as similarity,
+          (CASE WHEN name ILIKE $2 THEN 0.5 ELSE 0 END) as keyword_score
+          FROM "services"
+          ORDER BY COALESCE(1 - (embedding <=> $1::vector), 0) + (CASE WHEN name ILIKE $2 THEN 0.5 ELSE 0 END) DESC
+          LIMIT 5
+        `, [vectorString, keywordPattern], 'services');
+      }
 
       // 4. Hybrid Search Packages
-      packages = await this.prisma.$queryRawUnsafe<any[]>(`
-        SELECT id, name, description,
-        COALESCE(1 - (embedding <=> $1::vector), 0) as similarity,
-        (CASE WHEN name ILIKE $2 THEN 0.5 ELSE 0 END) as keyword_score
-        FROM "packages"
-        ORDER BY COALESCE(1 - (embedding <=> $1::vector), 0) + (CASE WHEN name ILIKE $2 THEN 0.5 ELSE 0 END) DESC
-        LIMIT 5
-      `, vectorString, keywordPattern);
+      if (hasPackagesTable) {
+        packages = await this.queryCatalogTable<any>(`
+          SELECT id, name, description,
+          COALESCE(1 - (embedding <=> $1::vector), 0) as similarity,
+          (CASE WHEN name ILIKE $2 THEN 0.5 ELSE 0 END) as keyword_score
+          FROM "packages"
+          ORDER BY COALESCE(1 - (embedding <=> $1::vector), 0) + (CASE WHEN name ILIKE $2 THEN 0.5 ELSE 0 END) DESC
+          LIMIT 5
+        `, [vectorString, keywordPattern], 'packages');
+      }
     } else {
       // Fallback to purely keyword if embedding fails
-      services = await this.prisma.$queryRawUnsafe<any[]>(`
-        SELECT id, name, "shortDescription",
-        0 as similarity,
-        (CASE WHEN name ILIKE $1 THEN 0.5 ELSE 0 END) as keyword_score
-        FROM "services"
-        WHERE name ILIKE $1 OR "shortDescription" ILIKE $1
-        ORDER BY keyword_score DESC
-        LIMIT 5
-      `, keywordPattern);
+      if (hasServicesTable) {
+        services = await this.queryCatalogTable<any>(`
+          SELECT id, name, "shortDescription",
+          0 as similarity,
+          (CASE WHEN name ILIKE $1 THEN 0.5 ELSE 0 END) as keyword_score
+          FROM "services"
+          WHERE name ILIKE $1 OR "shortDescription" ILIKE $1
+          ORDER BY keyword_score DESC
+          LIMIT 5
+        `, [keywordPattern], 'services');
+      }
 
-      packages = await this.prisma.$queryRawUnsafe<any[]>(`
-        SELECT id, name, description,
-        0 as similarity,
-        (CASE WHEN name ILIKE $1 THEN 0.5 ELSE 0 END) as keyword_score
-        FROM "packages"
-        WHERE name ILIKE $1 OR description ILIKE $1
-        ORDER BY keyword_score DESC
-        LIMIT 5
-      `, keywordPattern);
+      if (hasPackagesTable) {
+        packages = await this.queryCatalogTable<any>(`
+          SELECT id, name, description,
+          0 as similarity,
+          (CASE WHEN name ILIKE $1 THEN 0.5 ELSE 0 END) as keyword_score
+          FROM "packages"
+          WHERE name ILIKE $1 OR description ILIKE $1
+          ORDER BY keyword_score DESC
+          LIMIT 5
+        `, [keywordPattern], 'packages');
+      }
     }
 
     // 5. Experts
@@ -138,6 +162,32 @@ export class AiService extends BaseService {
     await this.cacheService.set(cacheKey, result, 3600);
 
     return result;
+  }
+
+  private async tableExists(tableName: string): Promise<boolean> {
+    const result = await this.prisma.$queryRawUnsafe<TablePresenceResult[]>(
+      'SELECT to_regclass($1) IS NOT NULL AS "exists"',
+      tableName,
+    );
+    return result[0]?.exists ?? false;
+  }
+
+  private async queryCatalogTable<T>(query: string, params: unknown[], tableName: string): Promise<T[]> {
+    try {
+      return await this.prisma.$queryRawUnsafe<T[]>(query, ...params);
+    } catch (error: unknown) {
+      if (this.isMissingRelationError(error)) {
+        this.logger.warn(`AI search skipped ${tableName} lookup because table "${tableName}" does not exist.`);
+        return [];
+      }
+      throw error;
+    }
+  }
+
+  private isMissingRelationError(error: unknown): boolean {
+    if (!error || typeof error !== 'object') return false;
+    const record = error as { code?: string; meta?: { code?: string; message?: string }; message?: string };
+    return record.code === '42P01' || record.meta?.code === '42P01' || record.message?.includes('42P01') === true;
   }
 
   async triggerInitialEmbeddingSync() {
