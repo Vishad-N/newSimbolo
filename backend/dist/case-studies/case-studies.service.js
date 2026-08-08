@@ -68,12 +68,19 @@ let CaseStudiesService = class CaseStudiesService extends base_service_1.BaseSer
                 coverImage: true,
                 metrics: { orderBy: { sortOrder: 'asc' } },
                 beforeAfters: {
-                    include: { beforeImage: true, afterImage: true },
+                    include: { beforeMedia: true, afterMedia: true },
                     orderBy: { sortOrder: 'asc' },
                 },
                 testimonials: true,
             },
         });
+        if (study) {
+            study.beforeAfters = study.beforeAfters.map((ba) => ({
+                ...ba,
+                beforeImage: ba.beforeMedia,
+                afterImage: ba.afterMedia,
+            }));
+        }
         return this.checkEntityExists(study, 'CaseStudy', slug);
     }
     async createCaseStudy(dto, createdBy) {
@@ -217,7 +224,7 @@ let CaseStudiesService = class CaseStudiesService extends base_service_1.BaseSer
                 caseStudyId: dto.caseStudyId,
                 sortOrder: dto.sortOrder !== undefined ? dto.sortOrder : 0,
             },
-            include: { beforeImage: true, afterImage: true },
+            include: { beforeMedia: true, afterMedia: true },
         });
     }
     async deleteBeforeAfter(id) {

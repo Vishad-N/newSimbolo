@@ -34,6 +34,7 @@ export declare class SeoController {
         createdBy: string | null;
         updatedBy: string | null;
         path: string;
+        mediaId: string | null;
         metaTitle: string;
         metaDescription: string;
         keywords: string | null;
@@ -53,6 +54,7 @@ export declare class SeoController {
         createdBy: string | null;
         updatedBy: string | null;
         path: string;
+        mediaId: string | null;
         metaTitle: string;
         metaDescription: string;
         keywords: string | null;
@@ -72,6 +74,7 @@ export declare class SeoController {
         createdBy: string | null;
         updatedBy: string | null;
         path: string;
+        mediaId: string | null;
         metaTitle: string;
         metaDescription: string;
         keywords: string | null;
@@ -91,6 +94,7 @@ export declare class SeoController {
         createdBy: string | null;
         updatedBy: string | null;
         path: string;
+        mediaId: string | null;
         metaTitle: string;
         metaDescription: string;
         keywords: string | null;

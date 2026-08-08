@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   postgres:
-    image: postgres:16-alpine
+    image: pgvector/pgvector:pg16
     container_name: simbolo-postgres
     restart: always
     environment:
@@ -44,13 +44,20 @@ services:
       - "3001:3001"
     environment:
       NODE_ENV: production
+      PORT: 3001
       API_PORT: 3001
       API_PREFIX: api
       API_VERSION: v1
+      FRONTEND_URLS: http://localhost:3000,http://localhost:3002,http://localhost:3003
       DATABASE_URL: postgresql://postgres:password@postgres:5432/simbolo?schema=public
       REDIS_URL: redis://redis:6379/0
       JWT_SECRET: super-secret-jwt-key-change-in-production-simbolo-2026
       JWT_REFRESH_SECRET: super-secret-refresh-key-change-in-production-simbolo-2026
+      GOOGLE_OAUTH_ENABLED: "false"
+      GEMINI_ENABLED: "false"
+      RAZORPAY_ENABLED: "false"
+      EMAIL_ENABLED: "false"
+      CLOUDINARY_ENABLED: "false"
     depends_on:
       postgres:
         condition: service_healthy

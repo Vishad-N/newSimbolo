@@ -16,6 +16,8 @@ export declare class SettingsController {
         darkModeLogoUrl: string | null;
         lightModeLogoUrl: string | null;
         fontFamily: string;
+        darkModeLogoId: string | null;
+        lightModeLogoId: string | null;
     }>;
     updateTheme(dto: UpdateThemeDto, user: JwtPayload): Promise<{
         id: string;
@@ -28,6 +30,8 @@ export declare class SettingsController {
         darkModeLogoUrl: string | null;
         lightModeLogoUrl: string | null;
         fontFamily: string;
+        darkModeLogoId: string | null;
+        lightModeLogoId: string | null;
     }>;
     getPublicSettings(category?: string): Promise<{
         id: string;

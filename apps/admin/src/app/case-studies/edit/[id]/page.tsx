@@ -1,13 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, use } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Save, Plus, Trash2, GripVertical, Image as ImageIcon } from "lucide-react";
 import { RichTextEditor } from "@/components/forms/RichTextEditor";
 
-export default function EditCaseStudyPage({ params }: { params: { id: string } }) {
+export default function EditCaseStudyPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
-  const isNew = params.id === "new";
+  const resolvedParams = use(params);
+  const isNew = resolvedParams.id === "new";
 
   // Basic Info State
   const [title, setTitle] = useState(isNew ? "" : "Scaling a D2C Fashion Brand by 300%");

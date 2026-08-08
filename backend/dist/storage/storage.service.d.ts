@@ -11,7 +11,7 @@ export declare class StorageService extends BaseService {
     upload(file: Express.Multer.File, storageKey: string): Promise<StoredObject>;
     delete(storageKey: string): Promise<void>;
     getSignedUrl(storageKey: string, expiresInSeconds?: number): Promise<string>;
-    getPresignedUploadUrl(storageKey: string, mimeType: string, expiresInSeconds?: number): Promise<any>;
+    getPresignedUploadUrl(storageKey: string, mimeType: string, expiresInSeconds?: number): Promise<string>;
     health(): Promise<"disabled" | "up" | "down" | "configured">;
     validateFile(file: Express.Multer.File): void;
     private getProvider;

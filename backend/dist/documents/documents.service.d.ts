@@ -54,13 +54,13 @@ export declare class DocumentsService extends BaseService {
             isPublic: boolean;
             companyId: string | null;
             mimeType: string | null;
+            uploadedById: string | null;
             category: import(".prisma/client").$Enums.DocumentCategoryEnum;
             clientId: string | null;
             projectId: string | null;
             fileUrl: string;
             fileSize: number | null;
             downloadCount: number;
-            uploadedById: string | null;
         })[];
         meta: {
             total: number;

@@ -67,6 +67,7 @@ const navigation = [
       { name: "Case Studies", href: "/case-studies", icon: Briefcase },
       { name: "Testimonials", href: "/testimonials", icon: MessageSquare },
       { name: "About Us", href: "/about-us", icon: Building2 },
+      { name: "Team Members", href: "/team-members", icon: Users },
     ]
   },
   { name: "Media Library", href: "/media", icon: ImageIcon },

@@ -33,6 +33,7 @@ const request_context_middleware_1 = require("./common/middleware/request-contex
 const csrf_middleware_1 = require("./common/middleware/csrf.middleware");
 const raw_body_middleware_1 = require("./common/middleware/raw-body.middleware");
 const media_module_1 = require("./media/media.module");
+const website_media_module_1 = require("./website-media/website-media.module");
 const cms_module_1 = require("./cms/cms.module");
 const services_catalog_module_1 = require("./services-catalog/services-catalog.module");
 const packages_module_1 = require("./packages/packages.module");
@@ -78,6 +79,7 @@ const queues_module_1 = require("./queues/queues.module");
 const observability_module_1 = require("./observability/observability.module");
 const storage_module_1 = require("./storage/storage.module");
 const assets_module_1 = require("./assets/assets.module");
+const website_team_module_1 = require("./website-team/website-team.module");
 let AppModule = class AppModule {
     configure(consumer) {
         consumer.apply(request_context_middleware_1.RequestContextMiddleware, request_logger_middleware_1.RequestLoggerMiddleware, csrf_middleware_1.CsrfMiddleware).forRoutes('*');
@@ -103,6 +105,7 @@ exports.AppModule = AppModule = __decorate([
             profiles_module_1.ProfilesModule,
             health_module_1.HealthModule,
             media_module_1.MediaModule,
+            website_media_module_1.WebsiteMediaModule,
             cms_module_1.CmsModule,
             services_catalog_module_1.ServicesCatalogModule,
             packages_module_1.PackagesModule,
@@ -156,6 +159,7 @@ exports.AppModule = AppModule = __decorate([
                 },
             ]),
             assets_module_1.AssetsModule,
+            website_team_module_1.WebsiteTeamModule,
         ],
         providers: [
             {

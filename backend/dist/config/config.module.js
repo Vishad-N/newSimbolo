@@ -17,6 +17,7 @@ const email_config_1 = require("./email.config");
 const razorpay_config_1 = require("./razorpay.config");
 const redis_config_1 = require("./redis.config");
 const observability_config_1 = require("./observability.config");
+const cloudinary_config_1 = require("./cloudinary.config");
 const env_validation_1 = require("./env.validation");
 let ConfigModule = class ConfigModule {
 };
@@ -38,6 +39,7 @@ exports.ConfigModule = ConfigModule = __decorate([
                     razorpay_config_1.default,
                     redis_config_1.default,
                     observability_config_1.default,
+                    cloudinary_config_1.default,
                 ],
             }),
         ],

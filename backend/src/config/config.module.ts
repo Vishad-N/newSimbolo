@@ -8,6 +8,7 @@ import emailConfig from './email.config';
 import razorpayConfig from './razorpay.config';
 import redisConfig from './redis.config';
 import observabilityConfig from './observability.config';
+import cloudinaryConfig from './cloudinary.config';
 import { validate } from './env.validation';
 
 @Module({
@@ -26,6 +27,7 @@ import { validate } from './env.validation';
         razorpayConfig,
         redisConfig,
         observabilityConfig,
+        cloudinaryConfig,
       ],
     }),
   ],

@@ -24,6 +24,7 @@ import { RequestContextMiddleware } from './common/middleware/request-context.mi
 import { CsrfMiddleware } from './common/middleware/csrf.middleware';
 import { RawBodyMiddleware } from './common/middleware/raw-body.middleware';
 import { MediaModule } from './media/media.module';
+import { WebsiteMediaModule } from './website-media/website-media.module';
 import { CmsModule } from './cms/cms.module';
 import { ServicesCatalogModule } from './services-catalog/services-catalog.module';
 import { PackagesModule } from './packages/packages.module';
@@ -69,6 +70,7 @@ import { QueuesModule } from './queues/queues.module';
 import { ObservabilityModule } from './observability/observability.module';
 import { StorageModule } from './storage/storage.module';
 import { AssetsModule } from './assets/assets.module';
+import { WebsiteTeamModule } from './website-team/website-team.module';
 
 @Module({
   imports: [
@@ -86,6 +88,7 @@ import { AssetsModule } from './assets/assets.module';
     ProfilesModule,
     HealthModule,
     MediaModule,
+    WebsiteMediaModule,
     CmsModule,
     ServicesCatalogModule,
     PackagesModule,
@@ -139,6 +142,7 @@ import { AssetsModule } from './assets/assets.module';
       },
     ]),
     AssetsModule,
+    WebsiteTeamModule,
   ],
   providers: [
     {

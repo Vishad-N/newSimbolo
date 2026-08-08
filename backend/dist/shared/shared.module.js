@@ -11,14 +11,15 @@ const common_1 = require("@nestjs/common");
 const logger_module_1 = require("./logger/logger.module");
 const audit_module_1 = require("./audit/audit.module");
 const email_module_1 = require("./email/email.module");
+const cloudinary_module_1 = require("./cloudinary/cloudinary.module");
 let SharedModule = class SharedModule {
 };
 exports.SharedModule = SharedModule;
 exports.SharedModule = SharedModule = __decorate([
     (0, common_1.Global)(),
     (0, common_1.Module)({
-        imports: [logger_module_1.LoggerModule, audit_module_1.AuditModule, email_module_1.EmailModule],
-        exports: [logger_module_1.LoggerModule, audit_module_1.AuditModule, email_module_1.EmailModule],
+        imports: [logger_module_1.LoggerModule, audit_module_1.AuditModule, email_module_1.EmailModule, cloudinary_module_1.CloudinaryModule],
+        exports: [logger_module_1.LoggerModule, audit_module_1.AuditModule, email_module_1.EmailModule, cloudinary_module_1.CloudinaryModule],
     })
 ], SharedModule);
 //# sourceMappingURL=shared.module.js.map

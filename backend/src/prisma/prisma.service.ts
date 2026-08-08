@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 
 @Injectable()
@@ -21,11 +21,13 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
     try {
       await this.$connect();
       this.logger.log('Prisma Client connected successfully.');
-    } catch (error: any) {
-      this.logger.error(`Database connection failed during bootstrap: ${error.message}`);
-      this.logger.warn(
-        '⚠️ Hostinger deployment note: Please verify DATABASE_URL is set in Hostinger Environment Variables. Ensure special characters in database password are URL encoded.',
-      );
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown database connection error';
+      this.logger.error(`Database connection failed during bootstrap: ${message}`);
+      this.logger.warn('Verify DATABASE_URL is set and URL encoded correctly.');
+      if (process.env.NODE_ENV === 'production') {
+        throw error;
+      }
     }
   }
 

@@ -22,11 +22,12 @@ let S3StorageProvider = S3StorageProvider_1 = class S3StorageProvider {
     logger = new common_1.Logger(S3StorageProvider_1.name);
     constructor(configService) {
         this.configService = configService;
-        const accountId = this.configService.get('R2_ACCOUNT_ID') || 'demo-account-id';
-        const accessKeyId = this.configService.get('R2_ACCESS_KEY_ID') || 'demo-access-key';
-        const secretAccessKey = this.configService.get('R2_SECRET_ACCESS_KEY') || 'demo-secret-key';
-        const endpoint = this.configService.get('R2_ENDPOINT') || `https://${accountId}.r2.cloudflarestorage.com`;
-        this.bucketName = this.configService.get('R2_BUCKET_NAME') || 'simbolo-assets';
+        const accountId = this.configService.get('R2_ACCOUNT_ID') || '';
+        const accessKeyId = this.configService.get('R2_ACCESS_KEY_ID') || '';
+        const secretAccessKey = this.configService.get('R2_SECRET_ACCESS_KEY') || '';
+        const endpoint = this.configService.get('R2_ENDPOINT') ||
+            (accountId ? `https://${accountId}.r2.cloudflarestorage.com` : undefined);
+        this.bucketName = this.configService.get('R2_BUCKET_NAME') || '';
         this.s3Client = new client_s3_1.S3Client({
             region: 'auto',
             endpoint,
@@ -99,8 +100,14 @@ let S3StorageProvider = S3StorageProvider_1 = class S3StorageProvider {
     }
     async health() {
         try {
-            if (!this.configService.get('R2_ACCOUNT_ID'))
-                return 'configured';
+            const configured = [
+                this.configService.get('R2_ACCOUNT_ID'),
+                this.configService.get('R2_ACCESS_KEY_ID'),
+                this.configService.get('R2_SECRET_ACCESS_KEY'),
+                this.configService.get('R2_BUCKET_NAME'),
+            ].every(Boolean);
+            if (!configured)
+                return 'disabled';
             return 'up';
         }
         catch (error) {

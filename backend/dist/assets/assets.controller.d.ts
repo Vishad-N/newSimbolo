@@ -37,14 +37,14 @@ export declare class AssetsController {
         originalName: string;
         mimeType: string;
         sizeBytes: number;
-        clientId: string;
-        uploadedById: string | null;
         filename: string;
+        uploadedById: string | null;
+        clientId: string;
         extension: string;
         storageProvider: string;
     })[]>;
     createUploadRequest(clientId: string, dto: UploadRequestDto, user: any): Promise<{
-        uploadUrl: any;
+        uploadUrl: string;
         asset: {
             id: string;
             createdAt: Date;
@@ -55,9 +55,9 @@ export declare class AssetsController {
             originalName: string;
             mimeType: string;
             sizeBytes: number;
-            clientId: string;
-            uploadedById: string | null;
             filename: string;
+            uploadedById: string | null;
+            clientId: string;
             extension: string;
             storageProvider: string;
         };

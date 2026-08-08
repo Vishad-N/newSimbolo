@@ -35,6 +35,7 @@ export declare class ServicesCatalogController {
         iconUrl: string | null;
         basePrice: number;
         categoryId: string | null;
+        iconMediaId: string | null;
         seoPageId: string | null;
     }[]>;
     getServiceBySlug(slug: string): Promise<{
@@ -52,6 +53,7 @@ export declare class ServicesCatalogController {
         iconUrl: string | null;
         basePrice: number;
         categoryId: string | null;
+        iconMediaId: string | null;
         seoPageId: string | null;
     }>;
     createService(dto: CreateServiceDto, user: JwtPayload): Promise<{
@@ -69,6 +71,7 @@ export declare class ServicesCatalogController {
         iconUrl: string | null;
         basePrice: number;
         categoryId: string | null;
+        iconMediaId: string | null;
         seoPageId: string | null;
     }>;
     updateService(id: string, dto: UpdateServiceDto, user: JwtPayload): Promise<{
@@ -86,6 +89,7 @@ export declare class ServicesCatalogController {
         iconUrl: string | null;
         basePrice: number;
         categoryId: string | null;
+        iconMediaId: string | null;
         seoPageId: string | null;
     }>;
     deleteService(id: string, user: JwtPayload): Promise<{

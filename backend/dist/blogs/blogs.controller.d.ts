@@ -30,10 +30,12 @@ export declare class BlogsController {
         createdAt: Date;
         userId: string;
         avatarUrl: string | null;
+        avatarMediaId: string | null;
         updatedAt: Date;
         bio: string | null;
         twitterUrl: string | null;
         linkedinUrl: string | null;
+        mediaId: string | null;
     }[]>;
     getBlogs(categoryId?: string, tag?: string, authorId?: string, search?: string, status?: BlogStatusEnum): Promise<{
         id: string;
@@ -141,10 +143,12 @@ export declare class BlogsController {
         createdAt: Date;
         userId: string;
         avatarUrl: string | null;
+        avatarMediaId: string | null;
         updatedAt: Date;
         bio: string | null;
         twitterUrl: string | null;
         linkedinUrl: string | null;
+        mediaId: string | null;
     }>;
     deleteAuthor(id: string): Promise<{
         success: boolean;

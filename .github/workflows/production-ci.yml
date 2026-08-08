@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:16-alpine
+        image: pgvector/pgvector:pg16
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: password
@@ -42,14 +42,45 @@ jobs:
 
       - run: npm ci
 
+      - name: Validate production environment contract
+        run: npm run env:validate --workspace backend
+        env:
+          NODE_ENV: production
+          PORT: 3001
+          FRONTEND_URLS: http://localhost:3000
+          DATABASE_URL: postgresql://postgres:password@localhost:5432/simbolo_test?schema=public
+          REDIS_URL: redis://localhost:6379/0
+          JWT_SECRET: ci-jwt-secret-with-enough-length
+          JWT_REFRESH_SECRET: ci-refresh-secret-with-enough-length
+          GOOGLE_CLIENT_ID: ci-google-client-id
+          GOOGLE_CLIENT_SECRET: ci-google-client-secret-with-enough-length
+          GOOGLE_CALLBACK_URL: http://localhost:3001/api/v1/auth/google/callback
+          GEMINI_API_KEY: ci-gemini-api-key-with-enough-length
+          RAZORPAY_KEY_ID: rzp_test_ci_key
+          RAZORPAY_KEY_SECRET: ci-razorpay-secret-with-enough-length
+          SMTP_HOST: localhost
+          SMTP_PORT: 1025
+          SMTP_USER: ci-smtp-user
+          SMTP_PASSWORD: ci-smtp-password-with-enough-length
+          CLOUDINARY_CLOUD_NAME: ci-cloud
+          CLOUDINARY_API_KEY: ci-cloudinary-key
+          CLOUDINARY_API_SECRET: ci-cloudinary-secret-with-enough-length
+
       - name: Validate Prisma schema
         run: npm run prisma:validate --workspace backend
+        env:
+          DATABASE_URL: postgresql://postgres:password@localhost:5432/simbolo_test?schema=public
+
+      - name: Generate Prisma client
+        run: npm run prisma:generate --workspace backend
         env:
           DATABASE_URL: postgresql://postgres:password@localhost:5432/simbolo_test?schema=public
 
       - name: Run backend tests
         run: npm test --workspace backend -- --runInBand
         env:
+          NODE_ENV: test
+          FRONTEND_URLS: http://localhost:3000
           DATABASE_URL: postgresql://postgres:password@localhost:5432/simbolo_test?schema=public
           REDIS_URL: redis://localhost:6379/0
           JWT_SECRET: ci-jwt-secret
@@ -66,7 +97,7 @@ jobs:
           NEXT_TELEMETRY_DISABLED: "1"
 
       - name: Build backend Docker image
-        run: docker build -t simbolo-backend:ci backend
+        run: docker build -f backend/Dockerfile -t simbolo-backend:ci .
 
   deploy-placeholder:
     needs: verify

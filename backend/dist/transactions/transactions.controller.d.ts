@@ -68,6 +68,7 @@ export declare class TransactionsController {
                         lastName: string;
                         phone: string | null;
                         avatarUrl: string | null;
+                        avatarMediaId: string | null;
                         status: import(".prisma/client").$Enums.UserStatusEnum;
                         roleId: string;
                         organizationId: string | null;

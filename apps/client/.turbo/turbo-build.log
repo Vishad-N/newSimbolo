@@ -3,22 +3,24 @@
 > cross-env NODE_OPTIONS=--max_old_space_size=8192 next build
 
 ▲ Next.js 16.2.11 (Turbopack)
+- Environments: .env.local
 
   Creating an optimized production build ...
-✓ Compiled successfully in 23.7s
+✓ Compiled successfully in 16.3s
   Running TypeScript ...
-  Finished TypeScript in 15.7s ...
+  Finished TypeScript in 17.9s ...
   Collecting page data using 11 workers ...
-  Generating static pages using 11 workers (0/17) ...
-  Generating static pages using 11 workers (4/17) 
-  Generating static pages using 11 workers (8/17) 
-  Generating static pages using 11 workers (12/17) 
-✓ Generating static pages using 11 workers (17/17) in 3.7s
+  Generating static pages using 11 workers (0/18) ...
+  Generating static pages using 11 workers (4/18) 
+  Generating static pages using 11 workers (8/18) 
+  Generating static pages using 11 workers (13/18) 
+✓ Generating static pages using 11 workers (18/18) in 2.4s
   Finalizing page optimization ...
 
 Route (app)
 ┌ ○ /
 ├ ○ /_not-found
+├ ○ /checkout
 ├ ○ /dashboard
 ├ ○ /documents
 ├ ○ /meetings

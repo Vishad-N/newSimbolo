@@ -20,6 +20,7 @@ export declare class SubscriptionsController {
                 lastName: string;
                 phone: string | null;
                 avatarUrl: string | null;
+                avatarMediaId: string | null;
                 status: import(".prisma/client").$Enums.UserStatusEnum;
                 roleId: string;
                 organizationId: string | null;
@@ -216,6 +217,7 @@ export declare class SubscriptionsController {
                 iconUrl: string | null;
                 basePrice: number;
                 categoryId: string | null;
+                iconMediaId: string | null;
                 seoPageId: string | null;
             };
             features: {
@@ -278,6 +280,7 @@ export declare class SubscriptionsController {
                 lastName: string;
                 phone: string | null;
                 avatarUrl: string | null;
+                avatarMediaId: string | null;
                 status: import(".prisma/client").$Enums.UserStatusEnum;
                 roleId: string;
                 organizationId: string | null;
@@ -353,6 +356,7 @@ export declare class SubscriptionsController {
                 lastName: string;
                 phone: string | null;
                 avatarUrl: string | null;
+                avatarMediaId: string | null;
                 status: import(".prisma/client").$Enums.UserStatusEnum;
                 roleId: string;
                 organizationId: string | null;

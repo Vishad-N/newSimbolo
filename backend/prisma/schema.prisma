@@ -252,7 +252,8 @@ model User {
   lastName       String
   embedding      Unsupported("vector(768)")?
   phone          String?
-  avatarUrl      String?
+  avatarUrl      String? // @deprecated - transitioning to Media
+  avatarMediaId  String?                     @db.Uuid
   status         UserStatusEnum              @default(PENDING_VERIFICATION)
   roleId         String                      @db.Uuid
   organizationId String?                     @db.Uuid
@@ -263,38 +264,39 @@ model User {
   createdBy      String?
   updatedBy      String?
 
-  role                Role                    @relation(fields: [roleId], references: [id])
-  organization        Organization?           @relation(fields: [organizationId], references: [id])
-  agency              Agency?                 @relation("AgencyUsers", fields: [agencyId], references: [id])
-  ownedAgency         Agency?                 @relation("AgencyOwner")
-  clientProfile       ClientProfile?
-  affiliateProfile    Affiliate?              @relation("UserAffiliate")
-  refreshTokens       RefreshToken[]
-  sessions            Session[]
-  oauthAccounts       OAuthAccount[]
-  teamMembers         TeamMember[]
-  managedProjects     Project[]               @relation("ProjectManager")
-  assignedTasks       Task[]                  @relation("TaskAssignee")
-  assignedTickets     SupportTicket[]         @relation("TicketAssignee")
-  ticketReplies       TicketReply[]           @relation("TicketReplySender")
-  conversations       Participant[]           @relation("ConversationParticipant")
-  messages            Message[]               @relation("MessageSender")
-  notifications       Notification[]          @relation("UserNotifications")
-  preferences         NotificationPreference?
-  referredUsers       Referral[]              @relation("ReferredUser")
-  auditLogs           AuditLog[]              @relation("UserAuditLogs")
-  blogAuthor          BlogAuthor?
-  hostedMeetings      Meeting[]               @relation("MeetingHost")
-  mediaUploaded       MediaAsset[]            @relation("MediaUploader")
-  managedClients      ClientProfile[]         @relation("AccountManager")
-  projectTeamMembers  ProjectTeamMember[]
-  taskComments        TaskComment[]
-  uploadedDocuments   Document[]              @relation("DocumentUploader")
-  uploadedAssets      Asset[]                 @relation("AssetUploader")
-  uploadedVersions    AssetVersion[]          @relation("AssetVersionUploader")
-  meetingParticipants MeetingParticipant[]
-  activityTimelines   Timeline[]              @relation("UserActivity")
-  aiConversations     AiConversation[]
+  role                    Role                    @relation(fields: [roleId], references: [id])
+  organization            Organization?           @relation(fields: [organizationId], references: [id])
+  agency                  Agency?                 @relation("AgencyUsers", fields: [agencyId], references: [id])
+  ownedAgency             Agency?                 @relation("AgencyOwner")
+  clientProfile           ClientProfile?
+  affiliateProfile        Affiliate?              @relation("UserAffiliate")
+  refreshTokens           RefreshToken[]
+  sessions                Session[]
+  oauthAccounts           OAuthAccount[]
+  teamMembers             TeamMember[]
+  managedProjects         Project[]               @relation("ProjectManager")
+  assignedTasks           Task[]                  @relation("TaskAssignee")
+  assignedTickets         SupportTicket[]         @relation("TicketAssignee")
+  ticketReplies           TicketReply[]           @relation("TicketReplySender")
+  conversations           Participant[]           @relation("ConversationParticipant")
+  messages                Message[]               @relation("MessageSender")
+  notifications           Notification[]          @relation("UserNotifications")
+  preferences             NotificationPreference?
+  referredUsers           Referral[]              @relation("ReferredUser")
+  auditLogs               AuditLog[]              @relation("UserAuditLogs")
+  blogAuthor              BlogAuthor?
+  hostedMeetings          Meeting[]               @relation("MeetingHost")
+  mediaUploaded           MediaAsset[]            @relation("MediaUploader")
+  mediaUploadedCloudinary Media[]                 @relation("MediaUploaderCloudinary")
+  managedClients          ClientProfile[]         @relation("AccountManager")
+  projectTeamMembers      ProjectTeamMember[]
+  taskComments            TaskComment[]
+  uploadedDocuments       Document[]              @relation("DocumentUploader")
+  uploadedAssets          Asset[]                 @relation("AssetUploader")
+  uploadedVersions        AssetVersion[]          @relation("AssetVersionUploader")
+  meetingParticipants     MeetingParticipant[]
+  activityTimelines       Timeline[]              @relation("UserActivity")
+  aiConversations         AiConversation[]
 
   @@index([email])
   @@index([status])
@@ -578,7 +580,8 @@ model Company {
   website          String?
   industry         String?
   size             String?
-  logoUrl          String?
+  logoUrl          String? // @deprecated - transitioning to Media
+  logoMediaId      String?   @db.Uuid
   gstNumber        String?
   billingAddress   String?
   primaryContactId String?   @db.Uuid
@@ -590,6 +593,7 @@ model Company {
 
   clients   ClientProfile[]
   documents Document[]
+  logoMedia Media?          @relation(fields: [logoMediaId], references: [id])
 
   @@index([slug])
   @@map("companies")
@@ -609,7 +613,8 @@ model Service {
   embedding        Unsupported("vector(768)")?
   shortDescription String
   fullDescription  String?
-  iconUrl          String?
+  iconUrl          String? // @deprecated - transitioning to Media
+  iconMediaId      String?                     @db.Uuid
   type             ServiceTypeEnum             @default(RETAINER)
   basePrice        Float                       @default(0.0)
   categoryId       String?                     @db.Uuid
@@ -630,6 +635,7 @@ model Service {
   orders         Order[]
   orderItems     OrderItem[]
   generalFaqs    FAQ[]
+  iconMedia      Media?             @relation(fields: [iconMediaId], references: [id])
 
   @@index([slug])
   @@index([categoryId])
@@ -1488,7 +1494,7 @@ model Blog {
   updatedBy      String?
 
   author     BlogAuthor    @relation(fields: [authorId], references: [id])
-  coverImage MediaAsset?   @relation(fields: [coverImageId], references: [id])
+  coverImage Media?        @relation(fields: [coverImageId], references: [id])
   category   BlogCategory? @relation(fields: [categoryId], references: [id])
   seoPage    SEOPage?      @relation(fields: [seoPageId], references: [id])
   tags       BlogTag[]     @relation("BlogToTag")
@@ -1537,17 +1543,20 @@ model BlogTag {
 /// Relationships: Belongs to User. Has many Blogs.
 /// Business responsibility: Displays author E-E-A-T credentials on articles.
 model BlogAuthor {
-  id          String   @id @default(uuid()) @db.Uuid
-  userId      String   @unique @db.Uuid
-  bio         String?
-  avatarUrl   String?
-  twitterUrl  String?
-  linkedinUrl String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            String   @id @default(uuid()) @db.Uuid
+  userId        String   @unique @db.Uuid
+  bio           String?
+  avatarUrl     String? // @deprecated - transitioning to Media
+  avatarMediaId String?  @db.Uuid
+  twitterUrl    String?
+  linkedinUrl   String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  blogs Blog[]
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  blogs   Blog[]
+  media   Media?  @relation(fields: [mediaId], references: [id])
+  mediaId String? @db.Uuid
 
   @@index([userId])
   @@map("blog_authors")
@@ -1581,7 +1590,7 @@ model CaseStudy {
 
   service      Service?                @relation(fields: [serviceId], references: [id])
   category     CaseStudyCategory?      @relation(fields: [categoryId], references: [id])
-  coverImage   MediaAsset?             @relation(fields: [coverImageId], references: [id])
+  coverImage   Media?                  @relation(fields: [coverImageId], references: [id])
   seoPage      SEOPage?                @relation(fields: [seoPageId], references: [id])
   metrics      CaseStudyMetric[]
   beforeAfters BeforeAfterComparison[]
@@ -1626,9 +1635,9 @@ model BeforeAfterComparison {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  caseStudy   CaseStudy  @relation(fields: [caseStudyId], references: [id], onDelete: Cascade)
-  beforeImage MediaAsset @relation("BeforeImage", fields: [beforeImageId], references: [id])
-  afterImage  MediaAsset @relation("AfterImage", fields: [afterImageId], references: [id])
+  caseStudy   CaseStudy @relation(fields: [caseStudyId], references: [id], onDelete: Cascade)
+  beforeMedia Media     @relation("BeforeMedia", fields: [beforeImageId], references: [id])
+  afterMedia  Media     @relation("AfterMedia", fields: [afterImageId], references: [id])
 
   @@index([caseStudyId])
   @@map("before_after_comparisons")
@@ -1676,7 +1685,7 @@ model PortfolioProject {
 
   service    Service?           @relation(fields: [serviceId], references: [id])
   category   PortfolioCategory? @relation(fields: [categoryId], references: [id])
-  coverImage MediaAsset?        @relation(fields: [coverImageId], references: [id])
+  coverImage Media?             @relation(fields: [coverImageId], references: [id])
 
   @@index([slug])
   @@index([status])
@@ -1728,6 +1737,8 @@ model Testimonial {
 
   client    ClientProfile? @relation(fields: [clientId], references: [id])
   caseStudy CaseStudy?     @relation(fields: [caseStudyId], references: [id])
+  media     Media?         @relation(fields: [mediaId], references: [id])
+  mediaId   String?        @db.Uuid
 
   @@index([status])
   @@index([isFeatured])
@@ -1826,16 +1837,11 @@ model MediaAsset {
   createdBy     String?
   updatedBy     String?
 
-  folder              MediaFolder?            @relation(fields: [folderId], references: [id])
-  uploader            User?                   @relation("MediaUploader", fields: [uploaderId], references: [id])
+  folder              MediaFolder?         @relation(fields: [folderId], references: [id])
+  uploader            User?                @relation("MediaUploader", fields: [uploaderId], references: [id])
   deliverables        Deliverable[]
   deliverableVersions DeliverableVersion[]
   attachments         Attachment[]
-  blogCovers          Blog[]
-  caseStudyCovers     CaseStudy[]
-  beforeComparisons   BeforeAfterComparison[] @relation("BeforeImage")
-  afterComparisons    BeforeAfterComparison[] @relation("AfterImage")
-  portfolioCovers     PortfolioProject[]
   invoices            Invoice[]
 
   @@index([storageKey])
@@ -1874,6 +1880,8 @@ model SEOPage {
   caseStudy CaseStudy?
   service   Service?
   package   Package?
+  media     Media?     @relation(fields: [mediaId], references: [id])
+  mediaId   String?    @db.Uuid
 
   @@index([path])
   @@map("seo_pages")
@@ -2035,12 +2043,17 @@ model ThemeSetting {
   primaryColor     String   @default("#14B8A6")
   secondaryColor   String   @default("#0F172A")
   accentColor      String   @default("#F59E0B")
-  darkModeLogoUrl  String?
-  lightModeLogoUrl String?
+  darkModeLogoUrl  String? // @deprecated - transitioning to Media
+  lightModeLogoUrl String? // @deprecated - transitioning to Media
+  darkModeLogoId   String?  @db.Uuid
+  lightModeLogoId  String?  @db.Uuid
   fontFamily       String   @default("Inter")
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
   updatedBy        String?
+
+  darkModeLogo  Media? @relation("DarkModeLogo", fields: [darkModeLogoId], references: [id])
+  lightModeLogo Media? @relation("LightModeLogo", fields: [lightModeLogoId], references: [id])
 
   @@map("theme_settings")
 }
@@ -2247,4 +2260,61 @@ model AiAnalytics {
   actionType String
   metadata   Json?
   createdAt  DateTime @default(now())
+}
+
+/// Purpose: Cloudinary-backed Media Library for CMS assets.
+/// Relationships: Referenced by Blog, CaseStudy, PortfolioProject, Service, etc.
+model Media {
+  id           String   @id @default(uuid()) @db.Uuid
+  publicId     String   @unique
+  url          String
+  secureUrl    String
+  folder       String // e.g. "blogs/covers", "services", "homepage"
+  filename     String
+  format       String
+  resourceType String
+  width        Int?
+  height       Int?
+  bytes        Int?
+  uploadedById String?  @db.Uuid
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  uploadedBy User? @relation("MediaUploaderCloudinary", fields: [uploadedById], references: [id], onDelete: SetNull)
+
+  // Relations to CMS modules
+  companies          Company[]
+  services           Service[]
+  blogs              Blog[]
+  blogAuthors        BlogAuthor[]
+  caseStudies        CaseStudy[]
+  portfolioProjects  PortfolioProject[]
+  testimonials       Testimonial[]
+  seoPages           SEOPage[]
+  themeSettingsDark  ThemeSetting[]          @relation("DarkModeLogo")
+  themeSettingsLight ThemeSetting[]          @relation("LightModeLogo")
+  beforeComparisons  BeforeAfterComparison[] @relation("BeforeMedia")
+  afterComparisons   BeforeAfterComparison[] @relation("AfterMedia")
+
+  @@index([folder])
+  @@index([publicId])
+  @@map("media")
+}
+
+// ==========================================
+// WEBSITE CONTENT: MEET THE TEAM
+// ==========================================
+model WebsiteTeamMember {
+  id           String   @id @default(uuid()) @db.Uuid
+  name         String
+  designation  String
+  bio          String?  @db.Text
+  image        String?
+  displayOrder Int      @default(0)
+  socialLinks  Json?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("website_team_members")
 }

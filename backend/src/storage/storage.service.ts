@@ -14,6 +14,10 @@ const ALLOWED_MIME_TYPES = [
   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
 ];
 
+interface PresignedUploadStorageProvider extends StorageProvider {
+  getPresignedUploadUrl(storageKey: string, mimeType: string, expiresInSeconds?: number): Promise<string>;
+}
+
 @Injectable()
 export class StorageService extends BaseService {
   private readonly maxFileSizeBytes: number;
@@ -45,7 +49,7 @@ export class StorageService extends BaseService {
   async getPresignedUploadUrl(storageKey: string, mimeType: string, expiresInSeconds?: number) {
     const provider = this.getProvider();
     if ('getPresignedUploadUrl' in provider) {
-      return (provider as any).getPresignedUploadUrl(storageKey, mimeType, expiresInSeconds);
+      return (provider as PresignedUploadStorageProvider).getPresignedUploadUrl(storageKey, mimeType, expiresInSeconds);
     }
     // Fallback for local
     return `/uploads/presigned/${storageKey}`;
@@ -67,7 +71,7 @@ export class StorageService extends BaseService {
   }
 
   private getProvider(): StorageProvider {
-    const provider = this.configService.get<string>('storage.provider', 'r2'); // default to r2 for now
+    const provider = this.configService.get<string>('storage.provider', 'local');
     if (provider === 's3' || provider === 'r2') return this.s3StorageProvider;
     return this.localStorageProvider;
   }

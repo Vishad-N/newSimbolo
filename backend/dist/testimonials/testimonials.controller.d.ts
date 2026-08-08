@@ -16,6 +16,7 @@ export declare class TestimonialsController {
         createdBy: string | null;
         updatedBy: string | null;
         content: string;
+        mediaId: string | null;
         clientName: string;
         caseStudyId: string | null;
         isFeatured: boolean;
@@ -36,6 +37,7 @@ export declare class TestimonialsController {
         createdBy: string | null;
         updatedBy: string | null;
         content: string;
+        mediaId: string | null;
         clientName: string;
         caseStudyId: string | null;
         isFeatured: boolean;
@@ -56,6 +58,7 @@ export declare class TestimonialsController {
         createdBy: string | null;
         updatedBy: string | null;
         content: string;
+        mediaId: string | null;
         clientName: string;
         caseStudyId: string | null;
         isFeatured: boolean;
@@ -76,6 +79,7 @@ export declare class TestimonialsController {
         createdBy: string | null;
         updatedBy: string | null;
         content: string;
+        mediaId: string | null;
         clientName: string;
         caseStudyId: string | null;
         isFeatured: boolean;

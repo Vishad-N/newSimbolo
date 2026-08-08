@@ -28,6 +28,11 @@ export interface StorageConfig {
     endpoint: string;
     cdnUrl: string;
 }
+export interface CloudinaryConfig {
+    cloudName: string;
+    apiKey: string;
+    apiSecret: string;
+}
 export interface EmailConfig {
     host: string;
     port: number;
@@ -41,5 +46,6 @@ export interface Configuration {
     database: DatabaseConfig;
     auth: AuthConfig;
     storage: StorageConfig;
+    cloudinary: CloudinaryConfig;
     email: EmailConfig;
 }

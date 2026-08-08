@@ -32,8 +32,12 @@ let PrismaService = PrismaService_1 = class PrismaService extends client_1.Prism
             this.logger.log('Prisma Client connected successfully.');
         }
         catch (error) {
-            this.logger.error(`Database connection failed during bootstrap: ${error.message}`);
-            this.logger.warn('⚠️ Hostinger deployment note: Please verify DATABASE_URL is set in Hostinger Environment Variables. Ensure special characters in database password are URL encoded.');
+            const message = error instanceof Error ? error.message : 'Unknown database connection error';
+            this.logger.error(`Database connection failed during bootstrap: ${message}`);
+            this.logger.warn('Verify DATABASE_URL is set and URL encoded correctly.');
+            if (process.env.NODE_ENV === 'production') {
+                throw error;
+            }
         }
     }
     async onModuleDestroy() {

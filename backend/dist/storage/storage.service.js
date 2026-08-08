@@ -71,7 +71,7 @@ let StorageService = class StorageService extends base_service_1.BaseService {
             throw new common_1.BadRequestException(`Unsupported file type: ${file.mimetype}`);
     }
     getProvider() {
-        const provider = this.configService.get('storage.provider', 'r2'); // default to r2 for now
+        const provider = this.configService.get('storage.provider', 'local');
         if (provider === 's3' || provider === 'r2')
             return this.s3StorageProvider;
         return this.localStorageProvider;

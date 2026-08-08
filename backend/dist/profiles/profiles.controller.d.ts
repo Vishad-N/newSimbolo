@@ -20,6 +20,7 @@ export declare class ProfilesController {
             industry: string | null;
             size: string | null;
             logoUrl: string | null;
+            logoMediaId: string | null;
             primaryContactId: string | null;
         } | null;
     } & {
@@ -55,6 +56,7 @@ export declare class ProfilesController {
             industry: string | null;
             size: string | null;
             logoUrl: string | null;
+            logoMediaId: string | null;
             primaryContactId: string | null;
         } | null;
     } & {

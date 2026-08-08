@@ -54,13 +54,13 @@ export declare class DocumentsController {
             isPublic: boolean;
             companyId: string | null;
             mimeType: string | null;
+            uploadedById: string | null;
             category: import(".prisma/client").$Enums.DocumentCategoryEnum;
             clientId: string | null;
             projectId: string | null;
             fileUrl: string;
             fileSize: number | null;
             downloadCount: number;
-            uploadedById: string | null;
         })[];
         meta: {
             total: number;
@@ -80,13 +80,13 @@ export declare class DocumentsController {
         isPublic: boolean;
         companyId: string | null;
         mimeType: string | null;
+        uploadedById: string | null;
         category: import(".prisma/client").$Enums.DocumentCategoryEnum;
         clientId: string | null;
         projectId: string | null;
         fileUrl: string;
         fileSize: number | null;
         downloadCount: number;
-        uploadedById: string | null;
     }>;
     trackDownload(id: string): Promise<{
         id: string;
@@ -99,13 +99,13 @@ export declare class DocumentsController {
         isPublic: boolean;
         companyId: string | null;
         mimeType: string | null;
+        uploadedById: string | null;
         category: import(".prisma/client").$Enums.DocumentCategoryEnum;
         clientId: string | null;
         projectId: string | null;
         fileUrl: string;
         fileSize: number | null;
         downloadCount: number;
-        uploadedById: string | null;
     }>;
     create(dto: CreateDocumentDto, user: JwtPayload): Promise<{
         id: string;
@@ -118,13 +118,13 @@ export declare class DocumentsController {
         isPublic: boolean;
         companyId: string | null;
         mimeType: string | null;
+        uploadedById: string | null;
         category: import(".prisma/client").$Enums.DocumentCategoryEnum;
         clientId: string | null;
         projectId: string | null;
         fileUrl: string;
         fileSize: number | null;
         downloadCount: number;
-        uploadedById: string | null;
     }>;
     update(id: string, dto: UpdateDocumentDto): Promise<{
         id: string;
@@ -137,13 +137,13 @@ export declare class DocumentsController {
         isPublic: boolean;
         companyId: string | null;
         mimeType: string | null;
+        uploadedById: string | null;
         category: import(".prisma/client").$Enums.DocumentCategoryEnum;
         clientId: string | null;
         projectId: string | null;
         fileUrl: string;
         fileSize: number | null;
         downloadCount: number;
-        uploadedById: string | null;
     }>;
     remove(id: string): Promise<{
         message: string;

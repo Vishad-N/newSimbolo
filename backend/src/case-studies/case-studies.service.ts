@@ -74,12 +74,21 @@ export class CaseStudiesService extends BaseService {
         coverImage: true,
         metrics: { orderBy: { sortOrder: 'asc' } },
         beforeAfters: {
-          include: { beforeImage: true, afterImage: true },
+          include: { beforeMedia: true, afterMedia: true },
           orderBy: { sortOrder: 'asc' },
         },
         testimonials: true,
       },
     });
+    
+    if (study) {
+      (study as any).beforeAfters = (study as any).beforeAfters.map((ba: any) => ({
+        ...ba,
+        beforeImage: ba.beforeMedia,
+        afterImage: ba.afterMedia,
+      }));
+    }
+
     return this.checkEntityExists(study, 'CaseStudy', slug);
   }
 
@@ -239,7 +248,7 @@ export class CaseStudiesService extends BaseService {
         caseStudyId: dto.caseStudyId,
         sortOrder: dto.sortOrder !== undefined ? dto.sortOrder : 0,
       },
-      include: { beforeImage: true, afterImage: true },
+      include: { beforeMedia: true, afterMedia: true },
     });
   }
 

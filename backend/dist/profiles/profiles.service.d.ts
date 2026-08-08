@@ -22,6 +22,7 @@ export declare class ProfilesService extends BaseService {
             industry: string | null;
             size: string | null;
             logoUrl: string | null;
+            logoMediaId: string | null;
             primaryContactId: string | null;
         } | null;
     } & {
@@ -57,6 +58,7 @@ export declare class ProfilesService extends BaseService {
             industry: string | null;
             size: string | null;
             logoUrl: string | null;
+            logoMediaId: string | null;
             primaryContactId: string | null;
         } | null;
     } & {

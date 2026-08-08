@@ -28,6 +28,7 @@ export declare class CompaniesService extends BaseService {
             industry: string | null;
             size: string | null;
             logoUrl: string | null;
+            logoMediaId: string | null;
             primaryContactId: string | null;
         })[];
         meta: {

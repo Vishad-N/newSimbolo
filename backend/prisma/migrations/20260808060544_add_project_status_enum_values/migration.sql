@@ -1,0 +1,3 @@
+-- AddEnumValues
+ALTER TYPE "ProjectStatusEnum" ADD VALUE IF NOT EXISTS 'PLANNING';
+ALTER TYPE "ProjectStatusEnum" ADD VALUE IF NOT EXISTS 'ACTIVE';

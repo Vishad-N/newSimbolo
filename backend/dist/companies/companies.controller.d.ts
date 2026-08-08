@@ -25,6 +25,7 @@ export declare class CompaniesController {
             industry: string | null;
             size: string | null;
             logoUrl: string | null;
+            logoMediaId: string | null;
             primaryContactId: string | null;
         })[];
         meta: {
@@ -49,6 +50,7 @@ export declare class CompaniesController {
         industry: string | null;
         size: string | null;
         logoUrl: string | null;
+        logoMediaId: string | null;
         primaryContactId: string | null;
     }>;
     create(dto: CreateCompanyDto, user: JwtPayload): Promise<{
@@ -66,6 +68,7 @@ export declare class CompaniesController {
         industry: string | null;
         size: string | null;
         logoUrl: string | null;
+        logoMediaId: string | null;
         primaryContactId: string | null;
     }>;
     update(id: string, dto: UpdateCompanyDto, user: JwtPayload): Promise<{
@@ -83,6 +86,7 @@ export declare class CompaniesController {
         industry: string | null;
         size: string | null;
         logoUrl: string | null;
+        logoMediaId: string | null;
         primaryContactId: string | null;
     }>;
     remove(id: string, user: JwtPayload): Promise<{

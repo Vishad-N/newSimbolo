@@ -19,6 +19,7 @@ export declare class InvoicesController {
                 lastName: string;
                 phone: string | null;
                 avatarUrl: string | null;
+                avatarMediaId: string | null;
                 status: import(".prisma/client").$Enums.UserStatusEnum;
                 roleId: string;
                 organizationId: string | null;
@@ -43,6 +44,7 @@ export declare class InvoicesController {
                 industry: string | null;
                 size: string | null;
                 logoUrl: string | null;
+                logoMediaId: string | null;
                 primaryContactId: string | null;
             } | null;
         } & {
@@ -249,6 +251,7 @@ export declare class InvoicesController {
                 lastName: string;
                 phone: string | null;
                 avatarUrl: string | null;
+                avatarMediaId: string | null;
                 status: import(".prisma/client").$Enums.UserStatusEnum;
                 roleId: string;
                 organizationId: string | null;
@@ -273,6 +276,7 @@ export declare class InvoicesController {
                 industry: string | null;
                 size: string | null;
                 logoUrl: string | null;
+                logoMediaId: string | null;
                 primaryContactId: string | null;
             } | null;
         } & {
