@@ -46,7 +46,7 @@ services:
       dockerfile: backend/Dockerfile
     restart: "no"
     env_file: ../../.env.production
-    command: ["npm", "run", "deploy:migrate", "--workspace", "backend"]
+    command: ["npm", "run", "deploy:migrate"]
     depends_on:
       postgres:
         condition: service_healthy

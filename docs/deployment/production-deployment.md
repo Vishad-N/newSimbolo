@@ -86,7 +86,7 @@ docker build -f backend/Dockerfile -t simbolo-backend .
 Run migrations once, then start the app:
 
 ```bash
-docker run --rm --env-file .env.production simbolo-backend npm run deploy:migrate --workspace backend
+docker run --rm --env-file .env.production simbolo-backend npm run deploy:migrate
 docker run -d --name simbolo-backend --env-file .env.production -p 3001:3001 simbolo-backend
 ```
 

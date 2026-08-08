@@ -28,13 +28,16 @@ COPY backend/package.json ./backend/package.json
 RUN npm ci --omit=dev --workspace backend --include-workspace-root=false && npm cache clean --force
 
 COPY --from=build --chown=nestjs:nodejs /usr/src/app/backend/prisma ./backend/prisma
+COPY --from=build --chown=nestjs:nodejs /usr/src/app/backend/prisma.config.ts ./backend/prisma.config.ts
 COPY --from=build --chown=nestjs:nodejs /usr/src/app/backend/dist ./backend/dist
 COPY --from=build /usr/src/app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=build /usr/src/app/node_modules/@prisma ./node_modules/@prisma
+
+WORKDIR /usr/src/app/backend
 
 USER nestjs
 
 EXPOSE 3001
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 CMD wget --no-verbose --tries=1 --spider "http://127.0.0.1:${PORT}/api/v1/health/live" || exit 1
 
-CMD ["node", "backend/dist/main.js"]
+CMD ["node", "dist/main.js"]
