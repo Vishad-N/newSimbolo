@@ -25,6 +25,9 @@ async function bootstrap() {
   const isProduction = configService.get<string>('app.nodeEnv') === 'production';
 
   app.getHttpAdapter().getInstance().set('trust proxy', 1);
+  app.getHttpAdapter().get('/health/live', (_req, res) => {
+    res.status(200).json({ status: 'ok', uptime: process.uptime(), timestamp: new Date().toISOString() });
+  });
   logger.log('Trust proxy enabled for reverse proxy compatibility.', 'Bootstrap');
 
   app.use(

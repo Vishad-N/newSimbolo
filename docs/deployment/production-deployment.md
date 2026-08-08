@@ -129,7 +129,7 @@ Set variables in the platform dashboard. Do not branch application code by platf
 
 ## Health Checks
 
-- Liveness: `/api/v1/health/live`
+- Liveness: `/health/live` or `/api/v1/health/live`
 - Readiness: `/api/v1/health/ready`
 - Diagnostics: `/api/v1/health`
 

@@ -26,19 +26,7 @@ let PrismaService = PrismaService_1 = class PrismaService extends client_1.Prism
         });
     }
     async onModuleInit() {
-        this.logger.log('Initializing Prisma Client connection pool...');
-        try {
-            await this.$connect();
-            this.logger.log('Prisma Client connected successfully.');
-        }
-        catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown database connection error';
-            this.logger.error(`Database connection failed during bootstrap: ${message}`);
-            this.logger.warn('Verify DATABASE_URL is set and URL encoded correctly.');
-            if (process.env.NODE_ENV === 'production') {
-                throw error;
-            }
-        }
+        this.logger.log('Prisma Client will connect lazily on first database operation.');
     }
     async onModuleDestroy() {
         this.logger.log('Disconnecting Prisma Client...');

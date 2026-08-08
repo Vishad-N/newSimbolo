@@ -23,6 +23,9 @@ async function bootstrap() {
     const frontendUrls = configService.get('app.frontendUrls', ['http://localhost:3000']);
     const isProduction = configService.get('app.nodeEnv') === 'production';
     app.getHttpAdapter().getInstance().set('trust proxy', 1);
+    app.getHttpAdapter().get('/health/live', (_req, res) => {
+        res.status(200).json({ status: 'ok', uptime: process.uptime(), timestamp: new Date().toISOString() });
+    });
     logger.log('Trust proxy enabled for reverse proxy compatibility.', 'Bootstrap');
     app.use((0, helmet_1.default)({
         contentSecurityPolicy: isProduction ? undefined : false,
