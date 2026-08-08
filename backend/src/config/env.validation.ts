@@ -1,4 +1,4 @@
-import { plainToInstance } from 'class-transformer';
+import { plainToInstance, Transform } from 'class-transformer';
 import { IsBoolean, IsEnum, IsNumber, IsOptional, IsString, IsUrl, validateSync } from 'class-validator';
 
 enum Environment {
@@ -104,22 +104,27 @@ class EnvironmentVariables {
   SMTP_FROM?: string;
 
   @IsOptional()
+  @Transform(({ value }) => parseOptionalBoolean(value))
   @IsBoolean()
   GOOGLE_OAUTH_ENABLED?: boolean;
 
   @IsOptional()
+  @Transform(({ value }) => parseOptionalBoolean(value))
   @IsBoolean()
   GEMINI_ENABLED?: boolean;
 
   @IsOptional()
+  @Transform(({ value }) => parseOptionalBoolean(value))
   @IsBoolean()
   RAZORPAY_ENABLED?: boolean;
 
   @IsOptional()
+  @Transform(({ value }) => parseOptionalBoolean(value))
   @IsBoolean()
   EMAIL_ENABLED?: boolean;
 
   @IsOptional()
+  @Transform(({ value }) => parseOptionalBoolean(value))
   @IsBoolean()
   CLOUDINARY_ENABLED?: boolean;
 
@@ -145,7 +150,8 @@ class EnvironmentVariables {
 }
 
 export function validate(config: Record<string, unknown>) {
-  const validatedConfig = plainToInstance(EnvironmentVariables, config, {
+  const normalizedConfig = normalizeFeatureFlags(config);
+  const validatedConfig = plainToInstance(EnvironmentVariables, normalizedConfig, {
     enableImplicitConversion: true,
   });
   
@@ -173,29 +179,37 @@ function validateProductionConfig(config: EnvironmentVariables): void {
   requireSecret(config.JWT_SECRET, 'JWT_SECRET', missingVariables);
   requireSecret(config.JWT_REFRESH_SECRET, 'JWT_REFRESH_SECRET', missingVariables);
 
-  if (config.GOOGLE_OAUTH_ENABLED !== false) {
+  if (isIntegrationEnabled(config.GOOGLE_OAUTH_ENABLED, [
+    config.GOOGLE_CLIENT_ID,
+    config.GOOGLE_CLIENT_SECRET,
+    config.GOOGLE_CALLBACK_URL,
+  ])) {
     requireValue(config.GOOGLE_CLIENT_ID, 'GOOGLE_CLIENT_ID', missingVariables);
     requireSecret(config.GOOGLE_CLIENT_SECRET, 'GOOGLE_CLIENT_SECRET', missingVariables);
     requireValue(config.GOOGLE_CALLBACK_URL, 'GOOGLE_CALLBACK_URL', missingVariables);
   }
 
-  if (config.GEMINI_ENABLED !== false) {
+  if (isIntegrationEnabled(config.GEMINI_ENABLED, [config.GEMINI_API_KEY])) {
     requireSecret(config.GEMINI_API_KEY, 'GEMINI_API_KEY', missingVariables);
   }
 
-  if (config.RAZORPAY_ENABLED !== false) {
+  if (isIntegrationEnabled(config.RAZORPAY_ENABLED, [config.RAZORPAY_KEY_ID, config.RAZORPAY_KEY_SECRET])) {
     requireValue(config.RAZORPAY_KEY_ID, 'RAZORPAY_KEY_ID', missingVariables);
     requireSecret(config.RAZORPAY_KEY_SECRET, 'RAZORPAY_KEY_SECRET', missingVariables);
   }
 
-  if (config.EMAIL_ENABLED !== false) {
+  if (isIntegrationEnabled(config.EMAIL_ENABLED, [config.SMTP_HOST, config.SMTP_USER, config.SMTP_PASSWORD, config.SMTP_PASS])) {
     requireValue(config.SMTP_HOST, 'SMTP_HOST', missingVariables);
     requireValue(config.SMTP_PORT, 'SMTP_PORT', missingVariables);
     requireValue(config.SMTP_USER, 'SMTP_USER', missingVariables);
-    requireSecret(config.SMTP_PASSWORD || config.SMTP_PASS, 'SMTP_PASSWORD', missingVariables);
+    requireCredential(config.SMTP_PASSWORD || config.SMTP_PASS, 'SMTP_PASSWORD', missingVariables);
   }
 
-  if (config.CLOUDINARY_ENABLED !== false) {
+  if (isIntegrationEnabled(config.CLOUDINARY_ENABLED, [
+    config.CLOUDINARY_CLOUD_NAME,
+    config.CLOUDINARY_API_KEY,
+    config.CLOUDINARY_API_SECRET,
+  ])) {
     requireValue(config.CLOUDINARY_CLOUD_NAME, 'CLOUDINARY_CLOUD_NAME', missingVariables);
     requireValue(config.CLOUDINARY_API_KEY, 'CLOUDINARY_API_KEY', missingVariables);
     requireSecret(config.CLOUDINARY_API_SECRET, 'CLOUDINARY_API_SECRET', missingVariables);
@@ -227,4 +241,38 @@ function requireSecret(value: unknown, name: string, missingVariables: string[])
   if (value.length < 16 || normalized.includes('change-me') || normalized.includes('mock') || normalized.includes('your-')) {
     missingVariables.push(`${name} must be a non-placeholder secret with at least 16 characters`);
   }
+}
+
+function requireCredential(value: unknown, name: string, missingVariables: string[]): void {
+  requireValue(value, name, missingVariables);
+  if (typeof value !== 'string') return;
+
+  const normalized = value.toLowerCase();
+  if (normalized.includes('change-me') || normalized.includes('mock') || normalized.includes('your-')) {
+    missingVariables.push(`${name} must be a non-placeholder credential`);
+  }
+}
+
+function parseOptionalBoolean(value: unknown): boolean | undefined {
+  if (value === undefined || value === null || value === '') return undefined;
+  if (typeof value === 'boolean') return value;
+  if (typeof value !== 'string') return Boolean(value);
+
+  const normalized = value.trim().toLowerCase();
+  if (['true', '1', 'yes', 'on'].includes(normalized)) return true;
+  if (['false', '0', 'no', 'off'].includes(normalized)) return false;
+  return Boolean(value);
+}
+
+function isIntegrationEnabled(flag: boolean | undefined, values: Array<unknown>): boolean {
+  if (flag !== undefined) return flag;
+  return values.some((value) => typeof value === 'string' && value.trim().length > 0);
+}
+
+function normalizeFeatureFlags(config: Record<string, unknown>): Record<string, unknown> {
+  const normalized = { ...config };
+  for (const key of ['GOOGLE_OAUTH_ENABLED', 'GEMINI_ENABLED', 'RAZORPAY_ENABLED', 'EMAIL_ENABLED', 'CLOUDINARY_ENABLED']) {
+    normalized[key] = parseOptionalBoolean(normalized[key]);
+  }
+  return normalized;
 }

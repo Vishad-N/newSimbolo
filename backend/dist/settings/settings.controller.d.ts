@@ -34,46 +34,46 @@ export declare class SettingsController {
         lightModeLogoId: string | null;
     }>;
     getPublicSettings(category?: string): Promise<{
+        value: string;
         id: string;
         createdAt: Date;
         updatedAt: Date;
         updatedBy: string | null;
         key: string;
         description: string | null;
-        value: string;
         isPublic: boolean;
         category: string;
     }[]>;
     getGlobalSettings(category?: string): Promise<{
+        value: string;
         id: string;
         createdAt: Date;
         updatedAt: Date;
         updatedBy: string | null;
         key: string;
         description: string | null;
-        value: string;
         isPublic: boolean;
         category: string;
     }[]>;
     getSettingByKey(key: string): Promise<{
+        value: string;
         id: string;
         createdAt: Date;
         updatedAt: Date;
         updatedBy: string | null;
         key: string;
         description: string | null;
-        value: string;
         isPublic: boolean;
         category: string;
     }>;
     upsertSetting(dto: UpdateSettingDto, user: JwtPayload): Promise<{
+        value: string;
         id: string;
         createdAt: Date;
         updatedAt: Date;
         updatedBy: string | null;
         key: string;
         description: string | null;
-        value: string;
         isPublic: boolean;
         category: string;
     }>;

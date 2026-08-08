@@ -122,10 +122,10 @@ export declare class CaseStudiesController {
         success: boolean;
     }>;
     addMetric(dto: CreateCaseStudyMetricDto): Promise<{
+        value: string;
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        value: string;
         sortOrder: number;
         label: string;
         changePercentage: string | null;
