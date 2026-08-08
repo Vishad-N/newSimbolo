@@ -23,6 +23,7 @@ class EnvironmentVariables {
     PORT;
     API_PORT;
     DATABASE_URL;
+    DIRECT_URL;
     FRONTEND_URLS;
     JWT_SECRET;
     JWT_REFRESH_SECRET;
@@ -72,6 +73,11 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], EnvironmentVariables.prototype, "DATABASE_URL", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], EnvironmentVariables.prototype, "DIRECT_URL", void 0);
 __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
@@ -236,6 +242,7 @@ function validateProductionConfig(config) {
     const missingVariables = [];
     requireValue(config.PORT, 'PORT', missingVariables);
     requireValue(config.DATABASE_URL, 'DATABASE_URL', missingVariables);
+    requireValue(config.DIRECT_URL, 'DIRECT_URL', missingVariables);
     requireValue(config.REDIS_URL, 'REDIS_URL', missingVariables);
     requireValue(config.FRONTEND_URLS, 'FRONTEND_URLS', missingVariables);
     requireSecret(config.JWT_SECRET, 'JWT_SECRET', missingVariables);

@@ -34,12 +34,15 @@ Required core variables:
 - `NODE_ENV=production`
 - `PORT`
 - `DATABASE_URL`
+- `DIRECT_URL`
 - `REDIS_URL`
 - `FRONTEND_URLS`
 - `JWT_SECRET`
 - `JWT_REFRESH_SECRET`
 
 Database requirement: PostgreSQL must have the `vector` extension available because `backend/prisma/schema.prisma` declares `extensions = [vector]` and migrations create vector columns. The provided Docker Compose files use `pgvector/pgvector:pg16`.
+
+For Supabase, use the pooled connection string for `DATABASE_URL` only if needed by runtime traffic, and set `DIRECT_URL` to a direct or session-safe database connection for Prisma migrations. Do not run `prisma migrate deploy` through the transaction pooler on port `6543`.
 
 Required when enabled:
 

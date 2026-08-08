@@ -22,6 +22,10 @@ class EnvironmentVariables {
   @IsString()
   DATABASE_URL: string;
 
+  @IsOptional()
+  @IsString()
+  DIRECT_URL?: string;
+
   @IsString()
   FRONTEND_URLS: string;
 
@@ -163,6 +167,7 @@ function validateProductionConfig(config: EnvironmentVariables): void {
 
   requireValue(config.PORT, 'PORT', missingVariables);
   requireValue(config.DATABASE_URL, 'DATABASE_URL', missingVariables);
+  requireValue(config.DIRECT_URL, 'DIRECT_URL', missingVariables);
   requireValue(config.REDIS_URL, 'REDIS_URL', missingVariables);
   requireValue(config.FRONTEND_URLS, 'FRONTEND_URLS', missingVariables);
   requireSecret(config.JWT_SECRET, 'JWT_SECRET', missingVariables);

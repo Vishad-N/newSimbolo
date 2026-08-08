@@ -8,6 +8,7 @@ declare class EnvironmentVariables {
     PORT?: number;
     API_PORT?: number;
     DATABASE_URL: string;
+    DIRECT_URL?: string;
     FRONTEND_URLS: string;
     JWT_SECRET: string;
     JWT_REFRESH_SECRET: string;
