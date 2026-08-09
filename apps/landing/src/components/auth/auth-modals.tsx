@@ -6,6 +6,7 @@ import { ArrowRight, Mail, Lock, User, Phone, Building2, Loader2, CheckCircle2, 
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api/v1";
+const DASHBOARD_URL = process.env.NEXT_PUBLIC_DASHBOARD_URL || "http://localhost:3001";
 export function AuthModals() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -22,6 +23,7 @@ export function AuthModals() {
 
   const accessToken = searchParams.get("accessToken");
   const refreshToken = searchParams.get("refreshToken");
+  const hasActivePlan = searchParams.get("hasActivePlan") === "true";
 
 
 
@@ -33,12 +35,14 @@ export function AuthModals() {
       const checkoutPackage = localStorage.getItem("redirectAfterLogin");
       if (checkoutPackage) {
         localStorage.removeItem("redirectAfterLogin");
-        window.location.href = `http://localhost:3001/checkout?package=${checkoutPackage}`;
+        window.location.href = `${DASHBOARD_URL}/checkout?package=${checkoutPackage}`;
+      } else if (!hasActivePlan) {
+        window.location.href = `/packages`;
       } else {
-        window.location.href = `http://localhost:3001/dashboard`;
+        window.location.href = `${DASHBOARD_URL}/dashboard`;
       }
     }
-  }, [accessToken, refreshToken]);
+  }, [accessToken, refreshToken, hasActivePlan]);
 
   return (
     <AnimatePresence>
@@ -84,9 +88,9 @@ function LoginModal({ onClose }: { onClose: () => void }) {
       setIsLoading(false);
       const checkoutPackage = searchParams.get("checkout");
       if (checkoutPackage) {
-        window.location.href = `http://localhost:3001/checkout?package=${checkoutPackage}`;
+        window.location.href = `${DASHBOARD_URL}/checkout?package=${checkoutPackage}`;
       } else {
-        window.location.href = "http://localhost:3001/dashboard";
+        window.location.href = `${DASHBOARD_URL}/dashboard`;
       }
     }, 1500);
   };
@@ -281,9 +285,9 @@ function RegisterModal({ onClose }: { onClose: () => void }) {
       setTimeout(() => {
         const checkoutPackage = searchParams.get("checkout");
         if (checkoutPackage) {
-          window.location.href = `http://localhost:3001/checkout?package=${checkoutPackage}`;
+          window.location.href = `${DASHBOARD_URL}/checkout?package=${checkoutPackage}`;
         } else {
-          window.location.href = "http://localhost:3001/dashboard";
+          window.location.href = `${DASHBOARD_URL}/dashboard`;
         }
       }, 2000);
     }, 1500);
@@ -524,7 +528,13 @@ function RegisterModal({ onClose }: { onClose: () => void }) {
 
         <button
           type="button"
-          onClick={() => { window.location.href = `${API_BASE_URL}/auth/google` }}
+          onClick={() => {
+            const checkoutPackage = searchParams.get("checkout");
+            if (checkoutPackage) {
+              localStorage.setItem("redirectAfterLogin", checkoutPackage);
+            }
+            window.location.href = `${API_BASE_URL}/auth/google`;
+          }}
           className="mt-4 flex w-full items-center justify-center gap-3 rounded-[14px] border border-white/10 bg-white/5 p-3.5 text-sm font-semibold text-white transition-all hover:bg-white/10 active:scale-[0.98]"
         >
           <svg className="h-5 w-5" viewBox="0 0 24 24">

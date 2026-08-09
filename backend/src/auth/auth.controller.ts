@@ -151,6 +151,7 @@ export class AuthController {
 
     // Redirect to frontend with JWT tokens
     const frontendUrl = process.env.FRONTEND_URLS?.split(',')[0] || 'http://localhost:3000';
-    return res.redirect(`${frontendUrl}?accessToken=${result.accessToken}&refreshToken=${result.refreshToken}`);
+    const hasActivePlan = !!result.user.hasActivePlan;
+    return res.redirect(`${frontendUrl}?accessToken=${result.accessToken}&refreshToken=${result.refreshToken}&hasActivePlan=${hasActivePlan}`);
   }
 }
