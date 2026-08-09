@@ -5,7 +5,7 @@ import { ERROR_CODES } from '../constants/error-codes.constant';
 
 @Injectable()
 export class TimeoutInterceptor implements NestInterceptor {
-  private readonly timeoutMs: number = 10000;
+  private readonly timeoutMs: number = 30000;
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     return next.handle().pipe(
