@@ -149,11 +149,8 @@ export class AuthController {
     const userAgent = req.headers['user-agent'];
     const result = await this.authService.validateGoogleOAuth(req.user, ip, userAgent);
 
-    // Redirect or respond with JWT tokens
-    return res.status(HttpStatus.OK).json({
-      success: true,
-      message: 'Google OAuth authentication successful',
-      data: result,
-    });
+    // Redirect to frontend with JWT tokens
+    const frontendUrl = process.env.FRONTEND_URLS?.split(',')[0] || 'http://localhost:3000';
+    return res.redirect(`${frontendUrl}?accessToken=${result.accessToken}&refreshToken=${result.refreshToken}`);
   }
 }
