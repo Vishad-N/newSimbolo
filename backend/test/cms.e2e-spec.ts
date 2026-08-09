@@ -85,7 +85,7 @@ describe('CMS & Content Modules (e2e)', () => {
       findMany: jest.fn().mockResolvedValue([
         {
           id: 'c0a80123-4567-89ab-cdef-0123456789b0',
-          clientName: 'John Doe',
+          clientName: 'Jane Smith',
           content: 'The Simbolo transformed our digital presence!',
           rating: 5,
         },

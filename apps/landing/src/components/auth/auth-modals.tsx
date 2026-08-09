@@ -33,8 +33,9 @@ export function AuthModals() {
       document.cookie = `refreshToken=${refreshToken}; path=/; max-age=604800`;
       
       const checkoutPackage = localStorage.getItem("redirectAfterLogin");
+      localStorage.removeItem("redirectAfterLogin");
+      
       if (checkoutPackage) {
-        localStorage.removeItem("redirectAfterLogin");
         window.location.href = `${DASHBOARD_URL}/checkout?package=${checkoutPackage}`;
       } else if (!hasActivePlan) {
         window.location.href = `/packages`;
@@ -44,10 +45,23 @@ export function AuthModals() {
     }
   }, [accessToken, refreshToken, hasActivePlan]);
 
+  useEffect(() => {
+    // If the modal is triggered but they are already logged in
+    if (isOpen) {
+      const hasToken = document.cookie.includes("accessToken=");
+      if (hasToken) {
+        const checkoutPackage = searchParams.get("checkout");
+        if (checkoutPackage) {
+          window.location.href = `${DASHBOARD_URL}/checkout?package=${checkoutPackage}`;
+        }
+      }
+    }
+  }, [isOpen, searchParams]);
+
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -90,7 +104,8 @@ function LoginModal({ onClose }: { onClose: () => void }) {
       if (checkoutPackage) {
         window.location.href = `${DASHBOARD_URL}/checkout?package=${checkoutPackage}`;
       } else {
-        window.location.href = `${DASHBOARD_URL}/dashboard`;
+        // Since it's a simulated normal login, we'll assume they don't have an active plan yet
+        window.location.href = `/packages`;
       }
     }, 1500);
   };
@@ -287,7 +302,8 @@ function RegisterModal({ onClose }: { onClose: () => void }) {
         if (checkoutPackage) {
           window.location.href = `${DASHBOARD_URL}/checkout?package=${checkoutPackage}`;
         } else {
-          window.location.href = `${DASHBOARD_URL}/dashboard`;
+          // Since it's a new registration, they definitely don't have an active plan
+          window.location.href = `/packages`;
         }
       }, 2000);
     }, 1500);

@@ -24,20 +24,41 @@ function CheckoutContent() {
   const packageId = searchParams.get("package") || "custom";
   
   const [selectedPackage, setSelectedPackage] = useState<any>(null);
+  const [userProfile, setUserProfile] = useState<{ firstName: string; lastName: string; email: string; phone?: string } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSuccess, setIsSuccess] = useState(false);
 
   useEffect(() => {
-    // Simulate fetching package details
-    setTimeout(() => {
-      const pkg = packageData[packageId] || { 
-        name: "Custom Service Package", 
-        price: 15000, 
-        description: "Customized digital marketing service plan." 
-      };
-      setSelectedPackage(pkg);
-      setIsLoading(false);
-    }, 800);
+    // Fetch package details
+    const pkg = packageData[packageId] || { 
+      name: "Custom Service Package", 
+      price: 15000, 
+      description: "Customized digital marketing service plan." 
+    };
+    setSelectedPackage(pkg);
+
+    // Fetch user profile from backend
+    const fetchProfile = async () => {
+      try {
+        const res = await fetch(`/api/profile`);
+        
+        if (res.ok) {
+          const data = await res.json();
+          setUserProfile({
+            firstName: data.data?.firstName || "",
+            lastName: data.data?.lastName || "",
+            email: data.data?.email || "",
+            phone: data.data?.phone || ""
+          });
+        }
+      } catch (err) {
+        console.error("Failed to fetch user profile", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchProfile();
   }, [packageId]);
 
   if (isLoading) {
@@ -98,11 +119,21 @@ function CheckoutContent() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="mb-1.5 block text-xs font-medium text-gray-400">First Name</label>
-                  <input type="text" defaultValue="John" className="w-full rounded-xl border border-white/10 bg-black/20 p-3 text-sm text-white focus:border-[var(--primary)] focus:outline-none" />
+                  <input 
+                    type="text" 
+                    value={userProfile?.firstName || ""} 
+                    onChange={(e) => setUserProfile(prev => prev ? { ...prev, firstName: e.target.value } : { firstName: e.target.value, lastName: "", email: "" })}
+                    className="w-full rounded-xl border border-white/10 bg-black/20 p-3 text-sm text-white focus:border-[var(--primary)] focus:outline-none" 
+                  />
                 </div>
                 <div>
                   <label className="mb-1.5 block text-xs font-medium text-gray-400">Last Name</label>
-                  <input type="text" defaultValue="Doe" className="w-full rounded-xl border border-white/10 bg-black/20 p-3 text-sm text-white focus:border-[var(--primary)] focus:outline-none" />
+                  <input 
+                    type="text" 
+                    value={userProfile?.lastName || ""} 
+                    onChange={(e) => setUserProfile(prev => prev ? { ...prev, lastName: e.target.value } : { firstName: "", lastName: e.target.value, email: "" })}
+                    className="w-full rounded-xl border border-white/10 bg-black/20 p-3 text-sm text-white focus:border-[var(--primary)] focus:outline-none" 
+                  />
                 </div>
               </div>
               <div>
@@ -128,7 +159,8 @@ function CheckoutContent() {
             <RazorpayCheckout 
               amount={total} 
               packageName={selectedPackage.name} 
-              packageId={packageId} 
+              packageId={packageId}
+              profile={userProfile}
               onSuccess={() => setIsSuccess(true)} 
             />
           </div>
