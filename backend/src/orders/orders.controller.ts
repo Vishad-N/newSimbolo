@@ -27,7 +27,7 @@ export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
   @Get()
-  @Permissions('orders.read', 'orders.manage')
+  @Permissions('orders.view', 'orders.manage')
   @ApiOperation({ summary: 'List all orders with optional filters and pagination' })
   @ApiQuery({ name: 'clientId', required: false })
   @ApiQuery({ name: 'status', enum: OrderStatusEnum, required: false })
@@ -44,7 +44,7 @@ export class OrdersController {
   }
 
   @Get(':id')
-  @Permissions('orders.read', 'orders.manage')
+  @Permissions('orders.view', 'orders.manage')
   @ApiOperation({ summary: 'Get order details by ID' })
   @ApiResponse({ status: 200, description: 'Order returned' })
   async findOne(@Param('id', ParseUUIDPipe) id: string) {

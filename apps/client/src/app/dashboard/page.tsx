@@ -13,11 +13,31 @@ export default function DashboardPage() {
   const [stats, setStats] = useState<any>(null);
   const [projects, setProjects] = useState<any[]>([]);
   const [subscription, setSubscription] = useState<any>(null);
+  const [profile, setProfile] = useState<any>(null);
+  const [orders, setOrders] = useState<any[]>([]);
 
   useEffect(() => {
     mockApi.stats.getDashboard().then(setStats);
     mockApi.projects.getAll().then(setProjects);
     mockApi.subscription.get().then(setSubscription);
+
+    fetch('/api/orders')
+      .then(res => res.json())
+      .then(data => {
+        if (data.data) {
+          setOrders(data.data);
+        }
+      })
+      .catch(console.error);
+
+    fetch('/api/profile')
+      .then(res => res.json())
+      .then(data => {
+        if (data.data) {
+          setProfile(data.data);
+        }
+      })
+      .catch(console.error);
   }, []);
 
   if (!stats) return <div className="text-white animate-pulse p-4">Loading dashboard...</div>;
@@ -36,7 +56,7 @@ export default function DashboardPage() {
         <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 blur-[100px] rounded-full"></div>
         <div className="relative z-10 space-y-2">
           <h1 className="text-3xl font-heading font-bold text-white">
-            Welcome back, <span className="text-gradient">Client Name</span>!
+            Welcome back, <span className="text-gradient">{profile ? `${profile.firstName} ${profile.lastName}`.trim() : "Client Name"}</span>!
           </h1>
           <p className="text-gray-400">Here's an overview of your workspace and active projects.</p>
         </div>
@@ -104,32 +124,28 @@ export default function DashboardPage() {
           </div>
           
           <div className="space-y-6 relative before:absolute before:inset-0 before:ml-2 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-white/10 before:to-transparent">
-            {/* Mock Timeline */}
-            <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
-              <div className="flex items-center justify-center w-5 h-5 rounded-full border border-white/20 bg-surface shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10 text-primary">
-                <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
-              </div>
-              <div className="w-[calc(100%-2rem)] md:w-[calc(50%-1.5rem)] p-3 rounded-lg bg-white/[0.02] border border-white/5">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="font-semibold text-white text-sm">Invoice Generated</span>
-                  <span className="text-xs text-gray-500">2h ago</span>
-                </div>
-                <div className="text-xs text-gray-400">Invoice INV-2026-07-1 is ready.</div>
-              </div>
-            </div>
+            {orders.length > 0 ? orders.map((order, index) => {
+              const serviceName = order.package?.name || order.service?.name || "Custom Package";
+              const amount = order.netAmount || order.totalAmount || 0;
+              const date = order.createdAt || order.date;
 
-            <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
-              <div className="flex items-center justify-center w-5 h-5 rounded-full border border-white/20 bg-surface shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10 text-secondary">
-                <div className="w-1.5 h-1.5 bg-secondary rounded-full"></div>
-              </div>
-              <div className="w-[calc(100%-2rem)] md:w-[calc(50%-1.5rem)] p-3 rounded-lg bg-white/[0.02] border border-white/5">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="font-semibold text-white text-sm">Task Completed</span>
-                  <span className="text-xs text-gray-500">1d ago</span>
+              return (
+                <div key={order.id} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+                  <div className={`flex items-center justify-center w-5 h-5 rounded-full border border-white/20 bg-surface shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10 ${index % 2 === 0 ? 'text-primary' : 'text-secondary'}`}>
+                    <div className={`w-1.5 h-1.5 rounded-full ${index % 2 === 0 ? 'bg-primary' : 'bg-secondary'}`}></div>
+                  </div>
+                  <div className="w-[calc(100%-2rem)] md:w-[calc(50%-1.5rem)] p-3 rounded-lg bg-white/[0.02] border border-white/5">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-semibold text-white text-sm">Plan Purchased</span>
+                      <span className="text-xs text-gray-500">{new Date(date).toLocaleDateString()}</span>
+                    </div>
+                    <div className="text-xs text-gray-400">Purchased {serviceName} for ₹{amount.toLocaleString('en-IN')}.</div>
+                  </div>
                 </div>
-                <div className="text-xs text-gray-400">Keyword Research has been finalized.</div>
-              </div>
-            </div>
+              );
+            }) : (
+              <div className="text-sm text-gray-500 text-center py-4 relative z-10 bg-surface">No recent activity</div>
+            )}
           </div>
           
           <button className="w-full py-2 text-sm text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-lg transition-colors">
