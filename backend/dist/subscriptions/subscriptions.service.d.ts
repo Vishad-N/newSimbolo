@@ -45,12 +45,20 @@ export declare class SubscriptionsService extends BaseService {
             deletedAt: Date | null;
             createdBy: string | null;
             updatedBy: string | null;
+            state: string | null;
             gstNumber: string | null;
             billingAddress: string | null;
             timezone: string;
             companyId: string | null;
             accountManagerId: string | null;
             notes: string | null;
+            legalName: string | null;
+            stateCode: string | null;
+            pincode: string | null;
+            country: string | null;
+            gstRegistered: boolean;
+            gstinVerified: boolean;
+            gstinVerifiedAt: Date | null;
         };
     } & {
         id: string;
@@ -103,12 +111,20 @@ export declare class SubscriptionsService extends BaseService {
                 deletedAt: Date | null;
                 createdBy: string | null;
                 updatedBy: string | null;
+                state: string | null;
                 gstNumber: string | null;
                 billingAddress: string | null;
                 timezone: string;
                 companyId: string | null;
                 accountManagerId: string | null;
                 notes: string | null;
+                legalName: string | null;
+                stateCode: string | null;
+                pincode: string | null;
+                country: string | null;
+                gstRegistered: boolean;
+                gstinVerified: boolean;
+                gstinVerifiedAt: Date | null;
             };
         } & {
             id: string;
@@ -156,6 +172,9 @@ export declare class SubscriptionsService extends BaseService {
                 categoryId: string | null;
                 iconMediaId: string | null;
                 seoPageId: string | null;
+                sacCode: string | null;
+                gstRate: number | null;
+                taxCategory: string | null;
             };
             features: {
                 id: string;
@@ -182,6 +201,9 @@ export declare class SubscriptionsService extends BaseService {
             serviceId: string;
             basePrice: number;
             seoPageId: string | null;
+            sacCode: string | null;
+            gstRate: number | null;
+            taxCategory: string | null;
             billingInterval: string;
             isPopular: boolean;
             isCustom: boolean;
@@ -194,6 +216,7 @@ export declare class SubscriptionsService extends BaseService {
             deletedAt: Date | null;
             createdBy: string | null;
             updatedBy: string | null;
+            type: import(".prisma/client").$Enums.InvoiceTypeEnum;
             currency: string;
             clientId: string;
             totalAmount: number;
@@ -201,11 +224,28 @@ export declare class SubscriptionsService extends BaseService {
             orderId: string | null;
             dueDate: Date;
             invoiceNumber: string;
+            financialYear: string | null;
+            supplyType: import(".prisma/client").$Enums.SupplyTypeEnum;
+            taxTreatment: import(".prisma/client").$Enums.TaxTreatmentEnum;
+            taxType: import(".prisma/client").$Enums.TaxTypeEnum;
+            placeOfSupply: string | null;
+            placeOfSupplyCode: string | null;
+            reverseCharge: boolean;
             issueDate: Date;
             paidDate: Date | null;
             subtotal: number;
+            cgstAmount: number;
+            sgstAmount: number;
+            igstAmount: number;
+            totalTax: number;
             subscriptionId: string | null;
             pdfAssetId: string | null;
+            pdfUrl: string | null;
+            irn: string | null;
+            irnGeneratedAt: Date | null;
+            signedQrCode: string | null;
+            eInvoiceStatus: string | null;
+            eInvoiceError: string | null;
         }[];
         client: {
             user: {
@@ -237,12 +277,20 @@ export declare class SubscriptionsService extends BaseService {
             deletedAt: Date | null;
             createdBy: string | null;
             updatedBy: string | null;
+            state: string | null;
             gstNumber: string | null;
             billingAddress: string | null;
             timezone: string;
             companyId: string | null;
             accountManagerId: string | null;
             notes: string | null;
+            legalName: string | null;
+            stateCode: string | null;
+            pincode: string | null;
+            country: string | null;
+            gstRegistered: boolean;
+            gstinVerified: boolean;
+            gstinVerifiedAt: Date | null;
         };
     } & {
         id: string;
@@ -295,12 +343,20 @@ export declare class SubscriptionsService extends BaseService {
                 deletedAt: Date | null;
                 createdBy: string | null;
                 updatedBy: string | null;
+                state: string | null;
                 gstNumber: string | null;
                 billingAddress: string | null;
                 timezone: string;
                 companyId: string | null;
                 accountManagerId: string | null;
                 notes: string | null;
+                legalName: string | null;
+                stateCode: string | null;
+                pincode: string | null;
+                country: string | null;
+                gstRegistered: boolean;
+                gstinVerified: boolean;
+                gstinVerifiedAt: Date | null;
             };
         } & {
             id: string;
@@ -344,6 +400,9 @@ export declare class SubscriptionsService extends BaseService {
             serviceId: string;
             basePrice: number;
             seoPageId: string | null;
+            sacCode: string | null;
+            gstRate: number | null;
+            taxCategory: string | null;
             billingInterval: string;
             isPopular: boolean;
             isCustom: boolean;
@@ -378,12 +437,20 @@ export declare class SubscriptionsService extends BaseService {
             deletedAt: Date | null;
             createdBy: string | null;
             updatedBy: string | null;
+            state: string | null;
             gstNumber: string | null;
             billingAddress: string | null;
             timezone: string;
             companyId: string | null;
             accountManagerId: string | null;
             notes: string | null;
+            legalName: string | null;
+            stateCode: string | null;
+            pincode: string | null;
+            country: string | null;
+            gstRegistered: boolean;
+            gstinVerified: boolean;
+            gstinVerifiedAt: Date | null;
         };
     } & {
         id: string;

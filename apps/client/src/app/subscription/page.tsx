@@ -11,7 +11,18 @@ export default function SubscriptionPage() {
   const [subscription, setSubscription] = useState<any>(null);
 
   useEffect(() => {
-    mockApi.subscription.get().then(setSubscription);
+    fetch('/api/profile')
+      .then(res => res.json())
+      .then(data => {
+        const profileData = data.data || data;
+        const clientId = profileData?.clientProfile?.id || profileData?.id;
+        if (clientId) {
+          mockApi.subscription.get(clientId).then(setSubscription);
+        } else {
+          setSubscription(null);
+        }
+      })
+      .catch(console.error);
   }, []);
 
   if (!subscription) return <div className="text-white animate-pulse p-4">Loading subscription...</div>;

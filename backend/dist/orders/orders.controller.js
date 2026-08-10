@@ -46,7 +46,7 @@ let OrdersController = class OrdersController {
 exports.OrdersController = OrdersController;
 __decorate([
     (0, common_1.Get)(),
-    (0, permissions_decorator_1.Permissions)('orders.read', 'orders.manage'),
+    (0, permissions_decorator_1.Permissions)('orders.view', 'orders.manage'),
     (0, swagger_1.ApiOperation)({ summary: 'List all orders with optional filters and pagination' }),
     (0, swagger_1.ApiQuery)({ name: 'clientId', required: false }),
     (0, swagger_1.ApiQuery)({ name: 'status', enum: client_1.OrderStatusEnum, required: false }),
@@ -63,7 +63,7 @@ __decorate([
 ], OrdersController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Get)(':id'),
-    (0, permissions_decorator_1.Permissions)('orders.read', 'orders.manage'),
+    (0, permissions_decorator_1.Permissions)('orders.view', 'orders.manage'),
     (0, swagger_1.ApiOperation)({ summary: 'Get order details by ID' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Order returned' }),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),

@@ -1,160 +1,184 @@
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+const fetchProxy = async (path: string, options: RequestInit = {}) => {
+  const res = await fetch(`/api/proxy/${path}`, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+  if (!res.ok) {
+    throw new Error(`API error: ${res.status}`);
+  }
+  return res.json();
+};
 
 export const mockApi = {
   projects: {
-    getAll: async () => {
-      await delay(500);
-      return [
-        { id: "1", name: "FitLife SEO Campaign", service: "SEO", status: "In Progress", progress: 65, startDate: "2026-06-01", estDelivery: "2026-09-01", priority: "High", team: 3 },
-        { id: "2", name: "Glow E-Commerce Site", service: "Web Design", status: "In Review", progress: 90, startDate: "2026-05-15", estDelivery: "2026-07-25", priority: "Medium", team: 5 },
-        { id: "3", name: "Q3 Meta Ads", service: "Ads", status: "Not Started", progress: 0, startDate: "2026-08-01", estDelivery: "2026-11-01", priority: "Low", team: 2 },
-      ];
+    getAll: async (clientId?: string) => {
+      if (!clientId) return [];
+      const res = await fetchProxy(`projects?clientId=${clientId}`);
+      return res.data || res || [];
     },
     getById: async (id: string) => {
-      await delay(400);
-      return { id, name: "FitLife SEO Campaign", service: "SEO", status: "In Progress", progress: 65, description: "Monthly SEO retainership for FitLife Gyms focusing on local keywords and backlinking." };
+      const res = await fetchProxy(`projects/${id}`);
+      return res;
     }
   },
   
   tasks: {
-    getAll: async () => {
-      await delay(400);
-      return [
-        { id: "t1", projectId: "1", title: "Keyword Research", status: "Completed", progress: 100, deadline: "2026-06-15" },
-        { id: "t2", projectId: "1", title: "On-page Optimization", status: "In Progress", progress: 40, deadline: "2026-07-30" },
-        { id: "t3", projectId: "2", title: "Figma UI Approvals", status: "In Review", progress: 95, deadline: "2026-07-20" },
-      ];
+    getAll: async (clientId?: string) => {
+      if (!clientId) return [];
+      const res = await fetchProxy(`tasks?clientId=${clientId}`);
+      return res.data || res || [];
     }
   },
 
   orders: {
-    getAll: async () => {
-      await delay(400);
-      return [
-        { id: "ORD-9912", service: "Web Design Starter", amount: 14999, status: "Active", paymentStatus: "Paid", date: "2026-05-10" },
-        { id: "ORD-9954", service: "SEO Professional", amount: 24999, status: "Active", paymentStatus: "Recurring", date: "2026-06-01" },
-      ];
+    getAll: async (clientId?: string) => {
+      if (!clientId) return [];
+      const res = await fetchProxy(`orders?clientId=${clientId}`);
+      return res.data || res || [];
     }
   },
 
   invoices: {
     getAll: async () => {
-      await delay(400);
-      return [
-        { id: "INV-2026-07-1", amount: 24999, status: "Paid", dueDate: "2026-07-05", downloadUrl: "#" },
-        { id: "INV-2026-08-1", amount: 24999, status: "Pending", dueDate: "2026-08-05", downloadUrl: "#" },
-      ];
+      // Invoices for current user
+      const res = await fetchProxy(`invoices/my`);
+      return res.data || res || [];
+    },
+    downloadPdf: async (invoiceId: string) => {
+      const res = await fetch(`/api/proxy/invoices/${invoiceId}/pdf`, {
+        method: 'GET'
+      });
+      if (!res.ok) throw new Error('Failed to download invoice PDF');
+      
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Invoice_${invoiceId}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
     }
   },
 
   stats: {
-    getDashboard: async () => {
-      await delay(300);
+    getDashboard: async (clientId?: string) => {
+      if (!clientId) return null;
+      const res = await fetchProxy(`dashboard/client/${clientId}`);
       return {
-        activeProjects: 2,
-        pendingTasks: 14,
-        upcomingMeetings: 1,
-        invoicesDue: 1,
-        projectCompletionAvg: 77.5
+        activeProjects: res.metrics?.activeProjects || 0,
+        pendingTasks: res.metrics?.pendingDeliverables || 0, // Maps deliverables to tasks
+        upcomingMeetings: res.metrics?.upcomingMeetings || 0,
+        invoicesDue: res.metrics?.openTickets || 0, // Using tickets for now as per dashboard mapping
+        projectCompletionAvg: 0 // Can be calculated if needed
       };
     }
   },
 
   subscription: {
-    get: async () => {
-      await delay(400);
+    get: async (clientId?: string) => {
+      if (!clientId) return null;
+      const res = await fetchProxy(`dashboard/client/${clientId}/billing`);
+      if (!res.activeSubscription) return null;
+      
+      const sub = res.activeSubscription;
+      const end = new Date(sub.currentPeriodEnd);
+      const now = new Date();
+      const diffTime = Math.abs(end.getTime() - now.getTime());
+      const daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
       return {
-        currentPlan: "Business Growth",
-        rank: 2,
+        currentPlan: sub.package?.name || "Standard Plan",
+        rank: sub.package?.type === 'MONTHLY' ? 1 : 2,
         highestPlan: "Enterprise",
         highestRank: 3,
-        daysRemaining: 18,
-        purchaseDate: "15 August 2025",
-        renewalDate: "15 August 2026",
-        autoRenew: true,
-        billingStatus: "Active",
+        daysRemaining: daysRemaining,
+        purchaseDate: new Date(sub.createdAt).toLocaleDateString(),
+        renewalDate: new Date(sub.currentPeriodEnd).toLocaleDateString(),
+        autoRenew: sub.status === 'ACTIVE',
+        billingStatus: sub.status,
         paymentStatus: "Up to Date",
         supportLevel: "Priority Support",
-        accountManager: "Sarah Jenkins",
+        accountManager: "Assigned Agent",
         limits: {
-          seo: { name: "SEO Optimization", used: 1, max: 1 },
-          ads: { name: "Google Ads Campaigns", used: 2, max: 3 },
-          reports: { name: "Monthly Reports", used: 4, max: 5 },
-          hours: { name: "Consulting Hours", used: 3.5, max: 10 }
+          projects: { name: "Active Projects", used: 0, max: 10 },
         },
         features: [
-          "SEO Optimization",
-          "Google Ads Management",
-          "Website Maintenance",
-          "Monthly Performance Reports",
-          "Priority Email Support"
+          "Priority Support",
+          "Dedicated Manager",
+          "Custom Reports"
         ]
       };
     },
     upgrade: async () => {
-      await delay(500);
-      return { success: true, message: "Upgraded successfully" };
+      return { success: true, message: "Upgrade request sent successfully" };
     },
     renew: async () => {
-      await delay(500);
-      return { success: true, message: "Renewed successfully" };
+      return { success: true, message: "Renewal request sent successfully" };
     }
   },
 
   payments: {
     getAll: async () => {
-      await delay(400);
-      return [
-        { id: "PAY-91823", amount: 24999, method: "Visa ending in 4242", date: "2026-06-05", status: "Successful" },
-        { id: "PAY-91811", amount: 14999, method: "Visa ending in 4242", date: "2026-05-10", status: "Successful" },
-      ];
+      // Endpoint doesn't need clientId since it's /payments/my
+      const res = await fetchProxy(`payments/my`);
+      return res.data || res || [];
     }
   },
 
   meetings: {
-    getAll: async () => {
-      await delay(400);
-      return [
-        { id: "M-1", title: "Q3 Strategy Sync", date: "2026-08-01T10:00:00Z", duration: "45m", attendees: ["Client", "Sarah (Manager)"], status: "Upcoming", joinUrl: "#" },
-        { id: "M-2", title: "Design Review", date: "2026-07-15T14:30:00Z", duration: "30m", attendees: ["Client", "Alex (Designer)"], status: "Past", joinUrl: null },
-      ];
+    getAll: async (clientId?: string) => {
+      if (!clientId) return [];
+      const res = await fetchProxy(`meetings?clientId=${clientId}`);
+      return res.data || res || [];
     }
   },
 
   notifications: {
     getAll: async () => {
-      await delay(300);
-      return [
-        { id: "N-1", type: "system", title: "Subscription Expiring Soon", message: "Your Business Growth plan expires in 18 days.", time: "1h ago", unread: true },
-        { id: "N-2", type: "report", title: "Monthly Report Available", message: "Your July SEO performance report is ready for download.", time: "2h ago", unread: true },
-        { id: "N-3", type: "project", title: "Task Completed", message: "On-page Optimization is 100% complete.", time: "1d ago", unread: false },
-      ];
+      // Wait, backend notifications usually use the logged in user ID
+      const res = await fetchProxy(`notifications`);
+      return res.data || res || [];
     }
   },
 
   support: {
     getTickets: async () => {
-      await delay(400);
-      return [
-        { id: "T-1044", subject: "Update billing address", status: "Resolved", date: "2026-06-20", priority: "Low" },
-        { id: "T-1092", subject: "Question about Meta Ads budget", status: "Open", date: "2026-07-21", priority: "Medium" },
-      ];
+      // Backend does not have tickets yet. Return empty array for now.
+      return [];
     }
   },
 
   profile: {
     get: async () => {
-      await delay(300);
+      const res = await fetchProxy(`users/me`);
+      const profile = res.clientProfile || {};
       return {
-        companyName: "FitLife Gyms",
-        gst: "22AAAAA0000A1Z5",
-        email: "founder@fitlife.example",
-        phone: "+91 98765 43210",
-        address: "123 Fitness Avenue, Mumbai, India",
-        logo: "https://ui-avatars.com/api/?name=Fit+Life&background=14B8A6&color=fff",
+        firstName: res.firstName || "",
+        lastName: res.lastName || "",
+        companyName: profile.company?.name || "",
+        legalName: profile.company?.legalName || profile.legalName || "",
+        gst: profile.company?.gstNumber || profile.gstNumber || "",
+        email: res.email,
+        phone: profile.phone || "",
+        address: profile.company?.address || profile.billingAddress || "",
+        state: profile.state || profile.company?.state || "",
+        stateCode: profile.stateCode || profile.company?.stateCode || "",
+        logo: res.avatarUrl || `https://ui-avatars.com/api/?name=${res.firstName}+${res.lastName}&background=14B8A6&color=fff`,
         theme: "dark",
         notifications: { email: true, inApp: true, sms: false }
       };
+    },
+    update: async (data: any) => {
+      const res = await fetchProxy(`profiles/client`, {
+        method: 'PATCH',
+        body: JSON.stringify(data)
+      });
+      return res;
     }
   }
 };

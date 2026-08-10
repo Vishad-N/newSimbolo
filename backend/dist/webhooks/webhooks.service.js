@@ -14,17 +14,20 @@ const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
 const prisma_service_1 = require("../prisma/prisma.service");
 const razorpay_provider_1 = require("../payments/razorpay.provider");
+const invoices_service_1 = require("../invoices/invoices.service");
 const client_1 = require("@prisma/client");
 let WebhooksService = class WebhooksService {
     prisma;
     razorpayGateway;
     configService;
+    invoicesService;
     logger = new common_1.Logger('WebhooksService');
     webhookSecret;
-    constructor(prisma, razorpayGateway, configService) {
+    constructor(prisma, razorpayGateway, configService, invoicesService) {
         this.prisma = prisma;
         this.razorpayGateway = razorpayGateway;
         this.configService = configService;
+        this.invoicesService = invoicesService;
         this.webhookSecret = this.configService.get('razorpay.webhookSecret', 'mock-razorpay-webhook-secret');
     }
     async handleRazorpayWebhook(rawBody, signature) {
@@ -121,6 +124,16 @@ let WebhooksService = class WebhooksService {
                     : []),
             ]);
             this.logger.log(`✅ Webhook: Payment ${razorpayPaymentId} captured and recorded`);
+            // Automatically generate invoice if attached to an order
+            if (payment.orderId) {
+                try {
+                    await this.invoicesService.createFromOrder(payment.orderId);
+                    this.logger.log(`✅ Webhook: Invoice generated for Order ${payment.orderId}`);
+                }
+                catch (error) {
+                    this.logger.error(`❌ Webhook: Failed to generate invoice for Order ${payment.orderId}: ${error.message}`);
+                }
+            }
         }
     }
     async handlePaymentFailed(entity) {
@@ -223,6 +236,7 @@ exports.WebhooksService = WebhooksService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [prisma_service_1.PrismaService,
         razorpay_provider_1.RazorpayGateway,
-        config_1.ConfigService])
+        config_1.ConfigService,
+        invoices_service_1.InvoicesService])
 ], WebhooksService);
 //# sourceMappingURL=webhooks.service.js.map

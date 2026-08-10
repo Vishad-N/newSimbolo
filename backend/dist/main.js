@@ -13,6 +13,7 @@ const redis_io_adapter_1 = require("./realtime/redis-io.adapter");
 async function bootstrap() {
     const app = await core_1.NestFactory.create(app_module_1.AppModule, {
         bufferLogs: true,
+        rawBody: true,
     });
     const logger = app.get(logger_service_1.CustomLoggerService);
     app.useLogger(logger);
@@ -36,7 +37,7 @@ async function bootstrap() {
     app.use(cookieParser(process.env.COOKIE_SECRET || process.env.JWT_SECRET));
     app.enableCors({
         origin: (origin, callback) => {
-            if (!origin && !isProduction) {
+            if (!origin) {
                 return callback(null, true);
             }
             if (origin && frontendUrls.includes(origin)) {

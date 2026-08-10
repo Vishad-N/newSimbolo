@@ -86,6 +86,7 @@ export declare class AuthService extends BaseService {
             status: any;
             role: any;
             permissions: any;
+            hasActivePlan: boolean;
         };
     }>;
     private generateTokens;

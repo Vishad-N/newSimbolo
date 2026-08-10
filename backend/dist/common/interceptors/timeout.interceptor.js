@@ -12,7 +12,7 @@ const rxjs_1 = require("rxjs");
 const operators_1 = require("rxjs/operators");
 const error_codes_constant_1 = require("../constants/error-codes.constant");
 let TimeoutInterceptor = class TimeoutInterceptor {
-    timeoutMs = 10000;
+    timeoutMs = 30000;
     intercept(context, next) {
         return next.handle().pipe((0, operators_1.timeout)(this.timeoutMs), (0, operators_1.catchError)((err) => {
             if (err instanceof rxjs_1.TimeoutError) {

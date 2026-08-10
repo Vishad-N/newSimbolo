@@ -40,21 +40,21 @@ export default function NotificationsPage() {
         {notifications.map((notif) => (
           <div 
             key={notif.id} 
-            className={`flex items-start gap-4 p-5 hover:bg-white/[0.02] transition-colors cursor-pointer ${notif.unread ? 'bg-primary/5' : ''}`}
+            className={`flex items-start gap-4 p-5 hover:bg-white/[0.02] transition-colors cursor-pointer ${!notif.isRead ? 'bg-primary/5' : ''}`}
           >
-            <div className={`p-2 rounded-lg mt-1 shrink-0 ${notif.unread ? 'bg-white/10' : 'bg-black/40'}`}>
+            <div className={`p-2 rounded-lg mt-1 shrink-0 ${!notif.isRead ? 'bg-white/10' : 'bg-black/40'}`}>
               {getIcon(notif.type)}
             </div>
             <div className="flex-1">
               <div className="flex justify-between items-start mb-1">
-                <h4 className={`text-sm ${notif.unread ? 'font-bold text-white' : 'font-medium text-gray-300'}`}>
+                <h4 className={`text-sm ${!notif.isRead ? 'font-bold text-white' : 'font-medium text-gray-300'}`}>
                   {notif.title}
                 </h4>
-                <span className="text-xs text-gray-500 whitespace-nowrap ml-4">{notif.time}</span>
+                <span className="text-xs text-gray-500 whitespace-nowrap ml-4">{notif.createdAt ? new Date(notif.createdAt).toLocaleDateString() : notif.time}</span>
               </div>
               <p className="text-sm text-gray-400">{notif.message}</p>
             </div>
-            {notif.unread && (
+            {!notif.isRead && (
               <div className="w-2 h-2 rounded-full bg-primary mt-2 shrink-0"></div>
             )}
           </div>

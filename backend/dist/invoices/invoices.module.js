@@ -10,6 +10,7 @@ exports.InvoicesModule = void 0;
 const common_1 = require("@nestjs/common");
 const invoices_controller_1 = require("./invoices.controller");
 const invoices_service_1 = require("./invoices.service");
+const tax_service_1 = require("./tax.service");
 const prisma_module_1 = require("../prisma/prisma.module");
 const shared_module_1 = require("../shared/shared.module");
 let InvoicesModule = class InvoicesModule {
@@ -19,8 +20,8 @@ exports.InvoicesModule = InvoicesModule = __decorate([
     (0, common_1.Module)({
         imports: [prisma_module_1.PrismaModule, shared_module_1.SharedModule],
         controllers: [invoices_controller_1.InvoicesController],
-        providers: [invoices_service_1.InvoicesService],
-        exports: [invoices_service_1.InvoicesService],
+        providers: [invoices_service_1.InvoicesService, tax_service_1.TaxService],
+        exports: [invoices_service_1.InvoicesService, tax_service_1.TaxService],
     })
 ], InvoicesModule);
 //# sourceMappingURL=invoices.module.js.map

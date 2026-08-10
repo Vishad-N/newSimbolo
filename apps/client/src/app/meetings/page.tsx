@@ -10,11 +10,20 @@ export default function MeetingsPage() {
   const [meetings, setMeetings] = useState<any[]>([]);
 
   useEffect(() => {
-    mockApi.meetings.getAll().then(setMeetings);
+    fetch('/api/profile')
+      .then(res => res.json())
+      .then(data => {
+        const profileData = data.data || data;
+        const clientId = profileData?.clientProfile?.id || profileData?.id;
+        if (clientId) {
+          mockApi.meetings.getAll(clientId).then(setMeetings);
+        }
+      })
+      .catch(console.error);
   }, []);
 
-  const upcomingMeetings = meetings.filter(m => m.status === "Upcoming");
-  const pastMeetings = meetings.filter(m => m.status === "Past");
+  const upcomingMeetings = meetings.filter(m => m.status === "Upcoming" || m.status === "SCHEDULED" || new Date(m.startTime || m.date) >= new Date());
+  const pastMeetings = meetings.filter(m => m.status === "Past" || m.status === "COMPLETED" || (m.status !== "Upcoming" && m.status !== "SCHEDULED" && new Date(m.startTime || m.date) < new Date()));
 
   const renderMeetingCard = (meeting: any) => (
     <Card key={meeting.id} className="p-6 hover:bg-white/[0.02] transition-colors cursor-pointer group border border-white/10 relative overflow-hidden">
@@ -26,32 +35,32 @@ export default function MeetingsPage() {
           <div className="flex items-center gap-2">
             <h3 className="text-lg font-heading font-bold text-white group-hover:text-primary transition-colors">{meeting.title}</h3>
             <span className={`px-2 py-0.5 text-[10px] uppercase font-bold rounded-full ${
-              meeting.status === 'Upcoming' ? 'bg-primary/20 text-primary border border-primary/30' : 'bg-gray-500/20 text-gray-400 border border-gray-500/30'
+              (meeting.status === 'Upcoming' || meeting.status === 'SCHEDULED' || new Date(meeting.startTime || meeting.date) >= new Date()) ? 'bg-primary/20 text-primary border border-primary/30' : 'bg-gray-500/20 text-gray-400 border border-gray-500/30'
             }`}>
-              {meeting.status}
+              {meeting.status || 'Scheduled'}
             </span>
           </div>
           
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-gray-400">
             <div className="flex items-center gap-2">
               <Calendar className="w-4 h-4" />
-              {new Date(meeting.date).toLocaleString()}
+              {new Date(meeting.startTime || meeting.date).toLocaleString()}
             </div>
             <div className="flex items-center gap-2">
               <Video className="w-4 h-4" />
-              {meeting.duration}
+              {meeting.duration || '60m'}
             </div>
             <div className="flex items-center gap-2">
               <Users className="w-4 h-4" />
-              {meeting.attendees.join(", ")}
+              {meeting.attendees?.join(", ") || 'Team'}
             </div>
           </div>
         </div>
         
-        {meeting.joinUrl && meeting.status === "Upcoming" ? (
-          <button className="flex items-center gap-2 px-6 py-2.5 bg-primary hover:bg-primary-hover text-white text-sm font-bold rounded-xl transition-colors shadow-[0_0_15px_var(--primary-glow)] w-full md:w-auto justify-center">
+        {(meeting.joinUrl || meeting.meetLink) && (meeting.status === "Upcoming" || meeting.status === "SCHEDULED" || new Date(meeting.startTime || meeting.date) >= new Date()) ? (
+          <a href={meeting.joinUrl || meeting.meetLink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-6 py-2.5 bg-primary hover:bg-primary-hover text-white text-sm font-bold rounded-xl transition-colors shadow-[0_0_15px_var(--primary-glow)] w-full md:w-auto justify-center">
             <Video className="w-4 h-4" /> Join Google Meet
-          </button>
+          </a>
         ) : (
           <button className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 text-white text-sm font-medium rounded-lg transition-colors border border-white/10 w-full md:w-auto justify-center">
             View Notes

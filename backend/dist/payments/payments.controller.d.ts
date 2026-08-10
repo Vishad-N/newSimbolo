@@ -170,6 +170,7 @@ export declare class PaymentsController {
             deletedAt: Date | null;
             createdBy: string | null;
             updatedBy: string | null;
+            type: import(".prisma/client").$Enums.InvoiceTypeEnum;
             currency: string;
             clientId: string;
             totalAmount: number;
@@ -177,11 +178,28 @@ export declare class PaymentsController {
             orderId: string | null;
             dueDate: Date;
             invoiceNumber: string;
+            financialYear: string | null;
+            supplyType: import(".prisma/client").$Enums.SupplyTypeEnum;
+            taxTreatment: import(".prisma/client").$Enums.TaxTreatmentEnum;
+            taxType: import(".prisma/client").$Enums.TaxTypeEnum;
+            placeOfSupply: string | null;
+            placeOfSupplyCode: string | null;
+            reverseCharge: boolean;
             issueDate: Date;
             paidDate: Date | null;
             subtotal: number;
+            cgstAmount: number;
+            sgstAmount: number;
+            igstAmount: number;
+            totalTax: number;
             subscriptionId: string | null;
             pdfAssetId: string | null;
+            pdfUrl: string | null;
+            irn: string | null;
+            irnGeneratedAt: Date | null;
+            signedQrCode: string | null;
+            eInvoiceStatus: string | null;
+            eInvoiceError: string | null;
         } | null;
         transactions: {
             id: string;

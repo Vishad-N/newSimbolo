@@ -21,9 +21,17 @@ export declare class CompaniesService extends BaseService {
             deletedAt: Date | null;
             createdBy: string | null;
             updatedBy: string | null;
+            state: string | null;
             slug: string;
             gstNumber: string | null;
             billingAddress: string | null;
+            legalName: string | null;
+            stateCode: string | null;
+            pincode: string | null;
+            country: string | null;
+            gstRegistered: boolean;
+            gstinVerified: boolean;
+            gstinVerifiedAt: Date | null;
             website: string | null;
             industry: string | null;
             size: string | null;

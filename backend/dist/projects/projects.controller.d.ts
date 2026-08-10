@@ -54,12 +54,20 @@ export declare class ProjectsController {
                 deletedAt: Date | null;
                 createdBy: string | null;
                 updatedBy: string | null;
+                state: string | null;
                 gstNumber: string | null;
                 billingAddress: string | null;
                 timezone: string;
                 companyId: string | null;
                 accountManagerId: string | null;
                 notes: string | null;
+                legalName: string | null;
+                stateCode: string | null;
+                pincode: string | null;
+                country: string | null;
+                gstRegistered: boolean;
+                gstinVerified: boolean;
+                gstinVerifiedAt: Date | null;
             };
             manager: {
                 email: string;

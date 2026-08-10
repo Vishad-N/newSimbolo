@@ -45,7 +45,7 @@ export default function ProjectWorkspace({ params }: { params: Promise<{ id: str
               </div>
               <div>
                 <h1 className="text-2xl font-heading font-bold text-white">{project.name}</h1>
-                <p className="text-sm text-gray-400">{project.service} Project</p>
+                <p className="text-sm text-gray-400">{project.order?.orderNumber ? `Order: ${project.order.orderNumber}` : 'Workspace'}</p>
               </div>
             </div>
           </div>
@@ -53,12 +53,17 @@ export default function ProjectWorkspace({ params }: { params: Promise<{ id: str
           <div className="flex items-center gap-6 w-full md:w-auto">
             <div className="hidden sm:block text-right">
               <div className="text-xs text-gray-500 uppercase tracking-wider mb-1">Status</div>
-              <span className="px-3 py-1 rounded-full text-xs font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20">
-                {project.status}
+              <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                project.status === 'IN_PROGRESS' || project.status === 'ACTIVE' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' :
+                project.status === 'PLANNING' || project.status === 'ON_HOLD' ? 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20' :
+                project.status === 'COMPLETED' ? 'bg-green-500/10 text-green-400 border border-green-500/20' :
+                'bg-gray-500/10 text-gray-400 border border-gray-500/20'
+              }`}>
+                {project.status || 'Active'}
               </span>
             </div>
             <div className="w-full md:w-48">
-              <ProgressBar progress={project.progress} label="Progress" />
+              <ProgressBar progress={project.progress || 0} label="Progress" />
             </div>
           </div>
         </div>
@@ -109,19 +114,19 @@ export default function ProjectWorkspace({ params }: { params: Promise<{ id: str
               <div className="flex items-center gap-3 text-sm">
                 <Calendar className="w-4 h-4 text-gray-400" />
                 <span className="text-gray-400">Start Date:</span>
-                <span className="text-white ml-auto">Jun 1, 2026</span>
+                <span className="text-white ml-auto">{project.createdAt ? new Date(project.createdAt).toLocaleDateString() : 'N/A'}</span>
               </div>
               
               <div className="flex items-center gap-3 text-sm">
                 <Clock className="w-4 h-4 text-gray-400" />
                 <span className="text-gray-400">Est. Delivery:</span>
-                <span className="text-white ml-auto">Sep 1, 2026</span>
+                <span className="text-white ml-auto">{project.targetEndDate ? new Date(project.targetEndDate).toLocaleDateString() : 'TBD'}</span>
               </div>
 
               <div className="flex items-center gap-3 text-sm">
                 <Users className="w-4 h-4 text-gray-400" />
                 <span className="text-gray-400">Team Assigned:</span>
-                <span className="text-white ml-auto">3 Members</span>
+                <span className="text-white ml-auto">{project.teamMembers?.length || 0} Members</span>
               </div>
             </Card>
           </div>

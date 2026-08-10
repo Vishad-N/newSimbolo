@@ -9,6 +9,25 @@ export declare class InvoicesController {
         order: {
             orderNumber: string;
         } | null;
+        items: {
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            description: string;
+            serviceId: string | null;
+            sacCode: string | null;
+            gstRate: number;
+            packageId: string | null;
+            totalAmount: number;
+            quantity: number;
+            unitPrice: number;
+            invoiceId: string;
+            cgstAmount: number;
+            sgstAmount: number;
+            igstAmount: number;
+            discount: number;
+            taxableAmount: number;
+        }[];
         client: {
             user: {
                 email: string;
@@ -37,9 +56,17 @@ export declare class InvoicesController {
                 deletedAt: Date | null;
                 createdBy: string | null;
                 updatedBy: string | null;
+                state: string | null;
                 slug: string;
                 gstNumber: string | null;
                 billingAddress: string | null;
+                legalName: string | null;
+                stateCode: string | null;
+                pincode: string | null;
+                country: string | null;
+                gstRegistered: boolean;
+                gstinVerified: boolean;
+                gstinVerifiedAt: Date | null;
                 website: string | null;
                 industry: string | null;
                 size: string | null;
@@ -57,12 +84,20 @@ export declare class InvoicesController {
             deletedAt: Date | null;
             createdBy: string | null;
             updatedBy: string | null;
+            state: string | null;
             gstNumber: string | null;
             billingAddress: string | null;
             timezone: string;
             companyId: string | null;
             accountManagerId: string | null;
             notes: string | null;
+            legalName: string | null;
+            stateCode: string | null;
+            pincode: string | null;
+            country: string | null;
+            gstRegistered: boolean;
+            gstinVerified: boolean;
+            gstinVerifiedAt: Date | null;
         };
     } & {
         id: string;
@@ -72,6 +107,7 @@ export declare class InvoicesController {
         deletedAt: Date | null;
         createdBy: string | null;
         updatedBy: string | null;
+        type: import(".prisma/client").$Enums.InvoiceTypeEnum;
         currency: string;
         clientId: string;
         totalAmount: number;
@@ -79,11 +115,28 @@ export declare class InvoicesController {
         orderId: string | null;
         dueDate: Date;
         invoiceNumber: string;
+        financialYear: string | null;
+        supplyType: import(".prisma/client").$Enums.SupplyTypeEnum;
+        taxTreatment: import(".prisma/client").$Enums.TaxTreatmentEnum;
+        taxType: import(".prisma/client").$Enums.TaxTypeEnum;
+        placeOfSupply: string | null;
+        placeOfSupplyCode: string | null;
+        reverseCharge: boolean;
         issueDate: Date;
         paidDate: Date | null;
         subtotal: number;
+        cgstAmount: number;
+        sgstAmount: number;
+        igstAmount: number;
+        totalTax: number;
         subscriptionId: string | null;
         pdfAssetId: string | null;
+        pdfUrl: string | null;
+        irn: string | null;
+        irnGeneratedAt: Date | null;
+        signedQrCode: string | null;
+        eInvoiceStatus: string | null;
+        eInvoiceError: string | null;
     }>;
     findAll(page: number, limit: number, status?: InvoiceStatusEnum, clientId?: string): Promise<{
         data: ({
@@ -106,12 +159,20 @@ export declare class InvoicesController {
                 deletedAt: Date | null;
                 createdBy: string | null;
                 updatedBy: string | null;
+                state: string | null;
                 gstNumber: string | null;
                 billingAddress: string | null;
                 timezone: string;
                 companyId: string | null;
                 accountManagerId: string | null;
                 notes: string | null;
+                legalName: string | null;
+                stateCode: string | null;
+                pincode: string | null;
+                country: string | null;
+                gstRegistered: boolean;
+                gstinVerified: boolean;
+                gstinVerifiedAt: Date | null;
             };
             payments: {
                 id: string;
@@ -126,6 +187,7 @@ export declare class InvoicesController {
             deletedAt: Date | null;
             createdBy: string | null;
             updatedBy: string | null;
+            type: import(".prisma/client").$Enums.InvoiceTypeEnum;
             currency: string;
             clientId: string;
             totalAmount: number;
@@ -133,11 +195,28 @@ export declare class InvoicesController {
             orderId: string | null;
             dueDate: Date;
             invoiceNumber: string;
+            financialYear: string | null;
+            supplyType: import(".prisma/client").$Enums.SupplyTypeEnum;
+            taxTreatment: import(".prisma/client").$Enums.TaxTreatmentEnum;
+            taxType: import(".prisma/client").$Enums.TaxTypeEnum;
+            placeOfSupply: string | null;
+            placeOfSupplyCode: string | null;
+            reverseCharge: boolean;
             issueDate: Date;
             paidDate: Date | null;
             subtotal: number;
+            cgstAmount: number;
+            sgstAmount: number;
+            igstAmount: number;
+            totalTax: number;
             subscriptionId: string | null;
             pdfAssetId: string | null;
+            pdfUrl: string | null;
+            irn: string | null;
+            irnGeneratedAt: Date | null;
+            signedQrCode: string | null;
+            eInvoiceStatus: string | null;
+            eInvoiceError: string | null;
         })[];
         meta: {
             total: number;
@@ -167,12 +246,20 @@ export declare class InvoicesController {
                 deletedAt: Date | null;
                 createdBy: string | null;
                 updatedBy: string | null;
+                state: string | null;
                 gstNumber: string | null;
                 billingAddress: string | null;
                 timezone: string;
                 companyId: string | null;
                 accountManagerId: string | null;
                 notes: string | null;
+                legalName: string | null;
+                stateCode: string | null;
+                pincode: string | null;
+                country: string | null;
+                gstRegistered: boolean;
+                gstinVerified: boolean;
+                gstinVerifiedAt: Date | null;
             };
             payments: {
                 id: string;
@@ -187,6 +274,7 @@ export declare class InvoicesController {
             deletedAt: Date | null;
             createdBy: string | null;
             updatedBy: string | null;
+            type: import(".prisma/client").$Enums.InvoiceTypeEnum;
             currency: string;
             clientId: string;
             totalAmount: number;
@@ -194,11 +282,28 @@ export declare class InvoicesController {
             orderId: string | null;
             dueDate: Date;
             invoiceNumber: string;
+            financialYear: string | null;
+            supplyType: import(".prisma/client").$Enums.SupplyTypeEnum;
+            taxTreatment: import(".prisma/client").$Enums.TaxTreatmentEnum;
+            taxType: import(".prisma/client").$Enums.TaxTypeEnum;
+            placeOfSupply: string | null;
+            placeOfSupplyCode: string | null;
+            reverseCharge: boolean;
             issueDate: Date;
             paidDate: Date | null;
             subtotal: number;
+            cgstAmount: number;
+            sgstAmount: number;
+            igstAmount: number;
+            totalTax: number;
             subscriptionId: string | null;
             pdfAssetId: string | null;
+            pdfUrl: string | null;
+            irn: string | null;
+            irnGeneratedAt: Date | null;
+            signedQrCode: string | null;
+            eInvoiceStatus: string | null;
+            eInvoiceError: string | null;
         })[];
         meta: {
             total: number;
@@ -241,6 +346,25 @@ export declare class InvoicesController {
             discountAmount: number;
             netAmount: number;
         }) | null;
+        items: {
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            description: string;
+            serviceId: string | null;
+            sacCode: string | null;
+            gstRate: number;
+            packageId: string | null;
+            totalAmount: number;
+            quantity: number;
+            unitPrice: number;
+            invoiceId: string;
+            cgstAmount: number;
+            sgstAmount: number;
+            igstAmount: number;
+            discount: number;
+            taxableAmount: number;
+        }[];
         client: {
             user: {
                 email: string;
@@ -269,9 +393,17 @@ export declare class InvoicesController {
                 deletedAt: Date | null;
                 createdBy: string | null;
                 updatedBy: string | null;
+                state: string | null;
                 slug: string;
                 gstNumber: string | null;
                 billingAddress: string | null;
+                legalName: string | null;
+                stateCode: string | null;
+                pincode: string | null;
+                country: string | null;
+                gstRegistered: boolean;
+                gstinVerified: boolean;
+                gstinVerifiedAt: Date | null;
                 website: string | null;
                 industry: string | null;
                 size: string | null;
@@ -289,12 +421,20 @@ export declare class InvoicesController {
             deletedAt: Date | null;
             createdBy: string | null;
             updatedBy: string | null;
+            state: string | null;
             gstNumber: string | null;
             billingAddress: string | null;
             timezone: string;
             companyId: string | null;
             accountManagerId: string | null;
             notes: string | null;
+            legalName: string | null;
+            stateCode: string | null;
+            pincode: string | null;
+            country: string | null;
+            gstRegistered: boolean;
+            gstinVerified: boolean;
+            gstinVerifiedAt: Date | null;
         };
         payments: {
             id: string;
@@ -343,6 +483,7 @@ export declare class InvoicesController {
         deletedAt: Date | null;
         createdBy: string | null;
         updatedBy: string | null;
+        type: import(".prisma/client").$Enums.InvoiceTypeEnum;
         currency: string;
         clientId: string;
         totalAmount: number;
@@ -350,11 +491,28 @@ export declare class InvoicesController {
         orderId: string | null;
         dueDate: Date;
         invoiceNumber: string;
+        financialYear: string | null;
+        supplyType: import(".prisma/client").$Enums.SupplyTypeEnum;
+        taxTreatment: import(".prisma/client").$Enums.TaxTreatmentEnum;
+        taxType: import(".prisma/client").$Enums.TaxTypeEnum;
+        placeOfSupply: string | null;
+        placeOfSupplyCode: string | null;
+        reverseCharge: boolean;
         issueDate: Date;
         paidDate: Date | null;
         subtotal: number;
+        cgstAmount: number;
+        sgstAmount: number;
+        igstAmount: number;
+        totalTax: number;
         subscriptionId: string | null;
         pdfAssetId: string | null;
+        pdfUrl: string | null;
+        irn: string | null;
+        irnGeneratedAt: Date | null;
+        signedQrCode: string | null;
+        eInvoiceStatus: string | null;
+        eInvoiceError: string | null;
     }>;
     downloadPdf(id: string, res: Response): Promise<void>;
     emailInvoice(id: string): Promise<{
@@ -368,6 +526,7 @@ export declare class InvoicesController {
         deletedAt: Date | null;
         createdBy: string | null;
         updatedBy: string | null;
+        type: import(".prisma/client").$Enums.InvoiceTypeEnum;
         currency: string;
         clientId: string;
         totalAmount: number;
@@ -375,11 +534,28 @@ export declare class InvoicesController {
         orderId: string | null;
         dueDate: Date;
         invoiceNumber: string;
+        financialYear: string | null;
+        supplyType: import(".prisma/client").$Enums.SupplyTypeEnum;
+        taxTreatment: import(".prisma/client").$Enums.TaxTreatmentEnum;
+        taxType: import(".prisma/client").$Enums.TaxTypeEnum;
+        placeOfSupply: string | null;
+        placeOfSupplyCode: string | null;
+        reverseCharge: boolean;
         issueDate: Date;
         paidDate: Date | null;
         subtotal: number;
+        cgstAmount: number;
+        sgstAmount: number;
+        igstAmount: number;
+        totalTax: number;
         subscriptionId: string | null;
         pdfAssetId: string | null;
+        pdfUrl: string | null;
+        irn: string | null;
+        irnGeneratedAt: Date | null;
+        signedQrCode: string | null;
+        eInvoiceStatus: string | null;
+        eInvoiceError: string | null;
     }>;
     softDelete(id: string, req: any): Promise<{
         message: string;

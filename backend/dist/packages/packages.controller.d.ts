@@ -22,6 +22,9 @@ export declare class PackagesController {
         serviceId: string;
         basePrice: number;
         seoPageId: string | null;
+        sacCode: string | null;
+        gstRate: number | null;
+        taxCategory: string | null;
         billingInterval: string;
         isPopular: boolean;
         isCustom: boolean;
@@ -40,6 +43,9 @@ export declare class PackagesController {
         serviceId: string;
         basePrice: number;
         seoPageId: string | null;
+        sacCode: string | null;
+        gstRate: number | null;
+        taxCategory: string | null;
         billingInterval: string;
         isPopular: boolean;
         isCustom: boolean;
@@ -58,6 +64,9 @@ export declare class PackagesController {
         serviceId: string;
         basePrice: number;
         seoPageId: string | null;
+        sacCode: string | null;
+        gstRate: number | null;
+        taxCategory: string | null;
         billingInterval: string;
         isPopular: boolean;
         isCustom: boolean;
@@ -76,6 +85,9 @@ export declare class PackagesController {
         serviceId: string;
         basePrice: number;
         seoPageId: string | null;
+        sacCode: string | null;
+        gstRate: number | null;
+        taxCategory: string | null;
         billingInterval: string;
         isPopular: boolean;
         isCustom: boolean;

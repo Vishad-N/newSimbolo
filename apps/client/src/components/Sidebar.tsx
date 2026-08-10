@@ -37,7 +37,7 @@ const mainNavItems = [
 ];
 
 const billingNavItems = [
-  { href: "/payments", label: "Payments", icon: CreditCard },
+  { href: "/payments", label: "Billing & Invoices", icon: CreditCard },
 ];
 
 const accountNavItems = [

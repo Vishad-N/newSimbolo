@@ -2,11 +2,19 @@ import * as PDFDocument from 'pdfkit';
 import { Writable } from 'stream';
 
 export interface InvoiceLineItem {
-  name: string;
-  description?: string;
+  name?: string;
+  description: string;
+  sacCode?: string;
   quantity: number;
   unitPrice: number;
-  total: number;
+  discount?: number;
+  taxableAmount?: number;
+  gstRate?: number;
+  cgstAmount?: number;
+  sgstAmount?: number;
+  igstAmount?: number;
+  totalAmount?: number; // total for the line item
+  total?: number; // fallback
 }
 
 export interface InvoicePdfData {
@@ -17,18 +25,23 @@ export interface InvoicePdfData {
   clientName: string;
   clientEmail: string;
   clientAddress?: string;
+  clientStateCode?: string;
   gstNumber?: string;
   companyName?: string;
   items: InvoiceLineItem[];
   subtotal: number;
+  cgstAmount?: number;
+  sgstAmount?: number;
+  igstAmount?: number;
   taxAmount: number;
   totalAmount: number;
   currency: string;
+  supplierStateCode?: string;
   notes?: string;
 }
 
 /**
- * Builds a professional invoice PDF using pdfkit.
+ * Builds a GST-compliant invoice PDF using pdfkit.
  * Returns a Buffer of the rendered PDF.
  * Isolated from business logic — receives only pure data.
  */
@@ -52,7 +65,7 @@ export async function buildInvoicePdf(data: InvoicePdfData): Promise<Buffer> {
     doc.font('Helvetica').fontSize(10).fillColor('#94A3B8').text('AI-Powered Digital Marketing Platform', 50, 52);
 
     // Invoice badge
-    doc.font('Helvetica-Bold').fontSize(14).fillColor(primaryColor).text('INVOICE', 430, 32, { align: 'right' });
+    doc.font('Helvetica-Bold').fontSize(14).fillColor(primaryColor).text('TAX INVOICE', 400, 32, { align: 'right' });
 
     // ── Invoice Meta ─────────────────────────────────────────────────
     doc.rect(0, 80, doc.page.width, 60).fill(lightGray);
@@ -73,14 +86,23 @@ export async function buildInvoicePdf(data: InvoicePdfData): Promise<Buffer> {
       .font('Helvetica-Bold')
       .fontSize(11)
       .fillColor(darkColor)
-      .text(data.clientName, 50, billToY + 15);
-    doc
-      .font('Helvetica')
-      .fontSize(9)
-      .fillColor(grayColor)
-      .text(data.clientEmail, 50, billToY + 30);
-    if (data.clientAddress) doc.text(data.clientAddress, 50, billToY + 44);
-    if (data.gstNumber) doc.text(`GSTIN: ${data.gstNumber}`, 50, billToY + 58);
+      .text(data.companyName ? data.companyName : data.clientName, 50, billToY + 15);
+    
+    let currentY = billToY + 30;
+    doc.font('Helvetica').fontSize(9).fillColor(grayColor).text(data.clientEmail, 50, currentY);
+    currentY += 14;
+    
+    if (data.clientAddress) {
+      doc.text(data.clientAddress, 50, currentY);
+      currentY += 14;
+    }
+    if (data.clientStateCode) {
+      doc.text(`State Code: ${data.clientStateCode}`, 50, currentY);
+      currentY += 14;
+    }
+    if (data.gstNumber) {
+      doc.font('Helvetica-Bold').text(`GSTIN: ${data.gstNumber}`, 50, currentY);
+    }
 
     // ── Company info (right side) ─────────────────────────────────
     doc.font('Helvetica-Bold').fontSize(9).fillColor(primaryColor).text('FROM', 350, billToY);
@@ -89,18 +111,22 @@ export async function buildInvoicePdf(data: InvoicePdfData): Promise<Buffer> {
       .fontSize(11)
       .fillColor(darkColor)
       .text('The Simbolo Pvt. Ltd.', 350, billToY + 15);
-    doc
-      .font('Helvetica')
-      .fontSize(9)
-      .fillColor(grayColor)
-      .text('billing@simbolo.ai', 350, billToY + 30)
-      .text('India', 350, billToY + 44);
+    
+    let fromY = billToY + 30;
+    doc.font('Helvetica').fontSize(9).fillColor(grayColor).text('billing@simbolo.ai', 350, fromY);
+    fromY += 14;
+    doc.text('India', 350, fromY);
+    fromY += 14;
+    doc.text(`State Code: ${data.supplierStateCode || '23'}`, 350, fromY);
+    fromY += 14;
+    doc.font('Helvetica-Bold').text('GSTIN: [SUPPLIER_GSTIN]', 350, fromY); // Replace with env var later if needed
 
     // ── Line Items Table ──────────────────────────────────────────
     const tableTop = 290;
     const tableLeft = 50;
-    const colWidths = [220, 60, 100, 100];
-    const headers = ['Description', 'Qty', 'Unit Price', 'Total'];
+    // columns: Description(170), SAC(50), Qty(30), Price(60), Taxable(60), Tax(60), Total(60)
+    const colWidths = [150, 40, 30, 60, 60, 70, 70];
+    const headers = ['Description', 'SAC', 'Qty', 'Unit Price', 'Taxable', 'GST', 'Amount'];
 
     // Table header background
     doc.rect(tableLeft, tableTop, doc.page.width - 100, 24).fill(darkColor);
@@ -109,28 +135,46 @@ export async function buildInvoicePdf(data: InvoicePdfData): Promise<Buffer> {
     headers.forEach((h, i) => {
       doc
         .font('Helvetica-Bold')
-        .fontSize(9)
+        .fontSize(8)
         .fillColor('#FFFFFF')
         .text(h, xPos, tableTop + 8, { width: colWidths[i], align: i > 1 ? 'right' : 'left' });
       xPos += colWidths[i];
     });
 
     let rowY = tableTop + 24;
+    const symbol = data.currency === 'INR' ? '₹' : '$';
+
     data.items.forEach((item, idx) => {
+      // Create new page if needed
+      if (rowY > doc.page.height - 150) {
+        doc.addPage();
+        rowY = 50;
+      }
+
       if (idx % 2 === 1) {
         doc.rect(tableLeft, rowY, doc.page.width - 100, 22).fill(lightGray);
       }
       xPos = tableLeft + 8;
+      
+      const desc = item.name ? item.name + (item.description ? `\n${item.description}` : '') : item.description;
+      const taxable = item.taxableAmount ?? (item.quantity * item.unitPrice - (item.discount || 0));
+      const taxStr = item.gstRate ? `${item.gstRate}%` : '-';
+      const itemTotal = item.totalAmount ?? item.total ?? 0;
+
       const vals = [
-        item.name + (item.description ? `\n${item.description}` : ''),
+        desc,
+        item.sacCode || '-',
         String(item.quantity),
-        `${data.currency === 'INR' ? '₹' : '$'}${item.unitPrice.toLocaleString('en-IN')}`,
-        `${data.currency === 'INR' ? '₹' : '$'}${item.total.toLocaleString('en-IN')}`,
+        `${item.unitPrice.toLocaleString('en-IN')}`,
+        `${taxable.toLocaleString('en-IN')}`,
+        `${taxStr}`,
+        `${itemTotal.toLocaleString('en-IN')}`,
       ];
+
       vals.forEach((v, i) => {
         doc
           .font(i === 0 ? 'Helvetica-Bold' : 'Helvetica')
-          .fontSize(9)
+          .fontSize(8)
           .fillColor(darkColor)
           .text(v, xPos, rowY + 6, { width: colWidths[i], align: i > 1 ? 'right' : 'left' });
         xPos += colWidths[i];
@@ -139,7 +183,6 @@ export async function buildInvoicePdf(data: InvoicePdfData): Promise<Buffer> {
     });
 
     // ── Totals ───────────────────────────────────────────────────────
-    const symbol = data.currency === 'INR' ? '₹' : '$';
     rowY += 10;
     doc
       .moveTo(350, rowY)
@@ -149,9 +192,25 @@ export async function buildInvoicePdf(data: InvoicePdfData): Promise<Buffer> {
     rowY += 8;
 
     const totalsRows = [
-      ['Subtotal', `${symbol}${data.subtotal.toLocaleString('en-IN')}`],
-      ['GST (18%)', `${symbol}${data.taxAmount.toLocaleString('en-IN')}`],
+      ['Subtotal', `${symbol}${data.subtotal.toLocaleString('en-IN')}`]
     ];
+
+    if (data.igstAmount && data.igstAmount > 0) {
+      totalsRows.push(['IGST', `${symbol}${data.igstAmount.toLocaleString('en-IN')}`]);
+    } else {
+      if (data.cgstAmount && data.cgstAmount > 0) {
+        totalsRows.push(['CGST', `${symbol}${data.cgstAmount.toLocaleString('en-IN')}`]);
+      }
+      if (data.sgstAmount && data.sgstAmount > 0) {
+        totalsRows.push(['SGST', `${symbol}${data.sgstAmount.toLocaleString('en-IN')}`]);
+      }
+    }
+
+    // fallback for legacy
+    if (!data.igstAmount && !data.cgstAmount && data.taxAmount > 0) {
+      totalsRows.push(['GST', `${symbol}${data.taxAmount.toLocaleString('en-IN')}`]);
+    }
+
     totalsRows.forEach(([label, value]) => {
       doc
         .font('Helvetica')

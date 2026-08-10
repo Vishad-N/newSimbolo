@@ -395,7 +395,23 @@ let AuthService = AuthService_1 = class AuthService extends base_service_1.BaseS
                     providerAccountId: profile.providerAccountId,
                 },
             },
-            include: { user: { include: { role: { include: { permissions: true } } } } },
+            include: {
+                user: {
+                    include: {
+                        role: { include: { permissions: true } },
+                        clientProfile: {
+                            include: {
+                                subscriptions: {
+                                    where: { status: { in: ['ACTIVE', 'TRIALING'] } }
+                                },
+                                orders: {
+                                    where: { status: { in: ['CONFIRMED', 'ACTIVE', 'IN_PROGRESS', 'COMPLETED'] } }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
         });
         let user;
         if (oauthAccount) {
@@ -411,7 +427,19 @@ let AuthService = AuthService_1 = class AuthService extends base_service_1.BaseS
         else {
             user = await this.prisma.user.findUnique({
                 where: { email: profile.email },
-                include: { role: { include: { permissions: true } } },
+                include: {
+                    role: { include: { permissions: true } },
+                    clientProfile: {
+                        include: {
+                            subscriptions: {
+                                where: { status: { in: ['ACTIVE', 'TRIALING'] } }
+                            },
+                            orders: {
+                                where: { status: { in: ['CONFIRMED', 'ACTIVE', 'IN_PROGRESS', 'COMPLETED'] } }
+                            }
+                        }
+                    }
+                },
             });
             if (!user) {
                 const clientRole = await this.prisma.role.findUnique({ where: { slug: 'CLIENT' } });
@@ -424,7 +452,19 @@ let AuthService = AuthService_1 = class AuthService extends base_service_1.BaseS
                         status: client_1.UserStatusEnum.ACTIVE,
                         roleId: clientRole.id,
                     },
-                    include: { role: { include: { permissions: true } } },
+                    include: {
+                        role: { include: { permissions: true } },
+                        clientProfile: {
+                            include: {
+                                subscriptions: {
+                                    where: { status: { in: ['ACTIVE', 'TRIALING'] } }
+                                },
+                                orders: {
+                                    where: { status: { in: ['CONFIRMED', 'ACTIVE', 'IN_PROGRESS', 'COMPLETED'] } }
+                                }
+                            }
+                        }
+                    },
                 });
             }
             await this.prisma.oAuthAccount.create({
@@ -468,6 +508,7 @@ let AuthService = AuthService_1 = class AuthService extends base_service_1.BaseS
                 status: user.status,
                 role: user.role.slug,
                 permissions: permissionSlugs,
+                hasActivePlan: !!(user.clientProfile?.subscriptions?.length || user.clientProfile?.orders?.length),
             },
         };
     }

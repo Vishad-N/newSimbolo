@@ -26,7 +26,7 @@ class UpdateProjectDto {
     targetEndDate;
     actualEndDate;
     static _OPENAPI_METADATA_FACTORY() {
-        return { name: { required: false, type: () => String }, description: { required: false, type: () => String }, managerId: { required: false, type: () => String, format: "uuid" }, status: { required: false, enum: ["ACTIVE", "COMPLETED", "IN_REVIEW", "PLANNING", "NOT_STARTED", "IN_PROGRESS", "ON_HOLD", "CANCELLED"] }, priority: { required: false, enum: ["LOW", "MEDIUM", "HIGH", "URGENT"] }, budget: { required: false, type: () => Number, minimum: 0 }, progress: { required: false, type: () => Number, minimum: 0, maximum: 100 }, startDate: { required: false, type: () => String }, targetEndDate: { required: false, type: () => String }, actualEndDate: { required: false, type: () => String } };
+        return { name: { required: false, type: () => String }, description: { required: false, type: () => String }, managerId: { required: false, type: () => String, format: "uuid" }, status: { required: false, enum: ["ACTIVE", "IN_PROGRESS", "COMPLETED", "CANCELLED", "IN_REVIEW", "PLANNING", "NOT_STARTED", "ON_HOLD"] }, priority: { required: false, enum: ["LOW", "MEDIUM", "HIGH", "URGENT"] }, budget: { required: false, type: () => Number, minimum: 0 }, progress: { required: false, type: () => Number, minimum: 0, maximum: 100 }, startDate: { required: false, type: () => String }, targetEndDate: { required: false, type: () => String }, actualEndDate: { required: false, type: () => String } };
     }
 }
 exports.UpdateProjectDto = UpdateProjectDto;

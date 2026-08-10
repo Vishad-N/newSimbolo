@@ -13,9 +13,17 @@ export declare class ProfilesController {
             deletedAt: Date | null;
             createdBy: string | null;
             updatedBy: string | null;
+            state: string | null;
             slug: string;
             gstNumber: string | null;
             billingAddress: string | null;
+            legalName: string | null;
+            stateCode: string | null;
+            pincode: string | null;
+            country: string | null;
+            gstRegistered: boolean;
+            gstinVerified: boolean;
+            gstinVerifiedAt: Date | null;
             website: string | null;
             industry: string | null;
             size: string | null;
@@ -33,12 +41,20 @@ export declare class ProfilesController {
         deletedAt: Date | null;
         createdBy: string | null;
         updatedBy: string | null;
+        state: string | null;
         gstNumber: string | null;
         billingAddress: string | null;
         timezone: string;
         companyId: string | null;
         accountManagerId: string | null;
         notes: string | null;
+        legalName: string | null;
+        stateCode: string | null;
+        pincode: string | null;
+        country: string | null;
+        gstRegistered: boolean;
+        gstinVerified: boolean;
+        gstinVerifiedAt: Date | null;
     }>;
     updateClientProfile(user: JwtPayload, dto: UpdateClientProfileDto): Promise<{
         company: {
@@ -49,9 +65,17 @@ export declare class ProfilesController {
             deletedAt: Date | null;
             createdBy: string | null;
             updatedBy: string | null;
+            state: string | null;
             slug: string;
             gstNumber: string | null;
             billingAddress: string | null;
+            legalName: string | null;
+            stateCode: string | null;
+            pincode: string | null;
+            country: string | null;
+            gstRegistered: boolean;
+            gstinVerified: boolean;
+            gstinVerifiedAt: Date | null;
             website: string | null;
             industry: string | null;
             size: string | null;
@@ -69,11 +93,19 @@ export declare class ProfilesController {
         deletedAt: Date | null;
         createdBy: string | null;
         updatedBy: string | null;
+        state: string | null;
         gstNumber: string | null;
         billingAddress: string | null;
         timezone: string;
         companyId: string | null;
         accountManagerId: string | null;
         notes: string | null;
+        legalName: string | null;
+        stateCode: string | null;
+        pincode: string | null;
+        country: string | null;
+        gstRegistered: boolean;
+        gstinVerified: boolean;
+        gstinVerifiedAt: Date | null;
     }>;
 }

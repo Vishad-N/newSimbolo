@@ -44,12 +44,20 @@ export declare class ClientsController {
             deletedAt: Date | null;
             createdBy: string | null;
             updatedBy: string | null;
+            state: string | null;
             gstNumber: string | null;
             billingAddress: string | null;
             timezone: string;
             companyId: string | null;
             accountManagerId: string | null;
             notes: string | null;
+            legalName: string | null;
+            stateCode: string | null;
+            pincode: string | null;
+            country: string | null;
+            gstRegistered: boolean;
+            gstinVerified: boolean;
+            gstinVerifiedAt: Date | null;
         })[];
         meta: {
             total: number;
@@ -68,12 +76,20 @@ export declare class ClientsController {
         deletedAt: Date | null;
         createdBy: string | null;
         updatedBy: string | null;
+        state: string | null;
         gstNumber: string | null;
         billingAddress: string | null;
         timezone: string;
         companyId: string | null;
         accountManagerId: string | null;
         notes: string | null;
+        legalName: string | null;
+        stateCode: string | null;
+        pincode: string | null;
+        country: string | null;
+        gstRegistered: boolean;
+        gstinVerified: boolean;
+        gstinVerifiedAt: Date | null;
     }>;
     findByUserId(userId: string): Promise<{
         id: string;
@@ -85,12 +101,20 @@ export declare class ClientsController {
         deletedAt: Date | null;
         createdBy: string | null;
         updatedBy: string | null;
+        state: string | null;
         gstNumber: string | null;
         billingAddress: string | null;
         timezone: string;
         companyId: string | null;
         accountManagerId: string | null;
         notes: string | null;
+        legalName: string | null;
+        stateCode: string | null;
+        pincode: string | null;
+        country: string | null;
+        gstRegistered: boolean;
+        gstinVerified: boolean;
+        gstinVerifiedAt: Date | null;
     }>;
     getTimeline(id: string, page?: number, limit?: number): Promise<{
         data: {
@@ -140,12 +164,20 @@ export declare class ClientsController {
         deletedAt: Date | null;
         createdBy: string | null;
         updatedBy: string | null;
+        state: string | null;
         gstNumber: string | null;
         billingAddress: string | null;
         timezone: string;
         companyId: string | null;
         accountManagerId: string | null;
         notes: string | null;
+        legalName: string | null;
+        stateCode: string | null;
+        pincode: string | null;
+        country: string | null;
+        gstRegistered: boolean;
+        gstinVerified: boolean;
+        gstinVerifiedAt: Date | null;
     }>;
     update(id: string, dto: UpdateClientDto, user: JwtPayload): Promise<{
         id: string;
@@ -157,12 +189,20 @@ export declare class ClientsController {
         deletedAt: Date | null;
         createdBy: string | null;
         updatedBy: string | null;
+        state: string | null;
         gstNumber: string | null;
         billingAddress: string | null;
         timezone: string;
         companyId: string | null;
         accountManagerId: string | null;
         notes: string | null;
+        legalName: string | null;
+        stateCode: string | null;
+        pincode: string | null;
+        country: string | null;
+        gstRegistered: boolean;
+        gstinVerified: boolean;
+        gstinVerifiedAt: Date | null;
     }>;
     remove(id: string, user: JwtPayload): Promise<{
         message: string;

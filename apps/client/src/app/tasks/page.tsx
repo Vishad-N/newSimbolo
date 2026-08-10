@@ -10,7 +10,16 @@ export default function TasksPage() {
   const [tasks, setTasks] = useState<any[]>([]);
 
   useEffect(() => {
-    mockApi.tasks.getAll().then(setTasks);
+    fetch('/api/profile')
+      .then(res => res.json())
+      .then(data => {
+        const profileData = data.data || data;
+        const clientId = profileData?.clientProfile?.id || profileData?.id;
+        if (clientId) {
+          mockApi.tasks.getAll(clientId).then(setTasks);
+        }
+      })
+      .catch(console.error);
   }, []);
 
   const columns = [
@@ -20,11 +29,11 @@ export default function TasksPage() {
       header: "Status",
       render: (item: any) => (
         <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-          item.status === 'Completed' ? 'bg-green-500/10 text-green-400 border border-green-500/20' :
-          item.status === 'In Progress' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' :
+          item.status === 'COMPLETED' ? 'bg-green-500/10 text-green-400 border border-green-500/20' :
+          item.status === 'IN_PROGRESS' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' :
           'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20'
         }`}>
-          {item.status}
+          {item.status || 'Pending'}
         </span>
       )
     },
@@ -33,11 +42,11 @@ export default function TasksPage() {
       header: "Progress",
       render: (item: any) => (
         <div className="w-32">
-          <ProgressBar progress={item.progress} />
+          <ProgressBar progress={item.progress || 0} />
         </div>
       )
     },
-    { key: "deadline", header: "Deadline" },
+    { key: "dueDate", header: "Deadline", render: (item: any) => <span>{item.dueDate ? new Date(item.dueDate).toLocaleDateString() : 'No deadline'}</span> },
   ];
 
   return (

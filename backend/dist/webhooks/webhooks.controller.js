@@ -29,6 +29,9 @@ let WebhooksController = class WebhooksController {
      * Requires raw body for signature verification.
      */
     handleRazorpayWebhook(signature, req) {
+        if (!req.rawBody) {
+            console.warn('⚠️ req.rawBody is undefined! Falling back to JSON.stringify(req.body). This will likely fail signature validation.');
+        }
         const rawBody = req.rawBody ?? Buffer.from(JSON.stringify(req.body));
         return this.webhooksService.handleRazorpayWebhook(rawBody, signature ?? '');
     }

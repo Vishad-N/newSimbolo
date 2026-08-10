@@ -12,7 +12,16 @@ export default function ProjectsPage() {
   const router = useRouter();
 
   useEffect(() => {
-    mockApi.projects.getAll().then(setProjects);
+    fetch('/api/profile')
+      .then(res => res.json())
+      .then(data => {
+        const profileData = data.data || data;
+        const clientId = profileData?.clientProfile?.id || profileData?.id;
+        if (clientId) {
+          mockApi.projects.getAll(clientId).then(setProjects);
+        }
+      })
+      .catch(console.error);
   }, []);
 
   const columns = [
@@ -31,11 +40,12 @@ export default function ProjectsPage() {
       header: "Status",
       render: (item: any) => (
         <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-          item.status === 'In Progress' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' :
-          item.status === 'In Review' ? 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20' :
+          item.status === 'IN_PROGRESS' || item.status === 'ACTIVE' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' :
+          item.status === 'PLANNING' || item.status === 'ON_HOLD' ? 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20' :
+          item.status === 'COMPLETED' ? 'bg-green-500/10 text-green-400 border border-green-500/20' :
           'bg-gray-500/10 text-gray-400 border border-gray-500/20'
         }`}>
-          {item.status}
+          {item.status || 'Active'}
         </span>
       )
     },
@@ -44,11 +54,11 @@ export default function ProjectsPage() {
       header: "Progress",
       render: (item: any) => (
         <div className="w-32">
-          <ProgressBar progress={item.progress} />
+          <ProgressBar progress={item.progress || 0} />
         </div>
       )
     },
-    { key: "estDelivery", header: "Est. Delivery" },
+    { key: "targetEndDate", header: "Est. Delivery", render: (item: any) => <span>{item.targetEndDate ? new Date(item.targetEndDate).toLocaleDateString() : 'TBD'}</span> },
     {
       key: "actions",
       header: "",

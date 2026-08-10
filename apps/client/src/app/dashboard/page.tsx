@@ -17,24 +17,20 @@ export default function DashboardPage() {
   const [orders, setOrders] = useState<any[]>([]);
 
   useEffect(() => {
-    mockApi.stats.getDashboard().then(setStats);
-    mockApi.projects.getAll().then(setProjects);
-    mockApi.subscription.get().then(setSubscription);
-
-    fetch('/api/orders')
-      .then(res => res.json())
-      .then(data => {
-        if (data.data) {
-          setOrders(data.data);
-        }
-      })
-      .catch(console.error);
-
     fetch('/api/profile')
       .then(res => res.json())
       .then(data => {
-        if (data.data) {
-          setProfile(data.data);
+        // The /api/profile route returns the raw user object, but sometimes it wraps it in 'data'
+        const profileData = data.data || data;
+        setProfile(profileData);
+        const clientId = profileData?.clientProfile?.id || profileData?.id;
+        if (clientId) {
+          mockApi.stats.getDashboard(clientId).then(setStats);
+          mockApi.projects.getAll(clientId).then(setProjects);
+          mockApi.subscription.get(clientId).then(setSubscription);
+          mockApi.orders.getAll(clientId).then(setOrders);
+        } else {
+          setStats({ activeProjects: 0, pendingTasks: 0, invoicesDue: 0, upcomingMeetings: 0 });
         }
       })
       .catch(console.error);
@@ -108,10 +104,10 @@ export default function DashboardPage() {
                     <p className="text-xs text-gray-500 mt-1">{project.service} • Est. {project.estDelivery}</p>
                   </div>
                   <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20">
-                    {project.status}
+                    {project.status || 'Active'}
                   </span>
                 </div>
-                <ProgressBar progress={project.progress} label="Overall Progress" />
+                <ProgressBar progress={project.progress || 0} label="Overall Progress" />
               </div>
             ))}
           </div>

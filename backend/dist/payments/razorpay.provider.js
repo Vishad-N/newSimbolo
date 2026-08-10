@@ -92,7 +92,11 @@ let RazorpayGateway = class RazorpayGateway extends base_service_1.BaseService {
             return signature === 'mock-webhook-signature' || signature === 'mock-signature';
         }
         const expectedSignature = crypto.createHmac('sha256', webhookSecret).update(rawBody).digest('hex');
-        return crypto.timingSafeEqual(Buffer.from(expectedSignature, 'hex'), Buffer.from(signature, 'hex'));
+        const isValid = crypto.timingSafeEqual(Buffer.from(expectedSignature, 'hex'), Buffer.from(signature, 'hex'));
+        if (!isValid) {
+            this.logger.error(`Webhook signature mismatch! Expected: ${expectedSignature}, Received: ${signature}. Body length: ${rawBody.length}`);
+        }
+        return isValid;
     }
 };
 exports.RazorpayGateway = RazorpayGateway;

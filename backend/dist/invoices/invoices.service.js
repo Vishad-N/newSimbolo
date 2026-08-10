@@ -14,28 +14,43 @@ const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
 const base_service_1 = require("../shared/abstractions/base.service");
 const email_service_1 = require("../shared/email/email.service");
+const storage_service_1 = require("../storage/storage.service");
+const tax_service_1 = require("./tax.service");
 const invoice_pdf_builder_1 = require("./templates/invoice.pdf.builder");
 const client_1 = require("@prisma/client");
-const path = require("path");
-const fs = require("fs");
 let InvoicesService = class InvoicesService extends base_service_1.BaseService {
     prisma;
     emailService;
-    uploadsDir;
-    constructor(prisma, emailService) {
+    taxService;
+    storageService;
+    constructor(prisma, emailService, taxService, storageService) {
         super('InvoicesService');
         this.prisma = prisma;
         this.emailService = emailService;
-        this.uploadsDir = path.join(process.cwd(), 'uploads', 'invoices');
-        if (!fs.existsSync(this.uploadsDir)) {
-            fs.mkdirSync(this.uploadsDir, { recursive: true });
-        }
+        this.taxService = taxService;
+        this.storageService = storageService;
     }
-    generateInvoiceNumber() {
+    async generateInvoiceNumber() {
         const now = new Date();
-        const yearMonth = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}`;
-        const random = Math.random().toString(36).substring(2, 6).toUpperCase();
-        return `INV-${yearMonth}-${random}`;
+        // Indian Financial Year: April 1 to March 31
+        const month = now.getMonth();
+        const year = now.getFullYear();
+        const startYear = month >= 3 ? year : year - 1;
+        const fy = `${startYear.toString().slice(-2)}-${(startYear + 1).toString().slice(-2)}`;
+        const lastInvoice = await this.prisma.invoice.findFirst({
+            where: { financialYear: fy },
+            orderBy: { invoiceNumber: 'desc' },
+        });
+        let nextNumber = 1;
+        if (lastInvoice && lastInvoice.invoiceNumber.startsWith(`SIM/${fy}/`)) {
+            const parts = lastInvoice.invoiceNumber.split('/');
+            const numPart = parseInt(parts[2], 10);
+            if (!isNaN(numPart)) {
+                nextNumber = numPart + 1;
+            }
+        }
+        const paddedNumber = String(nextNumber).padStart(6, '0');
+        return { number: `SIM/${fy}/${paddedNumber}`, fy };
     }
     async create(dto, createdBy) {
         const client = await this.prisma.clientProfile.findFirst({
@@ -44,42 +59,107 @@ let InvoicesService = class InvoicesService extends base_service_1.BaseService {
         });
         if (!client)
             throw new common_1.NotFoundException(`Client ${dto.clientId} not found`);
-        const taxPct = dto.taxPercentage ?? 18;
-        const subtotal = dto.items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
-        const taxAmount = parseFloat(((subtotal * taxPct) / 100).toFixed(2));
-        const totalAmount = parseFloat((subtotal + taxAmount).toFixed(2));
-        const invoiceNumber = this.generateInvoiceNumber();
+        const supplierStateCode = process.env.SUPPLIER_STATE_CODE || '23'; // Madhya Pradesh
+        const customerStateCode = client.stateCode || client.company?.stateCode || undefined;
+        const hasGstin = !!(client.gstNumber || client.company?.gstNumber);
+        const taxParams = {
+            supplierStateCode,
+            customerStateCode,
+            items: dto.items.map(item => ({
+                description: item.name + (item.description ? ` - ${item.description}` : ''),
+                quantity: item.quantity,
+                unitPrice: item.unitPrice,
+                gstRate: dto.taxPercentage ?? 18,
+            }))
+        };
+        const taxResult = this.taxService.calculateTax(taxParams);
+        const { number: invoiceNumber, fy } = await this.generateInvoiceNumber();
         const invoice = await this.prisma.invoice.create({
             data: {
                 invoiceNumber,
+                financialYear: fy,
                 status: client_1.InvoiceStatusEnum.DRAFT,
+                supplyType: hasGstin ? 'B2B' : 'B2C',
+                taxTreatment: 'STANDARD',
+                taxType: taxResult.isInterState ? 'IGST' : 'CGST_SGST',
                 issueDate: new Date(),
                 dueDate: new Date(dto.dueDate),
-                subtotal,
-                taxAmount,
-                totalAmount,
+                subtotal: taxResult.subtotal,
+                taxAmount: taxResult.totalTax,
+                cgstAmount: taxResult.totalCgst,
+                sgstAmount: taxResult.totalSgst,
+                igstAmount: taxResult.totalIgst,
+                totalTax: taxResult.totalTax,
+                totalAmount: taxResult.totalAmount,
                 currency: dto.currency ?? 'INR',
                 clientId: dto.clientId,
                 orderId: dto.orderId ?? null,
                 subscriptionId: dto.subscriptionId ?? null,
                 createdBy: createdBy ?? null,
+                items: {
+                    create: taxResult.items.map(item => ({
+                        description: item.description,
+                        sacCode: item.sacCode,
+                        quantity: item.quantity,
+                        unitPrice: item.unitPrice,
+                        discount: item.discount,
+                        taxableAmount: item.taxableAmount,
+                        gstRate: item.gstRate,
+                        cgstAmount: item.cgstAmount,
+                        sgstAmount: item.sgstAmount,
+                        igstAmount: item.igstAmount,
+                        totalAmount: item.totalAmount
+                    }))
+                }
             },
             include: {
                 client: { include: { user: true, company: true } },
                 order: { select: { orderNumber: true } },
+                items: true
             },
         });
-        // Log timeline activity
         await this.prisma.timeline.create({
             data: {
-                title: `Invoice ${invoiceNumber} generated`,
-                description: `Invoice for ₹${totalAmount} generated for ${client.user.firstName} ${client.user.lastName}`,
+                title: `Tax Invoice ${invoiceNumber} generated`,
+                description: `Invoice for ₹${taxResult.totalAmount} generated for ${client.user.firstName} ${client.user.lastName}`,
                 eventType: 'INVOICE_GENERATED',
                 clientId: dto.clientId,
                 orderId: dto.orderId ?? undefined,
                 userId: createdBy ?? undefined,
             },
         });
+        return invoice;
+    }
+    async createFromOrder(orderId, createdBy) {
+        const order = await this.prisma.order.findUnique({
+            where: { id: orderId },
+            include: {
+                items: { include: { service: true, package: true } },
+            }
+        });
+        if (!order)
+            throw new common_1.NotFoundException(`Order ${orderId} not found`);
+        // Check if invoice already exists
+        const existing = await this.prisma.invoice.findFirst({ where: { orderId, deletedAt: null } });
+        if (existing)
+            return existing;
+        const dto = {
+            clientId: order.clientId,
+            orderId: order.id,
+            dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
+            currency: order.currency,
+            items: order.items.map(item => ({
+                name: item.name,
+                description: item.description ?? undefined,
+                quantity: item.quantity,
+                unitPrice: item.unitPrice,
+                sacCode: item.service?.sacCode ?? item.package?.sacCode ?? undefined,
+                gstRate: item.service?.gstRate ?? item.package?.gstRate ?? 18,
+            }))
+        };
+        const invoice = await this.create(dto, createdBy);
+        // Automatically generate PDF
+        await this.generatePdf(invoice.id);
         return invoice;
     }
     async findAll(clientId, status, page = 1, limit = 20) {
@@ -111,6 +191,7 @@ let InvoicesService = class InvoicesService extends base_service_1.BaseService {
                 client: { include: { user: true, company: true } },
                 order: { include: { items: true } },
                 payments: { orderBy: { createdAt: 'desc' } },
+                items: true,
                 pdfAsset: true,
             },
         });
@@ -134,44 +215,53 @@ let InvoicesService = class InvoicesService extends base_service_1.BaseService {
     async generatePdf(id) {
         const invoice = await this.findOne(id);
         const client = invoice.client;
-        const order = invoice.order;
-        const items = order?.items?.map((item) => ({
-            name: item.name,
-            description: item.description ?? undefined,
-            quantity: item.quantity,
-            unitPrice: item.unitPrice,
-            total: item.totalPrice,
-        })) ?? [
-            {
-                name: 'Services',
-                description: 'As per agreement',
-                quantity: 1,
-                unitPrice: invoice.subtotal,
-                total: invoice.subtotal,
-            },
-        ];
         const pdfData = {
             invoiceNumber: invoice.invoiceNumber,
             issueDate: invoice.issueDate,
             dueDate: invoice.dueDate,
             status: invoice.status,
-            clientName: `${client.user.firstName} ${client.user.lastName}`,
+            clientName: client.legalName || `${client.user.firstName} ${client.user.lastName}`,
             clientEmail: client.user.email,
             clientAddress: client.billingAddress ?? undefined,
-            gstNumber: client.gstNumber ?? undefined,
+            clientStateCode: client.stateCode || client.company?.stateCode || undefined,
+            gstNumber: client.gstNumber || client.company?.gstNumber || undefined,
             companyName: client.company?.name ?? undefined,
-            items,
+            items: invoice.items.map((item) => ({
+                description: item.description,
+                sacCode: item.sacCode ?? undefined,
+                quantity: item.quantity,
+                unitPrice: item.unitPrice,
+                discount: item.discount,
+                taxableAmount: item.taxableAmount,
+                gstRate: item.gstRate,
+                cgstAmount: item.cgstAmount,
+                sgstAmount: item.sgstAmount,
+                igstAmount: item.igstAmount,
+                totalAmount: item.totalAmount
+            })),
             subtotal: invoice.subtotal,
+            cgstAmount: invoice.cgstAmount,
+            sgstAmount: invoice.sgstAmount,
+            igstAmount: invoice.igstAmount,
             taxAmount: invoice.taxAmount,
             totalAmount: invoice.totalAmount,
             currency: invoice.currency,
+            supplierStateCode: process.env.SUPPLIER_STATE_CODE || '23',
         };
         const pdfBuffer = await (0, invoice_pdf_builder_1.buildInvoicePdf)(pdfData);
-        // Save to uploads dir
-        const filename = `${invoice.invoiceNumber}.pdf`;
-        const filePath = path.join(this.uploadsDir, filename);
-        fs.writeFileSync(filePath, pdfBuffer);
-        this.logger.log(`📄 Invoice PDF generated: ${filename}`);
+        const file = {
+            buffer: pdfBuffer,
+            mimetype: 'application/pdf',
+            size: pdfBuffer.length,
+            originalname: `${invoice.invoiceNumber}.pdf`,
+        };
+        const storageKey = `invoices/${invoice.financialYear || '00-00'}/${invoice.invoiceNumber}.pdf`;
+        const uploadResult = await this.storageService.upload(file, storageKey);
+        await this.prisma.invoice.update({
+            where: { id },
+            data: { pdfUrl: uploadResult.url }
+        });
+        this.logger.log(`📄 Invoice PDF uploaded to R2: ${storageKey}`);
         return pdfBuffer;
     }
     async emailInvoice(id) {
@@ -201,6 +291,8 @@ exports.InvoicesService = InvoicesService;
 exports.InvoicesService = InvoicesService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [prisma_service_1.PrismaService,
-        email_service_1.EmailService])
+        email_service_1.EmailService,
+        tax_service_1.TaxService,
+        storage_service_1.StorageService])
 ], InvoicesService);
 //# sourceMappingURL=invoices.service.js.map

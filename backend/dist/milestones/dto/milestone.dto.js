@@ -78,7 +78,7 @@ class UpdateMilestoneDto {
     sortOrder;
     dependsOnId;
     static _OPENAPI_METADATA_FACTORY() {
-        return { title: { required: false, type: () => String }, description: { required: false, type: () => String }, dueDate: { required: false, type: () => String }, completedDate: { required: false, type: () => String }, status: { required: false, enum: ["COMPLETED", "PENDING", "IN_PROGRESS", "DELAYED"] }, sortOrder: { required: false, type: () => Number, minimum: 0 }, dependsOnId: { required: false, type: () => String, format: "uuid" } };
+        return { title: { required: false, type: () => String }, description: { required: false, type: () => String }, dueDate: { required: false, type: () => String }, completedDate: { required: false, type: () => String }, status: { required: false, enum: ["PENDING", "IN_PROGRESS", "COMPLETED", "DELAYED"] }, sortOrder: { required: false, type: () => Number, minimum: 0 }, dependsOnId: { required: false, type: () => String, format: "uuid" } };
     }
 }
 exports.UpdateMilestoneDto = UpdateMilestoneDto;

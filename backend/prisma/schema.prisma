@@ -61,6 +61,32 @@ enum InvoiceStatusEnum {
   CANCELLED
 }
 
+enum InvoiceTypeEnum {
+  TAX_INVOICE
+  CREDIT_NOTE
+  DEBIT_NOTE
+}
+
+enum SupplyTypeEnum {
+  B2B
+  B2C
+  EXPORT
+}
+
+enum TaxTreatmentEnum {
+  STANDARD
+  ZERO_RATED
+  EXEMPT
+  NIL_RATED
+  REVERSE_CHARGE
+}
+
+enum TaxTypeEnum {
+  CGST_SGST
+  IGST
+  NONE
+}
+
 enum TicketStatusEnum {
   OPEN
   IN_PROGRESS
@@ -541,6 +567,14 @@ model ClientProfile {
   billingAddress   String?
   timezone         String    @default("Asia/Kolkata")
   notes            String?
+  legalName        String?
+  state            String?
+  stateCode        String?
+  pincode          String?
+  country          String?
+  gstRegistered    Boolean   @default(false)
+  gstinVerified    Boolean   @default(false)
+  gstinVerifiedAt  DateTime?
   status           String    @default("ACTIVE")
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
@@ -584,6 +618,14 @@ model Company {
   logoUrl          String? // @deprecated - transitioning to Media
   logoMediaId      String?   @db.Uuid
   gstNumber        String?
+  legalName        String?
+  state            String?
+  stateCode        String?
+  pincode          String?
+  country          String?
+  gstRegistered    Boolean   @default(false)
+  gstinVerified    Boolean   @default(false)
+  gstinVerifiedAt  DateTime?
   billingAddress   String?
   primaryContactId String?   @db.Uuid
   createdAt        DateTime  @default(now())
@@ -620,6 +662,9 @@ model Service {
   basePrice        Float                       @default(0.0)
   categoryId       String?                     @db.Uuid
   seoPageId        String?                     @unique @db.Uuid
+  sacCode          String?
+  gstRate          Float?
+  taxCategory      String?
   createdAt        DateTime                    @default(now())
   updatedAt        DateTime                    @updatedAt
   deletedAt        DateTime?
@@ -637,6 +682,7 @@ model Service {
   orderItems     OrderItem[]
   generalFaqs    FAQ[]
   iconMedia      Media?             @relation(fields: [iconMediaId], references: [id])
+  invoiceItems   InvoiceItem[]
 
   @@index([slug])
   @@index([categoryId])
@@ -721,6 +767,9 @@ model Package {
   isPopular       Boolean                     @default(false)
   isCustom        Boolean                     @default(false)
   seoPageId       String?                     @unique @db.Uuid
+  sacCode         String?
+  gstRate         Float?
+  taxCategory     String?
   createdAt       DateTime                    @default(now())
   updatedAt       DateTime                    @updatedAt
   deletedAt       DateTime?
@@ -735,6 +784,7 @@ model Package {
   orders        Order[]
   orderItems    OrderItem[]
   subscriptions Subscription[]
+  invoiceItems  InvoiceItem[]
 
   @@index([slug])
   @@index([serviceId])
@@ -903,36 +953,87 @@ model Payment {
 /// Relationships: Belongs to ClientProfile, Order, Subscription. Has many Payments.
 /// Business responsibility: Official accounting document for client auditing and tax compliance.
 model Invoice {
-  id             String            @id @default(uuid()) @db.Uuid
-  invoiceNumber  String            @unique
-  status         InvoiceStatusEnum @default(DRAFT)
-  issueDate      DateTime          @default(now())
-  dueDate        DateTime
-  paidDate       DateTime?
-  subtotal       Float
-  taxAmount      Float             @default(0.0)
-  totalAmount    Float
-  currency       String            @default("INR")
-  orderId        String?           @db.Uuid
-  clientId       String            @db.Uuid
-  subscriptionId String?           @db.Uuid
-  pdfAssetId     String?           @db.Uuid
-  createdAt      DateTime          @default(now())
-  updatedAt      DateTime          @updatedAt
-  deletedAt      DateTime?
-  createdBy      String?
-  updatedBy      String?
+  id                String            @id @default(uuid()) @db.Uuid
+  invoiceNumber     String            @unique
+  financialYear     String?
+  type              InvoiceTypeEnum   @default(TAX_INVOICE)
+  status            InvoiceStatusEnum @default(DRAFT)
+  supplyType        SupplyTypeEnum    @default(B2C)
+  taxTreatment      TaxTreatmentEnum  @default(STANDARD)
+  taxType           TaxTypeEnum       @default(IGST)
+  placeOfSupply     String?
+  placeOfSupplyCode String?
+  reverseCharge     Boolean           @default(false)
+  issueDate         DateTime          @default(now())
+  dueDate           DateTime
+  paidDate          DateTime?
+  subtotal          Float
+  taxAmount         Float             @default(0.0)
+  cgstAmount        Float             @default(0.0)
+  sgstAmount        Float             @default(0.0)
+  igstAmount        Float             @default(0.0)
+  totalTax          Float             @default(0.0)
+  totalAmount       Float
+  currency          String            @default("INR")
+  orderId           String?           @db.Uuid
+  clientId          String            @db.Uuid
+  subscriptionId    String?           @db.Uuid
+  pdfAssetId        String?           @db.Uuid
+  pdfUrl            String?
+  irn               String?
+  irnGeneratedAt    DateTime?
+  signedQrCode      String?
+  eInvoiceStatus    String?
+  eInvoiceError     String?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  deletedAt         DateTime?
+  createdBy         String?
+  updatedBy         String?
 
   client       ClientProfile @relation(fields: [clientId], references: [id])
   order        Order?        @relation(fields: [orderId], references: [id])
   subscription Subscription? @relation(fields: [subscriptionId], references: [id])
   pdfAsset     MediaAsset?   @relation(fields: [pdfAssetId], references: [id])
   payments     Payment[]
+  items        InvoiceItem[]
 
   @@index([invoiceNumber])
   @@index([clientId])
   @@index([status])
   @@map("invoices")
+}
+
+/// Purpose: Itemized line item within an Invoice.
+/// Relationships: Belongs to Invoice.
+/// Business responsibility: Records exact scope, unit quantities, and granular taxes.
+model InvoiceItem {
+  id            String   @id @default(uuid()) @db.Uuid
+  invoiceId     String   @db.Uuid
+  description   String
+  serviceId     String?  @db.Uuid
+  packageId     String?  @db.Uuid
+  sacCode       String?
+  quantity      Int      @default(1)
+  unitPrice     Float
+  discount      Float    @default(0.0)
+  taxableAmount Float
+  gstRate       Float
+  cgstAmount    Float    @default(0.0)
+  sgstAmount    Float    @default(0.0)
+  igstAmount    Float    @default(0.0)
+  totalAmount   Float
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  invoice Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  service Service? @relation(fields: [serviceId], references: [id])
+  package Package? @relation(fields: [packageId], references: [id])
+
+  @@index([invoiceId])
+  @@index([serviceId])
+  @@index([packageId])
+  @@map("invoice_items")
 }
 
 /// Purpose: Immutable financial ledger entry logging gateway exchanges.

@@ -2,6 +2,7 @@ import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 import { RazorpayGateway } from '../payments/razorpay.provider';
+import { InvoicesService } from '../invoices/invoices.service';
 import { OrderStatusEnum, PaymentStatusEnum } from '@prisma/client';
 
 @Injectable()
@@ -13,6 +14,7 @@ export class WebhooksService {
     private readonly prisma: PrismaService,
     private readonly razorpayGateway: RazorpayGateway,
     private readonly configService: ConfigService,
+    private readonly invoicesService: InvoicesService,
   ) {
     this.webhookSecret = this.configService.get<string>('razorpay.webhookSecret', 'mock-razorpay-webhook-secret');
   }
@@ -118,6 +120,16 @@ export class WebhooksService {
           : []),
       ]);
       this.logger.log(`✅ Webhook: Payment ${razorpayPaymentId} captured and recorded`);
+
+      // Automatically generate invoice if attached to an order
+      if (payment.orderId) {
+        try {
+          await this.invoicesService.createFromOrder(payment.orderId);
+          this.logger.log(`✅ Webhook: Invoice generated for Order ${payment.orderId}`);
+        } catch (error) {
+          this.logger.error(`❌ Webhook: Failed to generate invoice for Order ${payment.orderId}: ${error.message}`);
+        }
+      }
     }
   }
 

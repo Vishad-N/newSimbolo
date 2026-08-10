@@ -37,6 +37,9 @@ export declare class ServicesCatalogController {
         categoryId: string | null;
         iconMediaId: string | null;
         seoPageId: string | null;
+        sacCode: string | null;
+        gstRate: number | null;
+        taxCategory: string | null;
     }[]>;
     getServiceBySlug(slug: string): Promise<{
         id: string;
@@ -55,6 +58,9 @@ export declare class ServicesCatalogController {
         categoryId: string | null;
         iconMediaId: string | null;
         seoPageId: string | null;
+        sacCode: string | null;
+        gstRate: number | null;
+        taxCategory: string | null;
     }>;
     createService(dto: CreateServiceDto, user: JwtPayload): Promise<{
         id: string;
@@ -73,6 +79,9 @@ export declare class ServicesCatalogController {
         categoryId: string | null;
         iconMediaId: string | null;
         seoPageId: string | null;
+        sacCode: string | null;
+        gstRate: number | null;
+        taxCategory: string | null;
     }>;
     updateService(id: string, dto: UpdateServiceDto, user: JwtPayload): Promise<{
         id: string;
@@ -91,6 +100,9 @@ export declare class ServicesCatalogController {
         categoryId: string | null;
         iconMediaId: string | null;
         seoPageId: string | null;
+        sacCode: string | null;
+        gstRate: number | null;
+        taxCategory: string | null;
     }>;
     deleteService(id: string, user: JwtPayload): Promise<{
         success: boolean;

@@ -22,7 +22,7 @@ class UpdateOrderDto {
     discountAmount;
     netAmount;
     static _OPENAPI_METADATA_FACTORY() {
-        return { status: { required: false, enum: ["ACTIVE", "COMPLETED", "PENDING", "DRAFT", "IN_PROGRESS", "CANCELLED", "PENDING_PAYMENT", "CONFIRMED", "UNDER_REVIEW", "REFUNDED"] }, notes: { required: false, type: () => String }, totalAmount: { required: false, type: () => Number, minimum: 0 }, taxAmount: { required: false, type: () => Number, minimum: 0 }, discountAmount: { required: false, type: () => Number, minimum: 0 }, netAmount: { required: false, type: () => Number, minimum: 0 } };
+        return { status: { required: false, enum: ["ACTIVE", "DRAFT", "PENDING", "PENDING_PAYMENT", "CONFIRMED", "IN_PROGRESS", "UNDER_REVIEW", "COMPLETED", "CANCELLED", "REFUNDED"] }, notes: { required: false, type: () => String }, totalAmount: { required: false, type: () => Number, minimum: 0 }, taxAmount: { required: false, type: () => Number, minimum: 0 }, discountAmount: { required: false, type: () => Number, minimum: 0 }, netAmount: { required: false, type: () => Number, minimum: 0 } };
     }
 }
 exports.UpdateOrderDto = UpdateOrderDto;
