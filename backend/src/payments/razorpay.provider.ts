@@ -115,6 +115,12 @@ export class RazorpayGateway extends BaseService implements IPaymentGateway {
 
     const expectedSignature = crypto.createHmac('sha256', webhookSecret).update(rawBody).digest('hex');
 
-    return crypto.timingSafeEqual(Buffer.from(expectedSignature, 'hex'), Buffer.from(signature, 'hex'));
+    const isValid = crypto.timingSafeEqual(Buffer.from(expectedSignature, 'hex'), Buffer.from(signature, 'hex'));
+
+    if (!isValid) {
+      this.logger.error(`Webhook signature mismatch! Expected: ${expectedSignature}, Received: ${signature}. Body length: ${rawBody.length}`);
+    }
+
+    return isValid;
   }
 }
