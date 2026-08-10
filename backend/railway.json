@@ -5,7 +5,7 @@
     "buildCommand": "npm run build --workspace backend"
   },
   "deploy": {
-    "preDeployCommand": "npm run prisma:deploy --workspace backend",
+    "preDeployCommand": "npx prisma db push --schema=backend/prisma/schema.prisma --accept-data-loss",
     "startCommand": "npm run start:prod --workspace backend",
     "healthcheckPath": "/health/live",
     "restartPolicyType": "ON_FAILURE",
