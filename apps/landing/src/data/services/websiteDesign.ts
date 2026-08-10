@@ -98,7 +98,7 @@ export const websitePackages: SharedPackage[] = [
     priceYearly: 14999,
     currency: "INR",
     buttonText: "Choose Starter",
-    buttonLink: "/contact?service=website-starter",
+    buttonLink: `${process.env.NEXT_PUBLIC_DASHBOARD_URL || "http://localhost:3002"}/checkout?package=website-starter`,
     features: [
       "Up to 5 Pages",
       "Mobile Responsive",
@@ -117,7 +117,7 @@ export const websitePackages: SharedPackage[] = [
     isPopular: true,
     badge: "Most Popular",
     buttonText: "Choose Professional",
-    buttonLink: "/contact?service=website-professional",
+    buttonLink: `${process.env.NEXT_PUBLIC_DASHBOARD_URL || "http://localhost:3002"}/checkout?package=website-professional`,
     features: [
       "Up to 10 Pages",
       "Custom UI/UX Design",
@@ -135,7 +135,7 @@ export const websitePackages: SharedPackage[] = [
     priceYearly: 39999,
     currency: "INR",
     buttonText: "Choose E-Commerce",
-    buttonLink: "/contact?service=website-ecommerce",
+    buttonLink: `${process.env.NEXT_PUBLIC_DASHBOARD_URL || "http://localhost:3002"}/checkout?package=website-ecommerce`,
     features: [
       "Unlimited Products",
       "Payment Gateway Integration",

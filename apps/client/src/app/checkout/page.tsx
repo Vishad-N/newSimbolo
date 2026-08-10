@@ -4,6 +4,7 @@ import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { CreditCard, CheckCircle2, AlertCircle, ShieldCheck, FileText, ArrowRight } from "lucide-react";
 import { RazorpayCheckout } from "@/components/checkout/RazorpayCheckout";
+import { mockApi } from "@/services/api";
 
 // This is mock data for the packages. In a real app, this would come from a backend GET /packages API.
 const packageData: Record<string, any> = {
@@ -16,6 +17,12 @@ const packageData: Record<string, any> = {
   "ads-growth": { name: "Google Ads Growth", price: 15000, description: "Advanced Google Ads management." },
   "ads-scale": { name: "Google Ads Scale", price: 30000, description: "High-budget Google Ads management." },
   "ads-premium": { name: "Google Ads Premium", price: 60000, description: "Enterprise Google Ads management." },
+  "website-starter": { name: "Website Starter", price: 14999, description: "Up to 5 pages, mobile responsive, basic SEO." },
+  "website-professional": { name: "Website Professional", price: 24999, description: "Up to 10 pages, custom UI/UX, advanced SEO." },
+  "website-ecommerce": { name: "Website E-Commerce", price: 39999, description: "Unlimited products, payment gateway integration." },
+  "ecommerce-starter": { name: "E-Commerce Starter", price: 19999, description: "Basic Shopify/WooCommerce setup." },
+  "ecommerce-growth": { name: "E-Commerce Growth", price: 39999, description: "Custom theme modification, advanced SEO." },
+  "ecommerce-premium": { name: "E-Commerce Premium", price: 79999, description: "Fully custom design, unlimited products." },
 };
 
 function CheckoutContent() {
@@ -24,9 +31,10 @@ function CheckoutContent() {
   const packageId = searchParams.get("package") || "custom";
   
   const [selectedPackage, setSelectedPackage] = useState<any>(null);
-  const [userProfile, setUserProfile] = useState<{ firstName: string; lastName: string; email: string; phone?: string } | null>(null);
+  const [userProfile, setUserProfile] = useState<{ firstName: string; lastName: string; email: string; phone?: string; companyName?: string; billingAddress?: string; gstNumber?: string; stateCode?: string } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [gstError, setGstError] = useState("");
 
   useEffect(() => {
     // Fetch package details
@@ -40,19 +48,23 @@ function CheckoutContent() {
     // Fetch user profile from backend
     const fetchProfile = async () => {
       try {
-        const res = await fetch(`/api/profile`);
-        
-        if (res.ok) {
-          const data = await res.json();
-          setUserProfile({
-            firstName: data.data?.firstName || "",
-            lastName: data.data?.lastName || "",
-            email: data.data?.email || "",
-            phone: data.data?.phone || ""
-          });
+        const data = await mockApi.profile.get();
+        setUserProfile({
+          firstName: data.firstName || "",
+          lastName: data.lastName || "",
+          email: data.email || "",
+          phone: data.phone || "",
+          companyName: data.companyName || data.legalName || "",
+          billingAddress: data.address || "",
+          gstNumber: data.gst || "",
+          stateCode: data.stateCode || ""
+        });
+      } catch (err: any) {
+        if (err?.message?.includes("401")) {
+          console.warn("Guest user: No profile found.");
+        } else {
+          console.error("Failed to fetch user profile", err);
         }
-      } catch (err) {
-        console.error("Failed to fetch user profile", err);
       } finally {
         setIsLoading(false);
       }
@@ -96,6 +108,25 @@ function CheckoutContent() {
   const gst = subtotal * 0.18; // 18% GST in India
   const total = subtotal + gst;
 
+  const handleSaveProfileBeforeCheckout = async () => {
+    try {
+      if (userProfile) {
+        await mockApi.profile.update({
+          legalName: userProfile.companyName,
+          gstNumber: userProfile.gstNumber,
+          billingAddress: userProfile.billingAddress,
+          stateCode: userProfile.stateCode
+        });
+      }
+    } catch (err: any) {
+      if (err?.message?.includes("401")) {
+        console.warn("Guest user: Cannot update backend profile.");
+      } else {
+        console.error("Failed to update profile before checkout", err);
+      }
+    }
+  };
+
   return (
     <div className="mx-auto max-w-5xl">
       <div className="mb-8">
@@ -136,13 +167,70 @@ function CheckoutContent() {
                   />
                 </div>
               </div>
-              <div>
-                <label className="mb-1.5 block text-xs font-medium text-gray-400">Company Name (Optional)</label>
-                <input type="text" placeholder="Acme Inc." className="w-full rounded-xl border border-white/10 bg-black/20 p-3 text-sm text-white focus:border-[var(--primary)] focus:outline-none" />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-gray-400">Company Name (Optional)</label>
+                  <input 
+                    type="text" 
+                    placeholder="Acme Inc." 
+                    value={userProfile?.companyName || ""}
+                    onChange={(e) => setUserProfile(prev => prev ? { ...prev, companyName: e.target.value } : { firstName: "", lastName: "", email: "", companyName: e.target.value })}
+                    className="w-full rounded-xl border border-white/10 bg-black/20 p-3 text-sm text-white focus:border-[var(--primary)] focus:outline-none" 
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-gray-400">GST Number (Optional)</label>
+                  <input 
+                    type="text" 
+                    placeholder="23XXXXX0000X1Z5" 
+                    value={userProfile?.gstNumber || ""}
+                    onChange={(e) => {
+                      const val = e.target.value.toUpperCase();
+                      setUserProfile(prev => {
+                        const newProfile = prev ? { ...prev, gstNumber: val } : { firstName: "", lastName: "", email: "", gstNumber: val };
+                        if (val.length >= 2) {
+                          const statePrefix = val.substring(0, 2);
+                          if (!isNaN(Number(statePrefix))) {
+                            newProfile.stateCode = statePrefix;
+                          }
+                        }
+                        return newProfile;
+                      });
+                      if (gstError) setGstError("");
+                    }}
+                    onBlur={(e) => {
+                      const val = e.target.value;
+                      if (val && !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(val)) {
+                        setGstError("Please enter a valid 15-digit GST Number");
+                      } else {
+                        setGstError("");
+                      }
+                    }}
+                    className={`w-full rounded-xl border bg-black/20 p-3 text-sm text-white focus:outline-none uppercase transition-colors ${gstError ? 'border-red-500 focus:border-red-500' : 'border-white/10 focus:border-[var(--primary)]'}`} 
+                  />
+                  {gstError && <p className="text-red-500 text-xs mt-1">{gstError}</p>}
+                </div>
               </div>
-              <div>
-                <label className="mb-1.5 block text-xs font-medium text-gray-400">Billing Address</label>
-                <textarea rows={2} className="w-full resize-none rounded-xl border border-white/10 bg-black/20 p-3 text-sm text-white focus:border-[var(--primary)] focus:outline-none"></textarea>
+              <div className="grid grid-cols-[1fr_100px] gap-4">
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-gray-400">Billing Address</label>
+                  <textarea 
+                    rows={2} 
+                    value={userProfile?.billingAddress || ""}
+                    onChange={(e) => setUserProfile(prev => prev ? { ...prev, billingAddress: e.target.value } : { firstName: "", lastName: "", email: "", billingAddress: e.target.value })}
+                    className="w-full resize-none rounded-xl border border-white/10 bg-black/20 p-3 text-sm text-white focus:border-[var(--primary)] focus:outline-none"
+                  ></textarea>
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-gray-400">State Code</label>
+                  <input 
+                    type="text" 
+                    placeholder="e.g. 23" 
+                    value={userProfile?.stateCode || ""}
+                    onChange={(e) => setUserProfile(prev => prev ? { ...prev, stateCode: e.target.value } : { firstName: "", lastName: "", email: "", stateCode: e.target.value })}
+                    className="w-full h-[62px] rounded-xl border border-white/10 bg-black/20 p-3 text-sm text-white focus:border-[var(--primary)] focus:outline-none" 
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -161,6 +249,7 @@ function CheckoutContent() {
               packageName={selectedPackage.name} 
               packageId={packageId}
               profile={userProfile}
+              onBeforePayment={handleSaveProfileBeforeCheckout}
               onSuccess={() => setIsSuccess(true)} 
             />
           </div>

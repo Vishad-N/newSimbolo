@@ -10,11 +10,9 @@ export default function MeetingsPage() {
   const [meetings, setMeetings] = useState<any[]>([]);
 
   useEffect(() => {
-    fetch('/api/profile')
-      .then(res => res.json())
-      .then(data => {
-        const profileData = data.data || data;
-        const clientId = profileData?.clientProfile?.id || profileData?.id;
+    mockApi.profile.get()
+      .then(profileData => {
+        const clientId = profileData?.clientId || profileData?.id;
         if (clientId) {
           mockApi.meetings.getAll(clientId).then(setMeetings);
         }

@@ -10,11 +10,9 @@ export default function TasksPage() {
   const [tasks, setTasks] = useState<any[]>([]);
 
   useEffect(() => {
-    fetch('/api/profile')
-      .then(res => res.json())
-      .then(data => {
-        const profileData = data.data || data;
-        const clientId = profileData?.clientProfile?.id || profileData?.id;
+    mockApi.profile.get()
+      .then(profileData => {
+        const clientId = profileData?.clientId || profileData?.id;
         if (clientId) {
           mockApi.tasks.getAll(clientId).then(setTasks);
         }

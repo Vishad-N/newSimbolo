@@ -24,7 +24,7 @@ async function handleProxy(request: Request, pathArray: string[]) {
   try {
     const cookieHeader = request.headers.get('cookie') || '';
     const tokenMatch = cookieHeader.match(/accessToken=([^;]+)/);
-    const token = tokenMatch ? tokenMatch[1] : null;
+    let token = tokenMatch ? tokenMatch[1] : null;
 
     if (!token) {
       return NextResponse.json({ success: false, message: 'Unauthorized: No token found' }, { status: 401 });
@@ -50,7 +50,7 @@ async function handleProxy(request: Request, pathArray: string[]) {
     }
 
     // Forward the request to the backend
-    const res = await fetch(targetUrl, {
+    let res = await fetch(targetUrl, {
       method: request.method,
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -60,6 +60,41 @@ async function handleProxy(request: Request, pathArray: string[]) {
       body: body || undefined,
     });
 
+    let newTokens: { accessToken: string, refreshToken: string } | null = null;
+
+    // Handle Token Expiration
+    if (res.status === 401) {
+      const refreshMatch = cookieHeader.match(/refreshToken=([^;]+)/);
+      const refreshToken = refreshMatch ? refreshMatch[1] : null;
+      
+      if (refreshToken) {
+        const refreshRes = await fetch(`${apiUrl}/auth/refresh-token`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refreshToken }),
+        });
+
+        if (refreshRes.ok) {
+          const refreshData = await refreshRes.json();
+          if (refreshData.accessToken && refreshData.refreshToken) {
+            newTokens = { accessToken: refreshData.accessToken, refreshToken: refreshData.refreshToken };
+            token = newTokens.accessToken;
+            
+            // Retry the original request
+            res = await fetch(targetUrl, {
+              method: request.method,
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': request.headers.get('content-type') || 'application/json',
+                'Accept': request.headers.get('accept') || 'application/json',
+              },
+              body: body || undefined,
+            });
+          }
+        }
+      }
+    }
+
     const data = await res.text();
     let parsedData;
     try {
@@ -68,7 +103,14 @@ async function handleProxy(request: Request, pathArray: string[]) {
       parsedData = data;
     }
 
-    return NextResponse.json(parsedData, { status: res.status });
+    const response = NextResponse.json(parsedData, { status: res.status });
+
+    if (newTokens) {
+      response.cookies.set('accessToken', newTokens.accessToken, { path: '/', maxAge: 86400 });
+      response.cookies.set('refreshToken', newTokens.refreshToken, { path: '/', maxAge: 604800 });
+    }
+
+    return response;
   } catch (error) {
     console.error("Proxy API Error:", error);
     return NextResponse.json({ success: false, message: 'Server Error' }, { status: 500 });

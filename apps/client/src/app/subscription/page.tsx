@@ -11,11 +11,9 @@ export default function SubscriptionPage() {
   const [subscription, setSubscription] = useState<any>(null);
 
   useEffect(() => {
-    fetch('/api/profile')
-      .then(res => res.json())
-      .then(data => {
-        const profileData = data.data || data;
-        const clientId = profileData?.clientProfile?.id || profileData?.id;
+    mockApi.profile.get()
+      .then(profileData => {
+        const clientId = profileData?.clientId || profileData?.id;
         if (clientId) {
           mockApi.subscription.get(clientId).then(setSubscription);
         } else {

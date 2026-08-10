@@ -48,7 +48,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       } else {
         statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
         errorCode = ERROR_CODES.DATABASE_ERROR;
-        message = 'A database operation failed';
+        message = `A database operation failed: ${prismaErr.code} - ${prismaErr.message}`;
       }
     } else if (exception instanceof Error) {
       message = exception.message || message;

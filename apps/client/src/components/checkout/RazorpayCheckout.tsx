@@ -8,11 +8,12 @@ interface RazorpayCheckoutProps {
   amount: number;
   packageName: string;
   packageId: string;
-  profile?: { firstName: string; lastName: string; email: string; phone?: string } | null;
+  profile?: { firstName: string; lastName: string; email: string; phone?: string; companyName?: string; billingAddress?: string; gstNumber?: string; stateCode?: string } | null;
+  onBeforePayment?: () => Promise<void>;
   onSuccess: () => void;
 }
 
-export function RazorpayCheckout({ amount, packageName, packageId, profile, onSuccess }: RazorpayCheckoutProps) {
+export function RazorpayCheckout({ amount, packageName, packageId, profile, onBeforePayment, onSuccess }: RazorpayCheckoutProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -34,6 +35,10 @@ export function RazorpayCheckout({ amount, packageName, packageId, profile, onSu
     const actualKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || mockKey;
 
     try {
+      if (onBeforePayment) {
+        await onBeforePayment();
+      }
+
       // If we are using the mock key, don't even try to load Razorpay because it will fail with "Invalid Key"
       if (actualKey === mockKey) {
         setTimeout(() => {

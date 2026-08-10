@@ -11,6 +11,7 @@ export default function ProfilePage() {
   const [formData, setFormData] = useState<any>({});
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
+  const [gstError, setGstError] = useState("");
 
   useEffect(() => {
     mockApi.profile.get().then(data => {
@@ -22,7 +23,23 @@ export default function ProfilePage() {
   if (!profile) return <div className="text-white animate-pulse p-4">Loading profile...</div>;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    let newValue = value;
+    if (name === 'gst') {
+      newValue = value.toUpperCase();
+      if (gstError) setGstError("");
+    }
+    
+    setFormData((prev: any) => {
+      const nextData = { ...prev, [name]: newValue };
+      if (name === 'gst' && newValue.length >= 2) {
+        const statePrefix = newValue.substring(0, 2);
+        if (!isNaN(Number(statePrefix))) {
+          nextData.stateCode = statePrefix;
+        }
+      }
+      return nextData;
+    });
   };
 
   const handleSave = async () => {
@@ -113,7 +130,23 @@ export default function ProfilePage() {
               
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-400">GST Number</label>
-                <input name="gst" type="text" value={formData.gst} onChange={handleChange} placeholder="e.g. 23XXXXX0000X1Z5" className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all outline-none uppercase" />
+                <input 
+                  name="gst" 
+                  type="text" 
+                  value={formData.gst || ""} 
+                  onChange={handleChange} 
+                  onBlur={(e) => {
+                    const val = e.target.value;
+                    if (val && !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(val)) {
+                      setGstError("Please enter a valid 15-digit GST Number");
+                    } else {
+                      setGstError("");
+                    }
+                  }}
+                  placeholder="e.g. 23XXXXX0000X1Z5" 
+                  className={`w-full bg-black/40 border rounded-lg px-4 py-2.5 text-white outline-none uppercase transition-all ${gstError ? 'border-red-500 focus:border-red-500 focus:ring-1 focus:ring-red-500' : 'border-white/10 focus:border-primary/50 focus:ring-1 focus:ring-primary/50'}`} 
+                />
+                {gstError && <p className="text-red-500 text-xs mt-1">{gstError}</p>}
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-400 flex items-center gap-2"><Map className="w-4 h-4" /> State</label>

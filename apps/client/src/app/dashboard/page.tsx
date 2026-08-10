@@ -17,13 +17,10 @@ export default function DashboardPage() {
   const [orders, setOrders] = useState<any[]>([]);
 
   useEffect(() => {
-    fetch('/api/profile')
-      .then(res => res.json())
-      .then(data => {
-        // The /api/profile route returns the raw user object, but sometimes it wraps it in 'data'
-        const profileData = data.data || data;
+    mockApi.profile.get()
+      .then(profileData => {
         setProfile(profileData);
-        const clientId = profileData?.clientProfile?.id || profileData?.id;
+        const clientId = profileData?.clientId || profileData?.id;
         if (clientId) {
           mockApi.stats.getDashboard(clientId).then(setStats);
           mockApi.projects.getAll(clientId).then(setProjects);

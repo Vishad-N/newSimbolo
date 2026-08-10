@@ -6,6 +6,16 @@ const fetchProxy = async (path: string, options: RequestInit = {}) => {
       ...options.headers,
     },
   });
+  if (res.status === 401) {
+    if (typeof window !== 'undefined' && !window.location.pathname.includes('/checkout')) {
+      const loginUrl = window.location.hostname === 'localhost' 
+        ? 'http://localhost:3002?auth=login' 
+        : 'https://simbolo.co?auth=login';
+      window.location.href = loginUrl;
+      // return a never resolving promise to prevent further execution during redirect
+      return new Promise(() => {});
+    }
+  }
   if (!res.ok) {
     throw new Error(`API error: ${res.status}`);
   }
@@ -158,6 +168,8 @@ export const mockApi = {
       const res = await fetchProxy(`users/me`);
       const profile = res.clientProfile || {};
       return {
+        id: res.id,
+        clientId: profile.id,
         firstName: res.firstName || "",
         lastName: res.lastName || "",
         companyName: profile.company?.name || "",
@@ -175,7 +187,7 @@ export const mockApi = {
     },
     update: async (data: any) => {
       const res = await fetchProxy(`profiles/client`, {
-        method: 'PATCH',
+        method: 'PUT',
         body: JSON.stringify(data)
       });
       return res;
