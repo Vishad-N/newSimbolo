@@ -462,6 +462,9 @@ export class AuthService extends BaseService {
               include: {
                 subscriptions: {
                   where: { status: { in: ['ACTIVE', 'TRIALING'] } }
+                },
+                orders: {
+                  where: { status: { in: ['CONFIRMED', 'ACTIVE', 'IN_PROGRESS', 'COMPLETED'] } }
                 }
               }
             }
@@ -489,6 +492,9 @@ export class AuthService extends BaseService {
             include: {
               subscriptions: {
                 where: { status: { in: ['ACTIVE', 'TRIALING'] } }
+              },
+              orders: {
+                where: { status: { in: ['CONFIRMED', 'ACTIVE', 'IN_PROGRESS', 'COMPLETED'] } }
               }
             }
           }
@@ -512,6 +518,9 @@ export class AuthService extends BaseService {
               include: {
                 subscriptions: {
                   where: { status: { in: ['ACTIVE', 'TRIALING'] } }
+                },
+                orders: {
+                  where: { status: { in: ['CONFIRMED', 'ACTIVE', 'IN_PROGRESS', 'COMPLETED'] } }
                 }
               }
             }
@@ -571,7 +580,7 @@ export class AuthService extends BaseService {
         status: user.status,
         role: user.role.slug,
         permissions: permissionSlugs,
-        hasActivePlan: !!user.clientProfile?.subscriptions?.length,
+        hasActivePlan: !!(user.clientProfile?.subscriptions?.length || user.clientProfile?.orders?.length),
       },
     };
   }
