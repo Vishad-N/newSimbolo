@@ -22,7 +22,7 @@ export default function PackagesPage() {
   
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newPkg, setNewPkg] = useState({ name: "", serviceId: "", basePrice: 0, type: "STARTER", isPopular: false });
+  const [newPkg, setNewPkg] = useState({ name: "", serviceId: "", basePrice: 0, type: "STARTER", isPopular: false, isAddon: false });
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -42,6 +42,7 @@ export default function PackagesPage() {
         price: `₹${pkg.basePrice?.toLocaleString() || 0}`,
         serviceName: pkg.service?.name || "Unknown Service",
         featured: pkg.isPopular || false,
+        isAddon: pkg.isAddon || false,
       }));
       setData(mappedData);
     } catch (err: any) {
@@ -75,10 +76,11 @@ export default function PackagesPage() {
         basePrice: Number(newPkg.basePrice),
         type: newPkg.type,
         isPopular: newPkg.isPopular,
+        isAddon: newPkg.isAddon,
         billingInterval: "monthly"
       });
       setIsModalOpen(false);
-      setNewPkg({ name: "", serviceId: "", basePrice: 0, type: "STARTER", isPopular: false });
+      setNewPkg({ name: "", serviceId: "", basePrice: 0, type: "STARTER", isPopular: false, isAddon: false });
       fetchData();
     } catch (err: any) {
       alert("Failed to create package: " + err.message);
@@ -99,6 +101,17 @@ export default function PackagesPage() {
             <span className="text-xs text-gray-400 block">{item.serviceName}</span>
           </div>
         </div>
+      )
+    },
+    {
+      key: "isAddon",
+      header: "Type",
+      render: (item: any) => (
+        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+          item.isAddon ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+        }`}>
+          {item.isAddon ? "Add-on" : "Base Plan"}
+        </span>
       )
     },
     { key: "type", header: "Tier" },
@@ -209,9 +222,15 @@ export default function PackagesPage() {
                   </select>
                 </div>
               </div>
-              <div className="flex items-center gap-2 pt-2">
-                <input type="checkbox" id="popular" checked={newPkg.isPopular} onChange={e => setNewPkg({...newPkg, isPopular: e.target.checked})} className="w-4 h-4 rounded bg-white/5 border-white/10 text-primary focus:ring-primary/20" />
-                <label htmlFor="popular" className="text-sm text-gray-400">Mark as Popular</label>
+              <div className="flex items-center gap-6 pt-2">
+                <div className="flex items-center gap-2">
+                  <input type="checkbox" id="popular" checked={newPkg.isPopular} onChange={e => setNewPkg({...newPkg, isPopular: e.target.checked})} className="w-4 h-4 rounded bg-white/5 border-white/10 text-primary focus:ring-primary/20" />
+                  <label htmlFor="popular" className="text-sm text-gray-400">Mark as Popular</label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input type="checkbox" id="addon" checked={newPkg.isAddon} onChange={e => setNewPkg({...newPkg, isAddon: e.target.checked})} className="w-4 h-4 rounded bg-white/5 border-white/10 text-purple-500 focus:ring-purple-500/20" />
+                  <label htmlFor="addon" className="text-sm text-gray-400 font-medium">Is this a Service Add-on?</label>
+                </div>
               </div>
               <div className="flex justify-end gap-3 mt-6">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors">Cancel</button>

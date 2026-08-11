@@ -77,4 +77,14 @@ export const landingApi = {
   },
   
   getSeoMetadata: async (path: string, fallbackData: any) => fetchPublicApi(`/seo/page?path=${encodeURIComponent(path)}`, fallbackData, 300),
+  
+  submitContactForm: async (data: any) => {
+    const res = await fetch(`${API_BASE_URL}/leads`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error('Failed to submit form');
+    return res.json();
+  }
 };

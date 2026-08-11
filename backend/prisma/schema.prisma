@@ -198,6 +198,21 @@ enum MeetingStatusEnum {
   NO_SHOW
 }
 
+enum SettingTypeEnum {
+  GLOBAL
+  BRANDING
+  SEO
+  INTEGRATION
+}
+
+enum LeadStatusEnum {
+  NEW
+  CONTACTED
+  QUALIFIED
+  CONVERTED
+  LOST
+}
+
 enum ServiceTypeEnum {
   RETAINER
   ONE_TIME
@@ -766,6 +781,7 @@ model Package {
   billingInterval String                      @default("monthly")
   isPopular       Boolean                     @default(false)
   isCustom        Boolean                     @default(false)
+  isAddon         Boolean                     @default(false)
   seoPageId       String?                     @unique @db.Uuid
   sacCode         String?
   gstRate         Float?
@@ -907,14 +923,36 @@ model OrderItem {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  order   Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  service Service? @relation(fields: [serviceId], references: [id])
-  package Package? @relation(fields: [packageId], references: [id])
+  order       Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  service     Service?       @relation(fields: [serviceId], references: [id])
+  package     Package?       @relation(fields: [packageId], references: [id])
 
   @@index([orderId])
   @@index([serviceId])
   @@index([packageId])
   @@map("order_items")
+}
+
+/// Purpose: Lead / Contact Inquiry tracker.
+/// Relationships: None (Standalone).
+/// Business responsibility: Stores contact form submissions.
+model Lead {
+  id        String         @id @default(uuid()) @db.Uuid
+  firstName String
+  lastName  String
+  email     String
+  phone     String?
+  company   String?
+  service   String?
+  message   String         @db.Text
+  status    LeadStatusEnum @default(NEW)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  deletedAt DateTime?
+
+  @@index([email])
+  @@index([status])
+  @@map("leads")
 }
 
 /// Purpose: Payment transaction attempt and gateway webhook confirmation.

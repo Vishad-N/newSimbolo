@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Send, CheckCircle2, Loader2 } from "lucide-react";
+import { landingApi } from "@/lib/api";
 
 export function ContactForm() {
   const searchParams = useSearchParams();
@@ -29,11 +30,15 @@ export function ContactForm() {
     e.preventDefault();
     setIsSubmitting(true);
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    setIsSubmitting(false);
-    setIsSuccess(true);
+    try {
+      await landingApi.submitContactForm(formData);
+      setIsSuccess(true);
+    } catch (error) {
+      console.error("Submission error:", error);
+      alert("Something went wrong. Please try again or email us directly.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (isSuccess) {

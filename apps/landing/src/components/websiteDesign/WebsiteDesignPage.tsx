@@ -24,10 +24,12 @@ import { SharedPackage } from "@/types/shared";
 
 interface WebsiteDesignPageProps {
   livePackages?: SharedPackage[];
+  liveProjects?: any[];
 }
 
-export function WebsiteDesignPage({ livePackages }: WebsiteDesignPageProps) {
+export function WebsiteDesignPage({ livePackages, liveProjects }: WebsiteDesignPageProps) {
   const packages = livePackages && livePackages.length > 0 ? livePackages : websitePackages;
+  const projects = liveProjects && liveProjects.length > 0 ? liveProjects : websiteProjects;
 
   return (
     <>
@@ -97,7 +99,7 @@ export function WebsiteDesignPage({ livePackages }: WebsiteDesignPageProps) {
               </div>
             </div>
 
-            <RecentWorksGallery works={websiteProjects} />
+            <RecentWorksGallery works={projects} />
             
             <TechStack technologies={technologiesData} />
 

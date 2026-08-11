@@ -71,6 +71,7 @@ import { ObservabilityModule } from './observability/observability.module';
 import { StorageModule } from './storage/storage.module';
 import { AssetsModule } from './assets/assets.module';
 import { WebsiteTeamModule } from './website-team/website-team.module';
+import { LeadsModule } from './leads/leads.module';
 
 @Module({
   imports: [
@@ -143,6 +144,7 @@ import { WebsiteTeamModule } from './website-team/website-team.module';
     ]),
     AssetsModule,
     WebsiteTeamModule,
+    LeadsModule,
   ],
   providers: [
     {

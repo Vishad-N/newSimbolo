@@ -147,6 +147,11 @@ export const api = {
     update: async (id: string, data: any) => fetchFromApi(`/website-team/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
     delete: async (id: string) => fetchFromApi(`/website-team/${id}`, { method: 'DELETE' }),
   },
+  leads: {
+    getAll: async () => fetchFromApi('/leads', { method: 'GET' }),
+    update: async (id: string, data: any) => fetchFromApi(`/leads/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+    delete: async (id: string) => fetchFromApi(`/leads/${id}`, { method: 'DELETE' }),
+  },
   config: {
     baseURL: API_BASE_URL,
   },

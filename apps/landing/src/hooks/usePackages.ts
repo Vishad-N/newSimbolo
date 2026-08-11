@@ -21,7 +21,8 @@ export function usePackages() {
         const json = await response.json();
         
         // Map backend package data to frontend MarketingPackage type
-        const backendPackages = json.data || json;
+        // Map backend package data to frontend MarketingPackage type
+        const backendPackages = (json.data || json).filter((pkg: any) => !pkg.isAddon);
         const mappedPackages: MarketingPackage[] = backendPackages.map((pkg: any, index: number) => {
           // Find monthly and yearly pricings if available, else fallback to basePrice
           const monthlyPricing = pkg.pricings?.find((p: any) => p.billingPeriod === "monthly");

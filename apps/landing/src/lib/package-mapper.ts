@@ -6,7 +6,9 @@ export async function fetchMappedPackages(serviceSlug: string, mockFallback: Sha
     const rawPackages = await landingApi.getPackages([]);
     
     if (rawPackages && rawPackages.length > 0) {
-      const servicePackages = rawPackages.filter((p: any) => p.category?.slug === serviceSlug || p.category?.slug === 'marketing');
+      const servicePackages = rawPackages.filter((p: any) => 
+        p.isAddon === true && (p.category?.slug === serviceSlug || p.category?.slug === 'marketing')
+      );
       
       if (servicePackages.length > 0) {
         return servicePackages.map((pkg: any) => {

@@ -63,6 +63,7 @@ const navigation = [
     name: "Content Management",
     isGroup: true,
     items: [
+      { name: "Leads", href: "/leads", icon: MessageSquare },
       { name: "Blogs", href: "/blogs", icon: PenTool },
       { name: "Case Studies", href: "/case-studies", icon: Briefcase },
       { name: "Testimonials", href: "/testimonials", icon: MessageSquare },

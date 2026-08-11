@@ -45,6 +45,11 @@ export class CreatePackageDto {
   @IsBoolean()
   isPopular?: boolean;
 
+  @ApiPropertyOptional({ example: false, default: false, description: 'Whether this is an Add-on package' })
+  @IsOptional()
+  @IsBoolean()
+  isAddon?: boolean;
+
   @ApiPropertyOptional({ example: false, default: false, description: 'Whether this is a custom quote tier' })
   @IsOptional()
   @IsBoolean()
