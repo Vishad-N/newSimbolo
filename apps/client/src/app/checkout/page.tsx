@@ -37,34 +37,52 @@ function CheckoutContent() {
   const [gstError, setGstError] = useState("");
 
   useEffect(() => {
-    // Fetch package details
-    const pkg = packageData[packageId] || { 
-      name: "Custom Service Package", 
-      price: 15000, 
-      description: "Customized digital marketing service plan." 
-    };
-    setSelectedPackage(pkg);
-
-    // Fetch user profile from backend
-    const fetchProfile = async () => {
+    const fetchData = async () => {
+      setIsLoading(true);
       try {
-        const data = await mockApi.profile.get();
-        setUserProfile({
-          firstName: data.firstName || "",
-          lastName: data.lastName || "",
-          email: data.email || "",
-          phone: data.phone || "",
-          companyName: data.companyName || data.legalName || "",
-          billingAddress: data.address || "",
-          gstNumber: data.gst || "",
-          stateCode: data.stateCode || ""
-        });
-      } catch (err: any) {
-        if (err?.message?.includes("401")) {
-          console.warn("Guest user: No profile found.");
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api/v1";
+        
+        // Fetch package details by slug
+        if (packageId && packageId !== "custom") {
+          const pkgRes = await fetch(`${apiUrl}/packages/${packageId}`);
+          if (pkgRes.ok) {
+            const pkgData = await pkgRes.json();
+            const pkg = pkgData.data || pkgData;
+            
+            // Map backend pricing to frontend expectation
+            const monthlyPricing = pkg.pricings?.find((p: any) => p.billingPeriod === "monthly");
+            setSelectedPackage({
+              id: pkg.id, // We need the UUID for the checkout API
+              name: pkg.name,
+              price: monthlyPricing ? monthlyPricing.price : pkg.basePrice,
+              description: pkg.description,
+            });
+          } else {
+            // Fallback to mock if API fails
+            setSelectedPackage(packageData[packageId] || packageData["custom"]);
+          }
         } else {
-          console.error("Failed to fetch user profile", err);
+          setSelectedPackage(packageData["custom"]);
         }
+
+        // Fetch user profile from backend via proxy to bypass CORS
+        const profileRes = await fetch(`/api/profile`);
+        if (profileRes.ok) {
+          const json = await profileRes.json();
+          const data = json.data || json;
+          setUserProfile({
+            firstName: data.firstName || "",
+            lastName: data.lastName || "",
+            email: data.email || "",
+            phone: data.phone || "",
+            companyName: data.clientProfile?.companyName || "",
+            billingAddress: data.clientProfile?.address || "",
+            gstNumber: data.clientProfile?.gstNumber || "",
+            stateCode: ""
+          });
+        }
+      } catch (err) {
+        console.error("Failed to fetch checkout data", err);
       } finally {
         setIsLoading(false);
       }
@@ -228,7 +246,7 @@ function CheckoutContent() {
                     placeholder="e.g. 23" 
                     value={userProfile?.stateCode || ""}
                     onChange={(e) => setUserProfile(prev => prev ? { ...prev, stateCode: e.target.value } : { firstName: "", lastName: "", email: "", stateCode: e.target.value })}
-                    className="w-full h-[62px] rounded-xl border border-white/10 bg-black/20 p-3 text-sm text-white focus:border-[var(--primary)] focus:outline-none" 
+                    className="w-full h-[62px] rounded-xl border border-white/10 bg-black/20 p-3 text-center text-sm text-white focus:border-[var(--primary)] focus:outline-none" 
                   />
                 </div>
               </div>
@@ -247,8 +265,15 @@ function CheckoutContent() {
             <RazorpayCheckout 
               amount={total} 
               packageName={selectedPackage.name} 
-              packageId={packageId}
+              packageId={selectedPackage.id}
               profile={userProfile}
+              validateBeforePayment={() => {
+                if (!userProfile?.firstName?.trim()) return "First Name is required.";
+                if (!userProfile?.lastName?.trim()) return "Last Name is required.";
+                if (!userProfile?.billingAddress?.trim()) return "Billing Address is required.";
+                if (!userProfile?.stateCode?.trim()) return "State Code is required.";
+                return null;
+              }}
               onBeforePayment={handleSaveProfileBeforeCheckout}
               onSuccess={() => setIsSuccess(true)} 
             />

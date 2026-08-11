@@ -2,61 +2,72 @@
 
 import { useState, useEffect } from "react";
 import type { MarketingPackage } from "@/types/packages";
-import { packages as mockPackages } from "@/mock/packages";
-
-const STORAGE_KEY = "simbolo_packages_v4";
 
 export function usePackages() {
   const [packages, setPackages] = useState<MarketingPackage[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Load from LocalStorage or fallback to Mock Data
+  // Fetch packages from the real backend API
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        setPackages(JSON.parse(stored));
-      } else {
-        setPackages(mockPackages);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(mockPackages));
+    const fetchPackages = async () => {
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api/v1";
+        const response = await fetch(`${apiUrl}/packages`);
+        
+        if (!response.ok) {
+          throw new Error("Failed to fetch packages from API");
+        }
+        
+        const json = await response.json();
+        
+        // Map backend package data to frontend MarketingPackage type
+        const backendPackages = json.data || json;
+        const mappedPackages: MarketingPackage[] = backendPackages.map((pkg: any, index: number) => {
+          // Find monthly and yearly pricings if available, else fallback to basePrice
+          const monthlyPricing = pkg.pricings?.find((p: any) => p.billingPeriod === "monthly");
+          const yearlyPricing = pkg.pricings?.find((p: any) => p.billingPeriod === "yearly");
+          
+          return {
+            id: pkg.id,
+            name: pkg.name,
+            slug: pkg.slug,
+            description: pkg.description || pkg.name,
+            illustration: pkg.service?.name.includes("SEO") ? "/assets/seo-icon.svg" : "/assets/ads-icon.svg",
+            priceMonthly: monthlyPricing ? monthlyPricing.price : pkg.basePrice,
+            priceYearly: yearlyPricing ? yearlyPricing.price : pkg.basePrice * 10,
+            rating: 5.0, // Default for now
+            status: "published",
+            displayOrder: index,
+            themeColor: pkg.type === "ENTERPRISE" ? "accent" : (pkg.type === "STARTER" ? "blue" : "primary"),
+            targetAudience: pkg.type,
+            compactHighlights: pkg.features?.slice(0, 3).map((f: any) => f.name) || ["Strategy", "Execution", "Reporting"],
+            detailedFeatures: pkg.features?.map((f: any) => ({
+              category: "General",
+              items: [{ name: f.name, included: true, tooltip: f.description }]
+            })) || [],
+            timeline: "Monthly Retainer",
+            deliverables: [],
+            requirements: [],
+            faqs: []
+          };
+        });
+
+        setPackages(mappedPackages);
+      } catch (error) {
+        console.error("Failed to load packages from API:", error);
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error("Failed to load packages from storage:", error);
-      setPackages(mockPackages);
-    } finally {
-      setLoading(false);
-    }
+    };
+
+    fetchPackages();
   }, []);
-
-  const saveToStorage = (updatedPackages: MarketingPackage[]) => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedPackages));
-      setPackages(updatedPackages);
-    } catch (error) {
-      console.error("Failed to save packages to storage:", error);
-    }
-  };
-
-  const addPackage = (newPkg: MarketingPackage) => {
-    const updated = [...packages, newPkg];
-    saveToStorage(updated);
-  };
-
-  const updatePackage = (id: string, updates: Partial<MarketingPackage>) => {
-    const updated = packages.map((pkg) => (pkg.id === id ? { ...pkg, ...updates } : pkg));
-    saveToStorage(updated);
-  };
-
-  const deletePackage = (id: string) => {
-    const updated = packages.filter((pkg) => pkg.id !== id);
-    saveToStorage(updated);
-  };
 
   return {
     packages,
     loading,
-    addPackage,
-    updatePackage,
-    deletePackage,
+    addPackage: () => {},
+    updatePackage: () => {},
+    deletePackage: () => {},
   };
 }

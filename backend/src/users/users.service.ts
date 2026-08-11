@@ -105,6 +105,11 @@ export class UsersService extends BaseService {
             permissions: { select: { id: true, name: true, slug: true, module: true } },
           },
         },
+        clientProfile: {
+          include: {
+            company: true,
+          }
+        },
       },
     });
     return this.checkEntityExists(user, 'User', id);

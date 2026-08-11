@@ -15,6 +15,7 @@ import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse, ApiQuery } from '@ne
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
+import { ClientCheckoutDto } from './dto/client-checkout.dto';
 import { OrderStatusEnum } from '@prisma/client';
 import { Permissions } from '../common/decorators/permissions.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
@@ -57,6 +58,14 @@ export class OrdersController {
   @ApiResponse({ status: 201, description: 'Order created successfully' })
   async create(@Body() dto: CreateOrderDto, @CurrentUser() user: JwtPayload) {
     return this.ordersService.create(dto, user?.sub);
+  }
+
+  @Post('checkout')
+  @Permissions('orders.create')
+  @ApiOperation({ summary: 'Client initiates a checkout for a package' })
+  @ApiResponse({ status: 201, description: 'Order and Razorpay gateway order created successfully' })
+  async checkout(@Body() dto: ClientCheckoutDto, @CurrentUser() user: JwtPayload) {
+    return this.ordersService.checkout(dto, user.sub);
   }
 
   @Patch(':id')

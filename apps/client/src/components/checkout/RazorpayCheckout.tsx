@@ -9,13 +9,15 @@ interface RazorpayCheckoutProps {
   packageName: string;
   packageId: string;
   profile?: { firstName: string; lastName: string; email: string; phone?: string; companyName?: string; billingAddress?: string; gstNumber?: string; stateCode?: string } | null;
+  validateBeforePayment?: () => string | null;
   onBeforePayment?: () => Promise<void>;
   onSuccess: () => void;
 }
 
-export function RazorpayCheckout({ amount, packageName, packageId, profile, onBeforePayment, onSuccess }: RazorpayCheckoutProps) {
+export function RazorpayCheckout({ amount, packageName, packageId, profile, validateBeforePayment, onBeforePayment, onSuccess }: RazorpayCheckoutProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isShaking, setIsShaking] = useState(false);
 
   const loadRazorpayScript = () => {
     return new Promise((resolve) => {
@@ -28,6 +30,16 @@ export function RazorpayCheckout({ amount, packageName, packageId, profile, onBe
   };
 
   const handlePayment = async () => {
+    if (validateBeforePayment) {
+      const validationError = validateBeforePayment();
+      if (validationError) {
+        setError(validationError);
+        setIsShaking(true);
+        setTimeout(() => setIsShaking(false), 500);
+        return;
+      }
+    }
+
     setIsProcessing(true);
     setError(null);
 
@@ -48,6 +60,24 @@ export function RazorpayCheckout({ amount, packageName, packageId, profile, onBe
         return;
       }
 
+      // 1. Create Internal Order & Gateway Order via Proxy API
+      const orderRes = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ packageId })
+      });
+      
+      if (!orderRes.ok) {
+        throw new Error("Failed to create order on server");
+      }
+      
+      const paymentOrderData = await orderRes.json();
+      const gatewayOrderId = paymentOrderData.data?.gatewayOrder?.gatewayOrderId || paymentOrderData.gatewayOrder?.gatewayOrderId;
+
+      if (!gatewayOrderId) {
+        throw new Error("Invalid response from server: Missing Razorpay Order ID");
+      }
+
       const res = await loadRazorpayScript();
       
       if (!res) {
@@ -64,17 +94,26 @@ export function RazorpayCheckout({ amount, packageName, packageId, profile, onBe
         name: "The Simbolo",
         description: `Payment for ${packageName}`,
         image: "https://thesimbolo.com/logo.png",
-        // Removed fake order_id to prevent Razorpay SDK from throwing an error. 
-        // In production, fetch a real order_id from POST /payments/create-order
+        order_id: gatewayOrderId, 
         handler: async function (response: any) {
           // Success handler
           try {
-            // In a real implementation, you would:
-            // Call POST /payments/verify with response.razorpay_payment_id, response.razorpay_order_id, response.razorpay_signature
+            // Verify payment on the backend via proxy API
+            const verifyRes = await fetch("/api/verify", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                razorpayOrderId: response.razorpay_order_id,
+                razorpayPaymentId: response.razorpay_payment_id,
+                razorpaySignature: response.razorpay_signature
+              })
+            });
+
+            if (!verifyRes.ok) {
+              throw new Error("Payment verification failed on the server.");
+            }
             
-            // Log for debugging
-            console.log("Payment Successful", response);
-            
+            console.log("Payment Successful and Verified!");
             onSuccess();
           } catch (err) {
             console.error("Payment verification failed", err);
@@ -115,6 +154,14 @@ export function RazorpayCheckout({ amount, packageName, packageId, profile, onBe
 
   return (
     <div className="flex flex-col gap-4">
+      <style>{`
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          20%, 60% { transform: translateX(-5px); }
+          40%, 80% { transform: translateX(5px); }
+        }
+      `}</style>
+      
       {error && (
         <div className="rounded-lg bg-red-500/10 p-3 text-sm text-red-400 border border-red-500/20">
           {error}
@@ -124,6 +171,7 @@ export function RazorpayCheckout({ amount, packageName, packageId, profile, onBe
       <button
         onClick={handlePayment}
         disabled={isProcessing}
+        style={{ animation: isShaking ? "shake 0.4s cubic-bezier(.36,.07,.19,.97) both" : "none" }}
         className="group relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-[14px] bg-[var(--primary)] p-4 text-sm font-bold text-white transition-all hover:bg-[var(--primary-hover)] active:scale-[0.98] disabled:opacity-70 disabled:active:scale-100 shadow-[0_8px_20px_var(--primary-glow)] hover:shadow-[0_12px_24px_var(--primary-glow)]"
       >
         {isProcessing ? (

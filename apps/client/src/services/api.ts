@@ -165,7 +165,8 @@ export const mockApi = {
 
   profile: {
     get: async () => {
-      const res = await fetchProxy(`users/me`);
+      const response = await fetchProxy(`users/me`);
+      const res = response.data || response;
       const profile = res.clientProfile || {};
       return {
         id: res.id,

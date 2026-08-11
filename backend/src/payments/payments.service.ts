@@ -115,8 +115,7 @@ export class PaymentsService extends BaseService {
       throw new ForbiddenException('Payment signature verification failed');
     }
 
-    // Successful payment — update records
-    const [updatedPayment] = await this.prisma.$transaction([
+    const txActions: any[] = [
       this.prisma.payment.update({
         where: { id: payment.id },
         data: {
@@ -154,7 +153,32 @@ export class PaymentsService extends BaseService {
           userId: verifiedBy ?? undefined,
         },
       }),
-    ]);
+    ];
+
+    if (payment.order?.packageId) {
+      const currentPeriodStart = new Date();
+      const currentPeriodEnd = new Date();
+      currentPeriodEnd.setMonth(currentPeriodEnd.getMonth() + 1); // Default to monthly
+
+      txActions.push(
+        this.prisma.subscription.create({
+          data: {
+            subscriptionNumber: `SUB-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`,
+            clientId: payment.order.clientId,
+            packageId: payment.order.packageId,
+            price: payment.amount,
+            currency: payment.currency,
+            status: 'ACTIVE',
+            interval: 'MONTHLY',
+            currentPeriodStart,
+            currentPeriodEnd,
+          }
+        })
+      );
+    }
+
+    // Successful payment — update records
+    const [updatedPayment] = await this.prisma.$transaction(txActions);
 
     this.logger.log(`✅ Payment verified: ${payment.paymentNumber} (₹${payment.amount})`);
     return updatedPayment;

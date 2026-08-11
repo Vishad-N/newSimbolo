@@ -164,6 +164,82 @@ async function main() {
     },
   });
 
+  // 5. Seed Services and Packages for Razorpay Checkout Flow
+  console.log('Seeding Services and Packages...');
+  
+  // Seed SEO Service
+  const seoService = await prisma.service.upsert({
+    where: { slug: 'seo' },
+    update: {},
+    create: {
+      name: 'Search Engine Optimization',
+      slug: 'seo',
+      shortDescription: 'Boost your organic rankings and drive high-quality traffic to your website.',
+      type: 'RETAINER',
+      basePrice: 5000,
+    }
+  });
+
+  // Seed Ads Service
+  const adsService = await prisma.service.upsert({
+    where: { slug: 'google-ads' },
+    update: {},
+    create: {
+      name: 'Google Ads Management',
+      slug: 'google-ads',
+      shortDescription: 'Maximize your ROI with data-driven Google Ads campaigns.',
+      type: 'RETAINER',
+      basePrice: 8000,
+    }
+  });
+
+  // Seed SEO Packages
+  const seoPackages = [
+    { name: 'SEO Basic Plan', slug: 'seo-basic', description: 'Basic SEO package for small businesses.', price: 5000, type: 'STARTER' },
+    { name: 'SEO Monthly Growth', slug: 'seo-monthly', description: 'Ongoing monthly SEO strategy and execution.', price: 7999, type: 'PROFESSIONAL' },
+    { name: 'SEO Standard Plan', slug: 'seo-standard', description: 'Standard SEO package for growing businesses.', price: 10000, type: 'PROFESSIONAL' },
+    { name: 'SEO Premium Plan', slug: 'seo-premium', description: 'Premium SEO package with advanced analytics.', price: 20000, type: 'ENTERPRISE' },
+    { name: 'SEO Enterprise Plan', slug: 'seo-enterprise', description: 'Enterprise SEO package for large scale operations.', price: 50000, type: 'ENTERPRISE' },
+  ];
+
+  for (const pkg of seoPackages) {
+    await prisma.package.upsert({
+      where: { slug: pkg.slug },
+      update: { name: pkg.name, description: pkg.description, basePrice: pkg.price, type: pkg.type as any },
+      create: {
+        name: pkg.name,
+        slug: pkg.slug,
+        description: pkg.description,
+        basePrice: pkg.price,
+        type: pkg.type as any,
+        serviceId: seoService.id,
+      }
+    });
+  }
+
+  // Seed Ads Packages
+  const adsPackages = [
+    { name: 'Google Ads Starter', slug: 'ads-starter', description: 'Google Ads setup and basic management.', price: 8000, type: 'STARTER' },
+    { name: 'Google Ads Growth', slug: 'ads-growth', description: 'Advanced Google Ads management and optimization.', price: 15000, type: 'PROFESSIONAL' },
+    { name: 'Google Ads Scale', slug: 'ads-scale', description: 'High-budget Google Ads management for scaling.', price: 30000, type: 'ENTERPRISE' },
+    { name: 'Google Ads Premium', slug: 'ads-premium', description: 'Enterprise Google Ads management for max reach.', price: 60000, type: 'ENTERPRISE' },
+  ];
+
+  for (const pkg of adsPackages) {
+    await prisma.package.upsert({
+      where: { slug: pkg.slug },
+      update: { name: pkg.name, description: pkg.description, basePrice: pkg.price, type: pkg.type as any },
+      create: {
+        name: pkg.name,
+        slug: pkg.slug,
+        description: pkg.description,
+        basePrice: pkg.price,
+        type: pkg.type as any,
+        serviceId: adsService.id,
+      }
+    });
+  }
+
   console.log('✅ Database seeding completed successfully.');
 }
 

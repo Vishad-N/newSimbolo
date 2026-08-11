@@ -62,6 +62,42 @@ export class OrdersService extends BaseService {
     return this.checkEntityExists(order, 'Order', id);
   }
 
+  async checkout(dto: import('./dto/client-checkout.dto').ClientCheckoutDto, userId: string): Promise<Order> {
+    // 1. Get or create ClientProfile for the user
+    let client = await this.prisma.clientProfile.findUnique({
+      where: { userId },
+    });
+    
+    if (!client) {
+      client = await this.prisma.clientProfile.create({
+        data: { userId },
+      });
+    }
+
+    // 2. Fetch package to get amount
+    const pkg = await this.prisma.package.findUnique({
+      where: { id: dto.packageId, deletedAt: null },
+    });
+
+    if (!pkg) {
+      throw new NotFoundException(`Package with ID ${dto.packageId} not found`);
+    }
+
+    // 3. Create Order
+    return this.prisma.order.create({
+      data: {
+        orderNumber: this.generateOrderNumber(),
+        clientId: client.id,
+        packageId: pkg.id,
+        serviceId: pkg.serviceId,
+        status: OrderStatusEnum.PENDING_PAYMENT,
+        totalAmount: pkg.basePrice,
+        netAmount: pkg.basePrice,
+        currency: 'INR',
+      },
+    });
+  }
+
   async create(dto: CreateOrderDto, createdBy?: string): Promise<Order> {
     const client = await this.prisma.clientProfile.findFirst({ where: { id: dto.clientId, deletedAt: null } });
     if (!client) throw new NotFoundException(`Client with ID ${dto.clientId} not found`);
