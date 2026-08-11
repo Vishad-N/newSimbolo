@@ -67,8 +67,8 @@ export function usePackages() {
   return {
     packages,
     loading,
-    addPackage: () => {},
-    updatePackage: () => {},
-    deletePackage: () => {},
+    addPackage: (_pkg: MarketingPackage) => {},
+    updatePackage: (_id: string, _data: Partial<MarketingPackage>) => {},
+    deletePackage: (_id: string) => {},
   };
 }

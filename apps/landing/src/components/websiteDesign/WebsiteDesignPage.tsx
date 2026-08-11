@@ -1,5 +1,6 @@
 "use client";
 
+import { DynamicIcon } from "@/utils/icon-mapper";
 import { FAQSection } from "@/components/seo/FAQSection";
 import { WebsiteDesignHero } from "@/components/websiteDesign/WebsiteDesignHero";
 import { LeadForm } from "@/components/shared/LeadForm";
@@ -25,25 +26,43 @@ import { SharedPackage } from "@/types/shared";
 interface WebsiteDesignPageProps {
   livePackages?: SharedPackage[];
   liveProjects?: any[];
+  liveConfig?: any;
 }
 
-export function WebsiteDesignPage({ livePackages, liveProjects }: WebsiteDesignPageProps) {
+export function WebsiteDesignPage({ livePackages, liveProjects, liveConfig }: WebsiteDesignPageProps) {
   const packages = livePackages && livePackages.length > 0 ? livePackages : websitePackages;
   const projects = liveProjects && liveProjects.length > 0 ? liveProjects : websiteProjects;
+  
+  const benefits = liveConfig?.heroBenefits?.length > 0 ? liveConfig.heroBenefits : websiteDesignBenefits;
+  
+  const stats = liveConfig?.statsBar?.length > 0 ? liveConfig.statsBar.map((s: any, i: number) => ({
+    id: `stat-${i}`,
+    title: s.title,
+    description: s.description,
+    icon: (props: any) => <DynamicIcon name={s.iconName} {...props} />
+  })) : websiteDesignStats;
+
+  const services = liveConfig?.servicesList?.length > 0 ? liveConfig.servicesList.map((s: any, i: number) => ({
+    id: `svc-${i}`,
+    title: s.title,
+    description: s.description,
+    icon: (props: any) => <DynamicIcon name={s.iconName} {...props} />,
+    startingPrice: s.startingPrice,
+  })) : websiteServices;
 
   return (
     <>
         <div className="px-4 pb-8 pt-4 sm:px-8 lg:px-10">
           <div className="mx-auto max-w-[1320px] space-y-4">
-            <WebsiteDesignHero benefits={websiteDesignBenefits} />
-            <StatsBar stats={websiteDesignStats} />
+            <WebsiteDesignHero benefits={benefits} />
+            <StatsBar stats={stats} />
             
             <SectionCard className="p-5">
                <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                  <h2 className="text-[1.15rem] font-black text-white">Our Website Design Services</h2>
                </div>
                <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
-                 {websiteServices.map((service, index) => (
+                 {services.map((service: any, index: number) => (
                    <ServiceCard key={service.id} service={service} index={index} />
                  ))}
                </div>

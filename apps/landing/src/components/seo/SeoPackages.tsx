@@ -7,8 +7,10 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import type { BillingCycle, SeoPackage } from "@/types/seo";
 
+import { Box } from "lucide-react";
+
 type SeoPackagesProps = {
-  packages: SeoPackage[];
+  packages: any[];
 };
 
 function formatPackagePrice(item: SeoPackage, billing: BillingCycle) {
@@ -44,8 +46,8 @@ export function SeoPackages({ packages }: SeoPackagesProps) {
       </div>
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
         {packages.map((item, index) => {
-          const Icon = item.icon;
-          const price = formatPackagePrice(item, billing);
+          const Icon = item.icon || Box;
+          const price = formatPackagePrice(item as any, billing);
           const suffix = item.priceMonthly === null ? "" : billing === "monthly" ? "/month" : "/year";
 
           return (
@@ -78,7 +80,7 @@ export function SeoPackages({ packages }: SeoPackagesProps) {
               </div>
               <div className="my-4 h-px bg-white/10" />
               <ul className="flex-1 space-y-2.5">
-                {item.features.map((feature) => (
+                {item.features.map((feature: string) => (
                   <li key={feature} className="flex items-start gap-2 text-[0.8rem] leading-5 text-white/82">
                     <Check className="mt-0.5 h-4 w-4 shrink-0 text-[var(--accent)]" />
                     {feature}

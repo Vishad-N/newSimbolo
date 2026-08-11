@@ -64,11 +64,15 @@ const jsonLd = {
   },
 };
 
-export default function Page() {
+import { landingApi } from "@/lib/api";
+
+export default async function Page() {
+  const liveConfig = await landingApi.getServicePageConfig('graphic-design', null);
+
   return (
     <>
       <Script id="json-ld-graphic-design" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <GraphicDesignPage />
+      <GraphicDesignPage liveConfig={liveConfig} />
     </>
   );
 }

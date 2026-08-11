@@ -29,7 +29,7 @@ export const metadata: Metadata = {
 };
 
 export default async function CaseStudiesPage() {
-  const liveCaseStudies = await fetchMappedCaseStudies(mockCaseStudies);
+  const liveCaseStudies = await fetchMappedCaseStudies([]);
 
   return <CaseStudiesClientPage initialCaseStudies={liveCaseStudies} />;
 }

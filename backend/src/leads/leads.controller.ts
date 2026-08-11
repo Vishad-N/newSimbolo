@@ -3,9 +3,11 @@ import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { LeadsService } from './leads.service';
 import { CreateLeadDto } from './dto/create-lead.dto';
 import { UpdateLeadDto } from './dto/update-lead.dto';
+import { Public } from '../common/decorators/public.decorator';
 
 @ApiTags('Leads')
 @Controller('leads')
+@Public()
 export class LeadsController {
   constructor(private readonly leadsService: LeadsService) {}
 

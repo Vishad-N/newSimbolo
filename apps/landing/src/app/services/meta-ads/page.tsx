@@ -34,11 +34,12 @@ export const metadata: Metadata = {
   category: "Marketing",
 };
 
-import { metaAdsPackages as mockPackages } from "@/mock/metaAdsPackages";
 import { fetchMappedPackages } from "@/lib/package-mapper";
+import { landingApi } from "@/lib/api";
 
 export default async function MetaAdsPage() {
-  const packagesToPass = await fetchMappedPackages('meta-ads', mockPackages);
+  const livePackages = await fetchMappedPackages('meta-ads', []);
+  const liveConfig = await landingApi.getServicePageConfig('meta-ads', null);
 
-  return <MetaAdsClientPage livePackages={packagesToPass} />;
+  return <MetaAdsClientPage livePackages={livePackages} liveConfig={liveConfig} />;
 }

@@ -68,9 +68,12 @@ const jsonLd = {
   },
 };
 
+import { landingApi } from "@/lib/api";
+
 export default async function WebsiteDesignRoute() {
-  const packagesToPass = await fetchMappedPackages('website-design', mockPackages);
-  const liveProjectsToPass = await fetchMappedPortfolioProjects('website-design', mockProjects);
+  const livePackages = await fetchMappedPackages('website-design', []);
+  const liveProjectsToPass = await fetchMappedPortfolioProjects('website-design', []);
+  const liveConfig = await landingApi.getServicePageConfig('website-design', null);
 
   return (
     <>
@@ -79,7 +82,7 @@ export default async function WebsiteDesignRoute() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <WebsiteDesignPage livePackages={packagesToPass} liveProjects={liveProjectsToPass} />
+      <WebsiteDesignPage livePackages={livePackages} liveProjects={liveProjectsToPass} liveConfig={liveConfig} />
     </>
   );
 }

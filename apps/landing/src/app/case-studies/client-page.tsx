@@ -17,14 +17,17 @@ const filters = [
 ];
 
 interface CaseStudiesClientPageProps {
-  initialCaseStudies: CaseStudy[];
+  initialCaseStudies?: CaseStudy[];
 }
 
+import { caseStudies as mockCaseStudies } from "@/mock/case-studies";
+
 export function CaseStudiesClientPage({ initialCaseStudies }: CaseStudiesClientPageProps) {
+  const caseStudies = initialCaseStudies && initialCaseStudies.length > 0 ? initialCaseStudies : mockCaseStudies;
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("All");
 
-  const filteredStudies = initialCaseStudies.filter((study) => {
+  const filteredStudies = caseStudies.filter((study) => {
     const matchesSearch =
       study.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       study.clientName.toLowerCase().includes(searchQuery.toLowerCase()) ||

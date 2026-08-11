@@ -48,8 +48,15 @@ export const api = {
   },
   navigation: {
     get: async () => fetchFromApi('/cms/navigation', { method: 'GET' }),
-    createItem: async (data: any) => fetchFromApi('/cms/navigation/items', { method: 'POST', body: JSON.stringify(data) }),
+    update: async (data: any) => fetchFromApi('/cms/navigation', { method: 'PATCH', body: JSON.stringify(data) }),
   },
+  
+  // Individual Service Page Config
+  servicePageConfig: {
+    get: async (slug: string) => fetchFromApi<any>(`/service-page-config/${slug}`, { method: 'GET' }, null),
+    update: async (slug: string, data: any) => fetchFromApi<any>(`/service-page-config/${slug}`, { method: 'PUT', body: JSON.stringify(data) }),
+  },
+  
   footer: {
     get: async () => fetchFromApi('/cms/footer', { method: 'GET' }),
     update: async (data: any) => fetchFromApi('/cms/footer', { method: 'PATCH', body: JSON.stringify(data) }),

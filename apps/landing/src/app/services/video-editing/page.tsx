@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { VideoEditingPage } from "@/components/videoEditing/VideoEditingPage";
 import Script from "next/script";
+import { fetchMappedPackages } from "@/lib/package-mapper";
 
 export const metadata: Metadata = {
   title: "Professional Video Editing Services | The Simbolo",
@@ -65,11 +66,15 @@ const jsonLd = {
   },
 };
 
-export default function Page() {
+import { landingApi } from "@/lib/api";
+
+export default async function Page() {
+  const liveConfig = await landingApi.getServicePageConfig('video-editing', null);
+
   return (
     <>
       <Script id="json-ld-video-editing" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <VideoEditingPage />
+      <VideoEditingPage liveConfig={liveConfig} />
     </>
   );
 }

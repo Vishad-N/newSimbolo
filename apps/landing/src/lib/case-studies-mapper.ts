@@ -38,7 +38,7 @@ export async function fetchMappedCaseStudies(mockFallback: CaseStudy[], isFeatur
       beforeAfter: [],
       timeline: [],
       gallery: [],
-      testimonial: null,
+      testimonial: undefined,
       relatedStudies: [],
       featured: cs.featured || false,
       publishDate: cs.publishDate || new Date().toISOString(),

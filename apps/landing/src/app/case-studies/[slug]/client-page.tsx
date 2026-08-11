@@ -9,15 +9,22 @@ import { KPIDashboard, BeforeAfterCards, TimelineView } from "@/components/case-
 import { CaseStudyCard } from "@/components/case-studies/CaseStudyCard";
 
 interface CaseStudyClientPageProps {
-  study: CaseStudy;
-  relatedStudies: CaseStudy[];
+  study?: CaseStudy;
+  relatedStudies?: CaseStudy[];
 }
 
-export function CaseStudyClientPage({ study, relatedStudies }: CaseStudyClientPageProps) {
+import { caseStudies as mockCaseStudies } from "@/mock/case-studies";
+import { useParams } from "next/navigation";
+
+export function CaseStudyClientPage({ study: initialStudy, relatedStudies: initialRelated }: CaseStudyClientPageProps) {
+  const params = useParams();
+  
+  const study = initialStudy || mockCaseStudies.find(s => s.slug === params.slug);
+  const relatedStudies = initialRelated && initialRelated.length > 0 ? initialRelated : 
+    (study ? mockCaseStudies.filter(s => study.relatedStudies.includes(s.slug) || study.relatedStudies.includes(s.id)) : []);
+
   if (!study) {
     notFound();
-  }
-
   }
 
   return (

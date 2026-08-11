@@ -3,6 +3,7 @@ import { EcommercePage } from "@/components/ecommerce/EcommercePage";
 import Script from "next/script";
 import { ecommercePackages as mockPackages } from "@/data/services/ecommerce";
 import { fetchMappedPackages } from "@/lib/package-mapper";
+import { fetchMappedPortfolioProjects } from "@/lib/portfolio-mapper";
 
 export const metadata: Metadata = {
   title: "E-Commerce Development Services | Shopify, WooCommerce & Custom Stores | The Simbolo",
@@ -67,13 +68,14 @@ const jsonLd = {
   },
 };
 
-export default async function Page() {
-  const packagesToPass = await fetchMappedPackages('ecommerce', mockPackages);
+export default async function EcommerceRoute() {
+  const packagesToPass = await fetchMappedPackages('ecommerce', []);
+  const liveProjectsToPass = await fetchMappedPortfolioProjects('ecommerce', []);
 
   return (
     <>
       <Script id="json-ld-ecommerce" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <EcommercePage livePackages={packagesToPass} />
+      <EcommercePage livePackages={packagesToPass} liveProjects={liveProjectsToPass} />
     </>
   );
 }

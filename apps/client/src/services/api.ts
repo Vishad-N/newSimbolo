@@ -8,10 +8,8 @@ const fetchProxy = async (path: string, options: RequestInit = {}) => {
   });
   if (res.status === 401) {
     if (typeof window !== 'undefined' && !window.location.pathname.includes('/checkout')) {
-      const loginUrl = window.location.hostname === 'localhost' 
-        ? 'http://localhost:3000?auth=login' 
-        : 'https://simbolo.co?auth=login';
-      window.location.href = loginUrl;
+      const landingUrl = process.env.NEXT_PUBLIC_LANDING_URL || 'https://simbolo.co';
+      window.location.href = `${landingUrl}?auth=login`;
       // return a never resolving promise to prevent further execution during redirect
       return new Promise(() => {});
     }

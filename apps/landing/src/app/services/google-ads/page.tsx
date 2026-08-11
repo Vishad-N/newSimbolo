@@ -1,16 +1,16 @@
 import type { Metadata } from "next";
 import { GoogleAdsPage } from "@/components/googleAds/GoogleAdsPage";
+import { fetchMappedPackages } from "@/lib/package-mapper";
+import { landingApi } from "@/lib/api";
 
 export const metadata: Metadata = {
   title: "Google Ads Services | The Simbolo",
   description: "Drive more leads and sales with high-converting Google Ads campaigns.",
 };
 
-import { googleAdsPackages as mockPackages } from "@/mock/googleAdsPackages";
-import { fetchMappedPackages } from "@/lib/package-mapper";
+export default async function GoogleAdsRoute() {
+  const livePackages = await fetchMappedPackages('google-ads', []);
+  const liveConfig = await landingApi.getServicePageConfig('google-ads', null);
 
-export default async function Page() {
-  const packagesToPass = await fetchMappedPackages('google-ads', mockPackages);
-
-  return <GoogleAdsPage livePackages={packagesToPass} />;
+  return <GoogleAdsPage livePackages={livePackages} liveConfig={liveConfig} />;
 }

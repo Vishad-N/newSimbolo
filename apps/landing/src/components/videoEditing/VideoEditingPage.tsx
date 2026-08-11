@@ -1,5 +1,6 @@
 "use client";
 
+import { DynamicIcon } from "@/utils/icon-mapper";
 import { FAQSection } from "@/components/seo/FAQSection";
 import { VideoEditingHero } from "@/components/videoEditing/VideoEditingHero";
 import { VideoServiceCatalog } from "@/components/videoEditing/VideoServiceCatalog";
@@ -18,16 +19,33 @@ import {
   videoEditingFaqs,
 } from "@/data/services/videoEditing";
 
-export function VideoEditingPage() {
+export function VideoEditingPage({ liveConfig }: { liveConfig?: any }) {
+  // Map config arrays back to the SharedStat / feature format expected by components
+  const benefits = liveConfig?.heroBenefits?.length > 0 ? liveConfig.heroBenefits : videoEditingBenefits;
+  
+  const stats = liveConfig?.statsBar?.length > 0 ? liveConfig.statsBar.map((s: any, i: number) => ({
+    id: `stat-${i}`,
+    title: s.title,
+    description: s.description,
+    icon: (props: any) => <DynamicIcon name={s.iconName} {...props} />
+  })) : videoEditingStats;
+
+  const results = liveConfig?.resultMetrics?.length > 0 ? liveConfig.resultMetrics.map((r: any, i: number) => ({
+    id: `res-${i}`,
+    value: r.value,
+    label: r.label,
+    icon: (props: any) => <DynamicIcon name={r.iconName} {...props} />
+  })) : toolsStats;
+
   return (
     <>
         <div className="px-4 pb-8 pt-4 sm:px-8 lg:px-10">
           <div className="mx-auto max-w-[1320px] space-y-4">
-            <VideoEditingHero benefits={videoEditingBenefits} />
-            <StatsBar stats={videoEditingStats} />
+            <VideoEditingHero benefits={benefits} />
+            <StatsBar stats={stats} />
             
             <div className="mt-8">
-              <VideoServiceCatalog />
+              <VideoServiceCatalog liveServices={liveConfig?.servicesList} />
             </div>
 
             <RecentWorks works={portfolioWorks} />
@@ -40,7 +58,7 @@ export function VideoEditingPage() {
               <TestimonialSection title="What Our Clients Say" testimonials={videoEditingTestimonials} />
               <SectionCard className="p-5 h-full flex flex-col justify-center">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                  {toolsStats.map((stat) => {
+                  {results.map((stat: any) => {
                     const Icon = stat.icon;
                     return (
                       <div key={stat.id} className="flex flex-col items-center justify-center text-center p-2 group">

@@ -72,6 +72,7 @@ import { StorageModule } from './storage/storage.module';
 import { AssetsModule } from './assets/assets.module';
 import { WebsiteTeamModule } from './website-team/website-team.module';
 import { LeadsModule } from './leads/leads.module';
+import { ServicePageConfigModule } from './service-page-config/service-page-config.module';
 
 @Module({
   imports: [
@@ -145,6 +146,7 @@ import { LeadsModule } from './leads/leads.module';
     AssetsModule,
     WebsiteTeamModule,
     LeadsModule,
+    ServicePageConfigModule,
   ],
   providers: [
     {

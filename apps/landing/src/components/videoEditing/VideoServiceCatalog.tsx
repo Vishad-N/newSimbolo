@@ -7,13 +7,35 @@ import { VideoServiceCard } from "@/components/videoEditing/VideoServiceCard";
 import { VideoPreviewModal } from "@/components/videoEditing/VideoPreviewModal";
 import type { VideoEditingService } from "@/types/video-editing";
 
-export function VideoServiceCatalog() {
+export function VideoServiceCatalog({ liveServices }: { liveServices?: any[] }) {
   const { services, categories, loading } = useVideoServices();
   const [activeCategoryId, setActiveCategoryId] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [previewService, setPreviewService] = useState<VideoEditingService | null>(null);
 
   const filteredServices = useMemo(() => {
+    // If live config provides services, use them
+    if (liveServices && liveServices.length > 0) {
+      return liveServices.map((ls, idx) => ({
+        id: `live-svc-${idx}`,
+        title: ls.title,
+        description: ls.description,
+        estimatedHours: parseInt(ls.startingPrice.replace(/[^0-9]/g, '')) || 0,
+        hourlyRate: 1, // dummy value to display starting price cleanly
+        previewUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+        thumbnailUrl: "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?auto=format&fit=crop&w=600&q=80",
+        categoryIds: ["all"],
+        tags: [ls.startingPrice],
+        status: "published",
+        displayOrder: idx
+      } as unknown as VideoEditingService)).filter((s) => 
+        searchQuery 
+          ? s.title.toLowerCase().includes(searchQuery.toLowerCase()) || s.tags.some(t => t.toLowerCase().includes(searchQuery.toLowerCase()))
+          : true
+      );
+    }
+    
+    // Otherwise fallback to mock/local data
     return services
       .filter((s) => s.status === "published")
       .filter((s) => (activeCategoryId === "all" ? true : s.categoryIds.includes(activeCategoryId)))
@@ -23,7 +45,7 @@ export function VideoServiceCatalog() {
           : true
       )
       .sort((a, b) => a.displayOrder - b.displayOrder);
-  }, [services, activeCategoryId, searchQuery]);
+  }, [services, activeCategoryId, searchQuery, liveServices]);
 
   if (loading) {
     return (

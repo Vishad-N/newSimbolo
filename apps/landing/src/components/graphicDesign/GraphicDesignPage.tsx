@@ -1,5 +1,6 @@
 "use client";
 
+import { DynamicIcon } from "@/utils/icon-mapper";
 import { FAQSection } from "@/components/seo/FAQSection";
 import { GraphicDesignHero } from "@/components/graphicDesign/GraphicDesignHero";
 import { DesignShowcase } from "@/components/graphicDesign/DesignShowcase";
@@ -17,20 +18,37 @@ import {
   graphicDesignFaqs,
 } from "@/data/services/graphicDesign";
 
-export function GraphicDesignPage() {
+export function GraphicDesignPage({ liveConfig }: { liveConfig?: any }) {
+  const benefits = liveConfig?.heroBenefits?.length > 0 ? liveConfig.heroBenefits : graphicDesignBenefits;
+  
+  const stats = liveConfig?.statsBar?.length > 0 ? liveConfig.statsBar.map((s: any, i: number) => ({
+    id: `stat-${i}`,
+    title: s.title,
+    description: s.description,
+    icon: (props: any) => <DynamicIcon name={s.iconName} {...props} />
+  })) : graphicDesignStats;
+
+  const services = liveConfig?.servicesList?.length > 0 ? liveConfig.servicesList.map((s: any, i: number) => ({
+    id: `svc-${i}`,
+    title: s.title,
+    description: s.description,
+    icon: (props: any) => <DynamicIcon name={s.iconName} {...props} />,
+    startingPrice: s.startingPrice,
+  })) : graphicDesignServices;
+
   return (
     <>
         <div className="px-4 pb-8 pt-4 sm:px-8 lg:px-10">
           <div className="mx-auto max-w-[1320px] space-y-4">
-            <GraphicDesignHero benefits={graphicDesignBenefits} />
-            <StatsBar stats={graphicDesignStats} />
+            <GraphicDesignHero benefits={benefits} />
+            <StatsBar stats={stats} />
             
             <SectionCard className="p-5">
                <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                  <h2 className="text-[1.15rem] font-black text-white">Our Graphic Design Services</h2>
                </div>
                <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 lg:grid-cols-4">
-                 {graphicDesignServices.map((service, index) => (
+                 {services.map((service: any, index: number) => (
                    <ServiceCard key={service.id} service={service} index={index} />
                  ))}
                </div>

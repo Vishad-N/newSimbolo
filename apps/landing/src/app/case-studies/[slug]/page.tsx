@@ -1,13 +1,16 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { CaseStudyClientPage } from "./client-page";
-import { caseStudies as mockCaseStudies } from "@/mock/case-studies";
 import { fetchMappedCaseStudies } from "@/lib/case-studies-mapper";
-import { landingApi } from "@/lib/api";
 
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-  const liveCaseStudies = await fetchMappedCaseStudies(mockCaseStudies);
-  const study = liveCaseStudies.find(s => s.slug === params.slug);
+type PageProps = {
+  params: Promise<{ slug: string }>;
+};
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const liveCaseStudies = await fetchMappedCaseStudies([]);
+  const study = liveCaseStudies.find(s => s.slug === slug);
 
   if (!study) {
     return { title: "Case Study Not Found" };
@@ -24,9 +27,10 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   };
 }
 
-export default async function CaseStudyPage({ params }: { params: { slug: string } }) {
-  const liveCaseStudies = await fetchMappedCaseStudies(mockCaseStudies);
-  const study = liveCaseStudies.find(s => s.slug === params.slug);
+export default async function CaseStudyPage({ params }: PageProps) {
+  const { slug } = await params;
+  const liveCaseStudies = await fetchMappedCaseStudies([]);
+  const study = liveCaseStudies.find(s => s.slug === slug);
 
   if (!study) {
     notFound();

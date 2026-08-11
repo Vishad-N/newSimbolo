@@ -30,10 +30,12 @@ import { SharedPackage } from "@/types/shared";
 
 interface EcommercePageProps {
   livePackages?: SharedPackage[];
+  liveProjects?: any[];
 }
 
-export function EcommercePage({ livePackages }: EcommercePageProps) {
+export function EcommercePage({ livePackages, liveProjects }: EcommercePageProps) {
   const packages = livePackages && livePackages.length > 0 ? livePackages : ecommercePackages;
+  const projects = liveProjects && liveProjects.length > 0 ? liveProjects : ecommerceProjects;
 
   return (
     <>
@@ -72,7 +74,7 @@ export function EcommercePage({ livePackages }: EcommercePageProps) {
           </SectionCard>
 
           {/* 6. Portfolio Showcase */}
-          <EcommercePortfolio works={ecommerceProjects} />
+          <EcommercePortfolio works={projects} />
 
           {/* 7. Technology Stack */}
           <SectionCard className="p-1 sm:p-2">

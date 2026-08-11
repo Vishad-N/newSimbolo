@@ -698,6 +698,7 @@ model Service {
   generalFaqs    FAQ[]
   iconMedia      Media?             @relation(fields: [iconMediaId], references: [id])
   invoiceItems   InvoiceItem[]
+  pageConfig     ServicePageConfig?
 
   @@index([slug])
   @@index([categoryId])
@@ -724,6 +725,25 @@ model ServiceCategory {
   @@index([slug])
   @@map("service_categories")
 }
+
+/// Purpose: Page-level marketing content configuration for a specific service.
+/// Relationships: Belongs to Service.
+/// Business responsibility: Allows Admin CMS to dynamically update landing page hero, stats, and features.
+model ServicePageConfig {
+  id            String   @id @default(uuid()) @db.Uuid
+  serviceId     String   @unique @db.Uuid
+  heroBenefits  Json?    // ["High ROI", "Advanced Targeting", ...]
+  statsBar      Json?    // [{title, description, iconName}, ...]
+  servicesList  Json?    // [{title, description, iconName, startingPrice}, ...]
+  resultMetrics Json?    // [{value, label, iconName}, ...]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  service Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@map("service_page_configs")
+}
+
 
 /// Purpose: Granular capability included in a marketing service.
 /// Relationships: Belongs to Service.
