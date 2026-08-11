@@ -13,8 +13,15 @@ import { googleAdsBenefits, googleAdsProcess, googleAdsResults, googleAdsService
 import { googleAdsFaqs } from "@/mock/googleAdsFaq";
 import { googleAdsPackages } from "@/mock/googleAdsPackages";
 import { googleAdsTestimonials } from "@/mock/googleAdsTestimonials";
+import { SharedPackage } from "@/types/shared";
 
-export function GoogleAdsPage() {
+interface GoogleAdsPageProps {
+  livePackages?: SharedPackage[];
+}
+
+export function GoogleAdsPage({ livePackages }: GoogleAdsPageProps) {
+  const packages = livePackages && livePackages.length > 0 ? livePackages : googleAdsPackages;
+
   return (
     <>
         <div className="px-4 pb-8 pt-4 sm:px-8 lg:px-10">
@@ -23,7 +30,7 @@ export function GoogleAdsPage() {
             <StatsBar stats={googleAdsStats} />
             <div className="grid gap-4 xl:grid-cols-[0.66fr_1.92fr_0.78fr]">
               <ServiceList services={googleAdsServices} />
-              <PricingSection packages={googleAdsPackages}  />
+              <PricingSection packages={packages}  />
               <div className="space-y-4">
                 <LeadForm />
                 <WhyChooseUs items={whyChooseItems} testimonials={googleAdsTestimonials} />

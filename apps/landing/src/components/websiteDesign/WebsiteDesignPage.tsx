@@ -20,8 +20,15 @@ import {
   technologiesData,
   websiteDesignFaqs,
 } from "@/data/services/websiteDesign";
+import { SharedPackage } from "@/types/shared";
 
-export function WebsiteDesignPage() {
+interface WebsiteDesignPageProps {
+  livePackages?: SharedPackage[];
+}
+
+export function WebsiteDesignPage({ livePackages }: WebsiteDesignPageProps) {
+  const packages = livePackages && livePackages.length > 0 ? livePackages : websitePackages;
+
   return (
     <>
         <div className="px-4 pb-8 pt-4 sm:px-8 lg:px-10">
@@ -41,7 +48,7 @@ export function WebsiteDesignPage() {
             </SectionCard>
 
             <div className="grid gap-4 xl:grid-cols-[2.5fr_0.9fr]">
-              <PricingSection title="Website Maintenance Packages" packages={websitePackages}  />
+              <PricingSection title="Website Maintenance Packages" packages={packages}  />
               <div className="h-full">
                 <LeadForm title="Request Free Consultation" description="Submit your project details and we will get back to you with a custom plan." buttonText="Request Free Consultation">
                   <input

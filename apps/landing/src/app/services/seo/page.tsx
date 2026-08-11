@@ -6,6 +6,11 @@ export const metadata: Metadata = {
   description: "Rank higher, get found, and grow faster with data-driven SEO services.",
 };
 
-export default function Page() {
-  return <SeoPage />;
+import { seoPackages as mockPackages } from "@/mock/seo-packages";
+import { fetchMappedPackages } from "@/lib/package-mapper";
+
+export default async function Page() {
+  const packagesToPass = await fetchMappedPackages('seo', mockPackages);
+
+  return <SeoPage livePackages={packagesToPass} />;
 }

@@ -1,50 +1,85 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DataTable } from "@/components/DataTable";
-import { Plus, Users, X, Save, GripVertical } from "lucide-react";
-import { ImageUploader } from "@/components/forms/ImageUploader";
+import { Plus, Users, X, Save, RefreshCw, Trash } from "lucide-react";
+import { api } from "@/services/api";
 
 interface TeamMemberData {
   id: string;
   name: string;
   designation: string;
-  bio?: string;
-  image?: string;
-  socialLinks?: {
-    linkedin?: string;
-    email?: string;
-  };
   isActive: boolean;
-  displayOrder: number;
 }
 
-const mockMembers: TeamMemberData[] = [
-  { id: "1", name: "Sophia Benett", designation: "CEO", bio: "Leading the team with vision.", image: "https://imagedelivery.net/IEUjvl3YUlxY-MrTpOAWDQ/8fd4d2a3-a363-4658-d6ee-84790bc8f300/w=800", isActive: true, displayOrder: 1 },
-  { id: "2", name: "Lucas Turner", designation: "CTO", bio: "Tech visionary.", image: "https://imagedelivery.net/IEUjvl3YUlxY-MrTpOAWDQ/20fd03c3-49d6-408c-3ac9-8c5a6ed2b500/w=800", isActive: true, displayOrder: 2 },
-];
-
 export default function TeamMembersManager() {
-  const [data, setData] = useState<TeamMemberData[]>(mockMembers);
-  const [isEditing, setIsEditing] = useState<TeamMemberData | null>(null);
+  const [data, setData] = useState<TeamMemberData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newMember, setNewMember] = useState({
+    name: "",
+    designation: "",
+    bio: "",
+    isActive: true,
+    displayOrder: 0
+  });
+
+  const fetchData = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await api.websiteTeam.getAll() as any;
+      const mappedData: TeamMemberData[] = (response.data || response).map((member: any) => ({
+        id: member.id,
+        name: member.name,
+        designation: member.designation,
+        isActive: member.isActive ?? true
+      }));
+      setData(mappedData);
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || "Failed to fetch team members");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this team member?")) return;
+    try {
+      await api.websiteTeam.delete(id);
+      fetchData();
+    } catch (err: any) {
+      alert("Failed to delete team member: " + err.message);
+    }
+  };
+
+  const handleCreate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await api.websiteTeam.create(newMember);
+      setIsModalOpen(false);
+      setNewMember({ name: "", designation: "", bio: "", isActive: true, displayOrder: 0 });
+      fetchData();
+    } catch (err: any) {
+      alert("Failed to create team member: " + err.message);
+    }
+  };
 
   const columns = [
-    {
-      key: "drag",
-      header: "",
-      render: () => <GripVertical className="w-4 h-4 text-gray-500 cursor-grab active:cursor-grabbing" />
-    },
     {
       key: "name",
       header: "Member",
       render: (item: TeamMemberData) => (
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full overflow-hidden bg-white/5 border border-white/10 flex items-center justify-center">
-            {item.image ? (
-              <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
-            ) : (
-              <span className="text-sm font-bold text-gray-400">{item.name.charAt(0)}</span>
-            )}
+            <span className="text-sm font-bold text-gray-400">{item.name.charAt(0)}</span>
           </div>
           <div>
             <div className="font-medium text-white text-sm">{item.name}</div>
@@ -58,12 +93,22 @@ export default function TeamMembersManager() {
       header: "Status",
       render: (item: TeamMemberData) => (
         <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-          item.isActive ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-gray-500/10 text-gray-400 border border-gray-500/20'
+          item.isActive ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 
+          'bg-gray-500/10 text-gray-400 border border-gray-500/20'
         }`}>
-          {item.isActive ? "Active" : "Hidden"}
+          {item.isActive ? 'Active' : 'Hidden'}
         </span>
       )
     },
+    {
+      key: "actions",
+      header: "Actions",
+      render: (item: TeamMemberData) => (
+        <button onClick={() => handleDelete(item.id)} className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors">
+          <Trash className="w-4 h-4" />
+        </button>
+      )
+    }
   ];
 
   return (
@@ -74,129 +119,82 @@ export default function TeamMembersManager() {
             <Users className="w-6 h-6 text-primary" />
             Team Members
           </h1>
-          <p className="text-sm text-gray-400">Manage the company team members shown in the carousel.</p>
+          <p className="text-sm text-gray-400">Manage the public-facing website team directory.</p>
         </div>
-        <button 
-          onClick={() => setIsEditing({ id: Date.now().toString(), name: "", designation: "", bio: "", image: "", isActive: true, displayOrder: data.length + 1, socialLinks: {} })}
-          className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-hover text-white text-sm font-medium rounded-lg transition-colors shadow-[0_0_15px_var(--primary-glow)]"
-        >
-          <Plus className="w-4 h-4" />
-          Add Member
-        </button>
+        <div className="flex gap-3">
+          <button onClick={fetchData} className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 text-white text-sm font-medium rounded-lg transition-colors border border-white/10">
+            <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
+            Refresh
+          </button>
+          <button 
+            onClick={() => setIsModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-hover text-white text-sm font-medium rounded-lg transition-colors shadow-[0_0_15px_var(--primary-glow)]"
+          >
+            <Plus className="w-4 h-4" />
+            Add Member
+          </button>
+        </div>
       </div>
 
-      <DataTable 
-        columns={columns} 
-        data={data}
-        onEdit={(item) => setIsEditing(item)}
-        onDelete={(item) => setData(data.filter(d => d.id !== item.id))}
-      />
+      {error ? (
+        <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-400 rounded-lg">
+          Error: {error}
+        </div>
+      ) : isLoading ? (
+        <div className="p-12 flex justify-center text-gray-400">Loading Team Members...</div>
+      ) : (
+        <DataTable 
+          columns={columns} 
+          data={data}
+        />
+      )}
 
-      {isEditing && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-surface border border-white/10 rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto custom-scrollbar shadow-2xl">
-            <div className="sticky top-0 bg-surface/95 backdrop-blur z-10 border-b border-white/10 p-4 flex justify-between items-center">
-              <h2 className="text-lg font-heading font-bold text-white">
-                {isEditing.name ? "Edit Team Member" : "New Team Member"}
-              </h2>
-              <button onClick={() => setIsEditing(null)} className="p-2 text-gray-400 hover:text-white rounded-md hover:bg-white/10 transition-colors">
-                <X className="w-5 h-5" />
-              </button>
+      {/* CREATE MODAL */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-[#0B0F19] border border-white/10 p-6 rounded-xl w-full max-w-2xl shadow-2xl">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold text-white">Add Team Member</h2>
+              <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-white"><X className="w-5 h-5"/></button>
             </div>
             
-            <div className="p-6 space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-1">
-                  <label className="text-xs font-medium text-gray-400">Full Name</label>
-                  <input 
-                    type="text" 
-                    value={isEditing.name}
-                    onChange={(e) => setIsEditing({ ...isEditing, name: e.target.value })}
-                    className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-primary/50 transition-colors"
-                  />
+            <form onSubmit={handleCreate} className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm text-gray-400 mb-1">Full Name</label>
+                  <input required type="text" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white" value={newMember.name} onChange={e => setNewMember({...newMember, name: e.target.value})} placeholder="Jane Doe" />
                 </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-medium text-gray-400">Designation / Role</label>
-                  <input 
-                    type="text" 
-                    value={isEditing.designation}
-                    onChange={(e) => setIsEditing({ ...isEditing, designation: e.target.value })}
-                    className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-primary/50 transition-colors"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-medium text-gray-400">LinkedIn URL</label>
-                  <input 
-                    type="url" 
-                    value={isEditing.socialLinks?.linkedin || ''}
-                    onChange={(e) => setIsEditing({ ...isEditing, socialLinks: { ...isEditing.socialLinks, linkedin: e.target.value } })}
-                    className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-primary/50 transition-colors"
-                    placeholder="https://linkedin.com/in/..."
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-medium text-gray-400">Email Address</label>
-                  <input 
-                    type="email" 
-                    value={isEditing.socialLinks?.email || ''}
-                    onChange={(e) => setIsEditing({ ...isEditing, socialLinks: { ...isEditing.socialLinks, email: e.target.value } })}
-                    className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-primary/50 transition-colors"
-                    placeholder="member@company.com"
-                  />
+                <div>
+                  <label className="block text-sm text-gray-400 mb-1">Role / Designation</label>
+                  <input required type="text" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white" value={newMember.designation} onChange={e => setNewMember({...newMember, designation: e.target.value})} placeholder="Creative Director" />
                 </div>
               </div>
 
-              <div className="space-y-1">
-                <label className="text-xs font-medium text-gray-400">Short Bio</label>
-                <textarea 
-                  value={isEditing.bio || ''}
-                  onChange={(e) => setIsEditing({ ...isEditing, bio: e.target.value })}
-                  className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2 text-sm text-white min-h-[100px] resize-y focus:outline-none focus:border-primary/50 transition-colors"
-                  placeholder="A brief introduction about this team member..."
-                />
+              <div>
+                <label className="block text-sm text-gray-400 mb-1">Short Bio</label>
+                <textarea rows={3} className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white resize-none" value={newMember.bio} onChange={e => setNewMember({...newMember, bio: e.target.value})} placeholder="Brief bio..."></textarea>
               </div>
 
-              <ImageUploader 
-                label="Member Photo (Recommended: Square aspect ratio)" 
-                value={isEditing.image || ''}
-                onChange={(url) => setIsEditing({ ...isEditing, image: url })}
-                folder="team"
-              />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm text-gray-400 mb-1">Display Order</label>
+                  <input type="number" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white" value={newMember.displayOrder} onChange={e => setNewMember({...newMember, displayOrder: parseInt(e.target.value) || 0})} />
+                </div>
+                <div className="flex flex-col justify-center pt-6">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" checked={newMember.isActive} onChange={e => setNewMember({...newMember, isActive: e.target.checked})} className="w-4 h-4 rounded bg-white/5 border-white/10 text-primary focus:ring-primary/20" />
+                    <span className="text-sm text-white">Active (Visible on Site)</span>
+                  </label>
+                </div>
+              </div>
 
-              <label className="flex items-center gap-3 p-3 bg-white/[0.02] border border-white/5 rounded-lg cursor-pointer hover:bg-white/[0.05] transition-colors">
-                <input 
-                  type="checkbox" 
-                  checked={isEditing.isActive}
-                  onChange={(e) => setIsEditing({ ...isEditing, isActive: e.target.checked })}
-                  className="w-4 h-4 rounded border-white/10 bg-black/40 text-primary focus:ring-primary focus:ring-offset-background"
-                />
-                <span className="text-sm font-medium text-white">Active (Visible on website)</span>
-              </label>
-            </div>
-            
-            <div className="sticky bottom-0 bg-surface/95 backdrop-blur z-10 border-t border-white/10 p-4 flex justify-end gap-3">
-              <button 
-                onClick={() => setIsEditing(null)}
-                className="px-4 py-2 bg-transparent hover:bg-white/5 text-gray-300 text-sm font-medium rounded-lg transition-colors border border-white/10"
-              >
-                Cancel
-              </button>
-              <button 
-                onClick={() => {
-                  const isExisting = data.find(d => d.id === isEditing.id);
-                  if (isExisting) {
-                    setData(data.map(d => d.id === isEditing.id ? isEditing : d));
-                  } else {
-                    setData([...data, isEditing]);
-                  }
-                  setIsEditing(null);
-                }}
-                className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-hover text-white text-sm font-medium rounded-lg transition-colors shadow-[0_0_15px_var(--primary-glow)]"
-              >
-                <Save className="w-4 h-4" />
-                Save Member
-              </button>
-            </div>
+              <div className="flex justify-end gap-3 mt-8">
+                <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors">Cancel</button>
+                <button type="submit" className="flex items-center gap-2 px-6 py-2 bg-primary hover:bg-primary-hover text-white text-sm font-medium rounded-lg transition-colors shadow-[0_0_15px_var(--primary-glow)]">
+                  <Save className="w-4 h-4" /> Save
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

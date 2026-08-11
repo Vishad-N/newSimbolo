@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Loader2, UploadCloud, Image as ImageIcon, Search, Trash2, Folder, Grid, List } from "lucide-react";
 import { cn } from "@/utils/utils";
+import { api } from "@/services/api";
 
 interface MediaAsset {
   id: string;
@@ -27,15 +28,8 @@ export default function MediaLibraryPage() {
   const fetchAssets = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch(`/api/website-media?folder=${selectedFolder}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('admin_token')}`
-        }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setAssets(data);
-      }
+      const data = await api.media.getAll(selectedFolder);
+      setAssets(data as MediaAsset[]);
     } catch (error) {
       console.error("Failed to fetch media assets", error);
     } finally {
@@ -57,17 +51,8 @@ export default function MediaLibraryPage() {
     formData.append("folder", selectedFolder);
 
     try {
-      const res = await fetch("/api/website-media/upload", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('admin_token')}`
-        },
-        body: formData,
-      });
-
-      if (res.ok) {
-        await fetchAssets();
-      }
+      await api.media.upload(formData);
+      fetchAssets();
     } catch (error) {
       console.error("Failed to upload file", error);
     } finally {
@@ -76,20 +61,13 @@ export default function MediaLibraryPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this asset?")) return;
+    if (!confirm("Are you sure you want to delete this file? This cannot be undone.")) return;
     
     try {
-      const res = await fetch(`/api/website-media/${id}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('admin_token')}`
-        }
-      });
-      if (res.ok) {
-        setAssets(assets.filter(a => a.id !== id));
-      }
+      await api.media.delete(id);
+      fetchAssets();
     } catch (error) {
-      console.error("Failed to delete asset", error);
+      console.error("Failed to delete file", error);
     }
   };
 

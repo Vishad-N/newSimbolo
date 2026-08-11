@@ -6,49 +6,6 @@
    - Environments: .env.local
 
    Creating an optimized production build ...
- ✓ Compiled successfully in 53s
+ ✓ Compiled successfully in 29.5s
    Skipping validation of types
    Skipping linting
-   Collecting page data ...
-   Generating static pages (0/24) ...
-   Generating static pages (6/24) 
-   Generating static pages (12/24) 
-   Generating static pages (18/24) 
- ✓ Generating static pages (24/24)
-   Finalizing page optimization ...
-   Collecting build traces ...
-
-Route (app)                                 Size  First Load JS
-┌ ○ /                                    9.57 kB         166 kB
-├ ○ /_not-found                            994 B         104 kB
-├ ○ /about-us                            11.5 kB         160 kB
-├ ○ /admin/blogs                         5.53 kB         112 kB
-├ ○ /admin/blogs/editor                  5.94 kB         112 kB
-├ ○ /admin/graphic-design/categories     5.83 kB         108 kB
-├ ○ /admin/packages                      7.36 kB         110 kB
-├ ○ /admin/video-editing/services        5.83 kB         108 kB
-├ ○ /affiliate-program                   9.89 kB         163 kB
-├ ○ /blogs                               6.56 kB         113 kB
-├ ƒ /blogs/[slug]                        43.3 kB         150 kB
-├ ○ /case-studies                        2.17 kB         120 kB
-├ ƒ /case-studies/[slug]                 3.69 kB         121 kB
-├ ○ /contact                             2.94 kB         106 kB
-├ ○ /help-center                         9.29 kB         157 kB
-├ ○ /packages                            10.9 kB         164 kB
-├ ○ /services                            13.7 kB         167 kB
-├ ○ /services/ecommerce                  11.6 kB         168 kB
-├ ○ /services/google-ads                 7.49 kB         159 kB
-├ ○ /services/graphic-design             11.8 kB         168 kB
-├ ○ /services/meta-ads                    6.6 kB         158 kB
-├ ○ /services/seo                        9.43 kB         157 kB
-├ ○ /services/video-editing              14.9 kB         168 kB
-└ ○ /services/website-design             8.13 kB         167 kB
-+ First Load JS shared by all             103 kB
-  ├ chunks/18-f90a2cd1d449c47a.js        46.3 kB
-  ├ chunks/87c73c54-09e1ba5c70e60a51.js  54.2 kB
-  └ other shared chunks (total)          2.01 kB
-
-
-○  (Static)   prerendered as static content
-ƒ  (Dynamic)  server-rendered on demand
-

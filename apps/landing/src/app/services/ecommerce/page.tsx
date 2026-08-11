@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { EcommercePage } from "@/components/ecommerce/EcommercePage";
 import Script from "next/script";
+import { ecommercePackages as mockPackages } from "@/data/services/ecommerce";
+import { fetchMappedPackages } from "@/lib/package-mapper";
 
 export const metadata: Metadata = {
   title: "E-Commerce Development Services | Shopify, WooCommerce & Custom Stores | The Simbolo",
@@ -65,11 +67,13 @@ const jsonLd = {
   },
 };
 
-export default function Page() {
+export default async function Page() {
+  const packagesToPass = await fetchMappedPackages('ecommerce', mockPackages);
+
   return (
     <>
       <Script id="json-ld-ecommerce" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <EcommercePage />
+      <EcommercePage livePackages={packagesToPass} />
     </>
   );
 }

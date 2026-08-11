@@ -87,8 +87,7 @@ function CheckoutContent() {
         setIsLoading(false);
       }
     };
-    
-    fetchProfile();
+    fetchData();
   }, [packageId]);
 
   if (isLoading) {

@@ -6,6 +6,11 @@ export const metadata: Metadata = {
   description: "Drive more leads and sales with high-converting Google Ads campaigns.",
 };
 
-export default function Page() {
-  return <GoogleAdsPage />;
+import { googleAdsPackages as mockPackages } from "@/mock/googleAdsPackages";
+import { fetchMappedPackages } from "@/lib/package-mapper";
+
+export default async function Page() {
+  const packagesToPass = await fetchMappedPackages('google-ads', mockPackages);
+
+  return <GoogleAdsPage livePackages={packagesToPass} />;
 }

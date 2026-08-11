@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { WebsiteDesignPage } from "@/components/websiteDesign/WebsiteDesignPage";
 import Script from "next/script";
+import { websitePackages as mockPackages } from "@/data/services/websiteDesign";
+import { fetchMappedPackages } from "@/lib/package-mapper";
 
 export const metadata: Metadata = {
   title: "Website Design & Development Services | The Simbolo",
@@ -65,11 +67,13 @@ const jsonLd = {
   },
 };
 
-export default function Page() {
+export default async function Page() {
+  const packagesToPass = await fetchMappedPackages('website-design', mockPackages);
+
   return (
     <>
       <Script id="json-ld-website-design" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <WebsiteDesignPage />
+      <WebsiteDesignPage livePackages={packagesToPass} />
     </>
   );
 }

@@ -1,64 +1,111 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DataTable } from "@/components/DataTable";
-import { Plus, Package as PackageIcon, Star, StarOff } from "lucide-react";
+import { Plus, Package as PackageIcon, RefreshCw, Trash, X } from "lucide-react";
+import { api } from "@/services/api";
 
 interface PackageData {
   id: string;
   name: string;
-  illustration: string;
+  type: string;
   price: string;
-  rating: number;
-  compactHighlights: string[];
-  displayOrder: number;
+  serviceName: string;
   featured: boolean;
-  status: "Published" | "Draft" | "Archived";
 }
 
-const mockPackages: PackageData[] = [
-  { id: "pkg_seo", name: "SEO", illustration: "/images/services/seo.png", price: "₹7,999/mo", rating: 4.8, compactHighlights: ["Technical SEO", "Local SEO", "Keyword Research"], displayOrder: 1, featured: true, status: "Published" },
-  { id: "pkg_meta", name: "Meta Ads", illustration: "/images/services/meta-ads.png", price: "₹4,999/mo", rating: 4.9, compactHighlights: ["Facebook Ads", "Instagram Ads", "Lead Generation"], displayOrder: 2, featured: true, status: "Published" },
-  { id: "pkg_web", name: "Website Design", illustration: "/images/services/website-design.png", price: "₹14,999", rating: 4.9, compactHighlights: ["Custom Design", "Mobile Responsive", "Fast Loading"], displayOrder: 4, featured: false, status: "Published" },
-];
-
 export default function PackagesPage() {
-  const [data, setData] = useState<PackageData[]>(mockPackages);
+  const [data, setData] = useState<PackageData[]>([]);
+  const [services, setServices] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  // Modal state
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newPkg, setNewPkg] = useState({ name: "", serviceId: "", basePrice: 0, type: "STARTER", isPopular: false });
+
+  const fetchData = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const [pkgRes, srvRes] = await Promise.all([
+        api.packages.getAll(),
+        api.services.getAll()
+      ]) as [any, any];
+      
+      setServices(srvRes.data || srvRes);
+
+      const mappedData: PackageData[] = (pkgRes.data || pkgRes).map((pkg: any) => ({
+        id: pkg.id,
+        name: pkg.name,
+        type: pkg.type || "N/A",
+        price: `₹${pkg.basePrice?.toLocaleString() || 0}`,
+        serviceName: pkg.service?.name || "Unknown Service",
+        featured: pkg.isPopular || false,
+      }));
+      setData(mappedData);
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || "Failed to fetch data");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this package?")) return;
+    try {
+      await api.packages.delete(id);
+      fetchData();
+    } catch (err: any) {
+      alert("Failed to delete package: " + err.message);
+    }
+  };
+
+  const handleCreate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await api.packages.create({
+        name: newPkg.name,
+        serviceId: newPkg.serviceId,
+        basePrice: Number(newPkg.basePrice),
+        type: newPkg.type,
+        isPopular: newPkg.isPopular,
+        billingInterval: "monthly"
+      });
+      setIsModalOpen(false);
+      setNewPkg({ name: "", serviceId: "", basePrice: 0, type: "STARTER", isPopular: false });
+      fetchData();
+    } catch (err: any) {
+      alert("Failed to create package: " + err.message);
+    }
+  };
 
   const columns = [
     {
       key: "name",
-      header: "Service Name",
+      header: "Package Name",
       render: (item: PackageData) => (
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-md bg-white/5 flex items-center justify-center overflow-hidden">
-             {item.illustration ? (
-                <img src={item.illustration} alt={item.name} className="w-full h-full object-cover" />
-             ) : (
-                <PackageIcon className="w-4 h-4 text-gray-400" />
-             )}
+            <PackageIcon className="w-4 h-4 text-primary" />
           </div>
           <div>
             <span className="font-medium text-white block">{item.name}</span>
-            <span className="text-xs text-gray-400 truncate max-w-[200px] block">{item.compactHighlights.join(", ")}</span>
+            <span className="text-xs text-gray-400 block">{item.serviceName}</span>
           </div>
         </div>
       )
     },
-    { key: "price", header: "Starting Price" },
-    { 
-      key: "rating", 
-      header: "Rating",
-      render: (item: PackageData) => (
-        <span className="flex items-center gap-1 text-yellow-400 text-sm font-medium">
-          <Star className="w-3 h-3 fill-current" /> {item.rating}
-        </span>
-      )
-    },
-    { key: "displayOrder", header: "Order" },
+    { key: "type", header: "Tier" },
+    { key: "price", header: "Base Price" },
     {
       key: "featured",
-      header: "Featured",
+      header: "Popular",
       render: (item: PackageData) => (
         <span className={`px-2 py-1 text-xs font-medium rounded-full ${
           item.featured ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' : 'bg-gray-500/10 text-gray-400 border border-gray-500/20'
@@ -68,68 +115,112 @@ export default function PackagesPage() {
       )
     },
     {
-      key: "status",
-      header: "Status",
+      key: "actions",
+      header: "Actions",
       render: (item: PackageData) => (
-        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-          item.status === 'Published' ? 'bg-green-500/10 text-green-400 border border-green-500/20' :
-          item.status === 'Draft' ? 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20' :
-          'bg-gray-500/10 text-gray-400 border border-gray-500/20'
-        }`}>
-          {item.status}
-        </span>
+        <button onClick={() => handleDelete(item.id)} className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors">
+          <Trash className="w-4 h-4" />
+        </button>
       )
-    },
+    }
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 relative">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-heading font-bold text-white">Packages Manager</h1>
-          <p className="text-sm text-gray-400">Manage service cards, illustrations, and pricing.</p>
+          <p className="text-sm text-gray-400">Manage service pricing tiers and packages.</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-hover text-white text-sm font-medium rounded-lg transition-colors shadow-[0_0_15px_var(--primary-glow)]">
-          <Plus className="w-4 h-4" />
-          New Service
-        </button>
+        <div className="flex gap-3">
+          <button onClick={fetchData} className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 text-white text-sm font-medium rounded-lg transition-colors border border-white/10">
+            <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
+            Refresh
+          </button>
+          <button onClick={() => setIsModalOpen(true)} className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-hover text-white text-sm font-medium rounded-lg transition-colors shadow-[0_0_15px_var(--primary-glow)]">
+            <Plus className="w-4 h-4" />
+            New Package
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <div className="glass-card rounded-xl p-4 flex flex-col">
-          <span className="text-sm text-gray-400 mb-1">Total Services</span>
+          <span className="text-sm text-gray-400 mb-1">Total Packages</span>
           <span className="text-2xl font-bold text-white">{data.length}</span>
         </div>
         <div className="glass-card rounded-xl p-4 flex flex-col">
-          <span className="text-sm text-gray-400 mb-1">Published</span>
-          <span className="text-2xl font-bold text-green-400">
-            {data.filter(p => p.status === 'Published').length}
-          </span>
-        </div>
-        <div className="glass-card rounded-xl p-4 flex flex-col">
-          <span className="text-sm text-gray-400 mb-1">Featured</span>
+          <span className="text-sm text-gray-400 mb-1">Popular Packages</span>
           <span className="text-2xl font-bold text-blue-400">
             {data.filter(p => p.featured).length}
           </span>
         </div>
-        <div className="glass-card rounded-xl p-4 flex flex-col">
-          <span className="text-sm text-gray-400 mb-1">Drafts</span>
-          <span className="text-2xl font-bold text-yellow-400">
-            {data.filter(p => p.status === 'Draft').length}
-          </span>
-        </div>
       </div>
 
-      <DataTable 
-        columns={columns} 
-        data={data}
-        onEdit={(item) => console.log("Edit", item)}
-        onDuplicate={(item) => {
-          const newItem = { ...item, id: Date.now().toString(), name: `${item.name} (Copy)`, status: "Draft" as const };
-          setData([...data, newItem]);
-        }}
-        onDelete={(item) => setData(data.filter(d => d.id !== item.id))}
-      />
+      {error ? (
+        <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-400 rounded-lg">
+          Error: {error}
+        </div>
+      ) : isLoading ? (
+        <div className="p-12 flex justify-center text-gray-400">Loading packages...</div>
+      ) : (
+        <DataTable 
+          columns={columns} 
+          data={data}
+          onEdit={(item) => alert("Edit package functionality coming soon")}
+        />
+      )}
+
+      {/* CREATE MODAL */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-[#0B0F19] border border-white/10 p-6 rounded-xl w-full max-w-md shadow-2xl">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold text-white">Create New Package</h2>
+              <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-white"><X className="w-5 h-5"/></button>
+            </div>
+            <form onSubmit={handleCreate} className="space-y-4">
+              <div>
+                <label className="block text-sm text-gray-400 mb-1">Package Name</label>
+                <input required type="text" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white" value={newPkg.name} onChange={e => setNewPkg({...newPkg, name: e.target.value})} placeholder="e.g. Growth Pro" />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-400 mb-1">Linked Service</label>
+                <select required className="w-full bg-[#1A1F2E] border border-white/10 rounded-lg px-4 py-2 text-white appearance-none" value={newPkg.serviceId} onChange={e => setNewPkg({...newPkg, serviceId: e.target.value})}>
+                  <option value="">-- Select Service --</option>
+                  {services.map(s => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm text-gray-400 mb-1">Base Price (₹)</label>
+                  <input required type="number" min="0" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white" value={newPkg.basePrice} onChange={e => setNewPkg({...newPkg, basePrice: parseInt(e.target.value) || 0})} />
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-400 mb-1">Tier</label>
+                  <select className="w-full bg-[#1A1F2E] border border-white/10 rounded-lg px-4 py-2 text-white appearance-none" value={newPkg.type} onChange={e => setNewPkg({...newPkg, type: e.target.value})}>
+                    <option value="STARTER">Starter</option>
+                    <option value="GROWTH">Growth</option>
+                    <option value="PREMIUM">Premium</option>
+                    <option value="ENTERPRISE">Enterprise</option>
+                    <option value="CUSTOM">Custom</option>
+                  </select>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 pt-2">
+                <input type="checkbox" id="popular" checked={newPkg.isPopular} onChange={e => setNewPkg({...newPkg, isPopular: e.target.checked})} className="w-4 h-4 rounded bg-white/5 border-white/10 text-primary focus:ring-primary/20" />
+                <label htmlFor="popular" className="text-sm text-gray-400">Mark as Popular</label>
+              </div>
+              <div className="flex justify-end gap-3 mt-6">
+                <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors">Cancel</button>
+                <button type="submit" className="px-4 py-2 bg-primary hover:bg-primary-hover text-white text-sm font-medium rounded-lg transition-colors">Create Package</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

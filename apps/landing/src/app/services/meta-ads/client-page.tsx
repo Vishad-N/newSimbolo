@@ -12,8 +12,16 @@ import { metaAdsBenefits, metaAdsResults, metaAdsServices, metaAdsStats } from "
 import { metaAdsFaqs } from "@/mock/metaAdsFaq";
 import { metaAdsPackages } from "@/mock/metaAdsPackages";
 import { metaAdsTestimonials } from "@/mock/metaAdsTestimonials";
+import { SharedPackage } from "@/types/shared";
 
-export function MetaAdsClientPage() {
+interface MetaAdsClientPageProps {
+  livePackages?: SharedPackage[];
+}
+
+export function MetaAdsClientPage({ livePackages }: MetaAdsClientPageProps) {
+  // Use live packages from backend if available, fallback to mock
+  const packages = livePackages && livePackages.length > 0 ? livePackages : metaAdsPackages;
+
   return (
     <>
         <div className="px-4 pb-8 pt-4 sm:px-8 lg:px-10">
@@ -22,7 +30,7 @@ export function MetaAdsClientPage() {
             <StatsBar stats={metaAdsStats} />
             <div className="grid gap-4 xl:grid-cols-[0.66fr_1.92fr_0.78fr]">
               <ServiceList services={metaAdsServices} title="What We Do" />
-              <PricingSection packages={metaAdsPackages} title="Meta Ads Packages" />
+              <PricingSection packages={packages} title="Meta Ads Packages" />
               <div className="space-y-4">
                 <LeadForm title="Get Your Free Meta Ads Audit" />
               </div>

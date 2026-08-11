@@ -29,7 +29,7 @@ export function MediaSelector({ onSelect, triggerText = "Select Media", triggerI
   const [isUploading, setIsUploading] = useState(false);
 
   const fetchAssets = async () => {
-    setIsLoading(true);
+    setTimeout(() => setIsLoading(true), 0);
     try {
       const url = folder ? `/api/website-media?folder=${folder}` : "/api/website-media";
       const res = await fetch(url, {

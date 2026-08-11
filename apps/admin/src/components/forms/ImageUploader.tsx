@@ -14,14 +14,13 @@ interface ImageUploaderProps {
 }
 
 export function ImageUploader({ label, value, onChange, className, folder = "general" }: ImageUploaderProps) {
-  const [preview, setPreview] = useState<string | null>(value || null);
-
-  useEffect(() => {
-    setPreview(value || null);
-  }, [value]);
+  const [internalPreview, setInternalPreview] = useState<string | null>(null);
+  
+  // Use value from props if available, otherwise use internal state
+  const preview = value !== undefined ? (value || null) : internalPreview;
 
   const handleRemove = () => {
-    setPreview(null);
+    setInternalPreview(null);
     onChange?.("");
   };
 
@@ -37,7 +36,7 @@ export function ImageUploader({ label, value, onChange, className, folder = "gen
               triggerText="Replace" 
               folder={folder}
               onSelect={(asset) => {
-                setPreview(asset.url);
+                setInternalPreview(asset.url);
                 onChange?.(asset.url);
               }}
             />
@@ -56,7 +55,7 @@ export function ImageUploader({ label, value, onChange, className, folder = "gen
             triggerText="Browse Cloudinary Library" 
             folder={folder}
             onSelect={(asset) => {
-              setPreview(asset.url);
+              setInternalPreview(asset.url);
               onChange?.(asset.url);
             }}
           />

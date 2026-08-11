@@ -12,7 +12,15 @@ import { StatsBar } from "@/components/seo/StatsBar";
 import { heroBenefits, approachSteps, resultMetrics, seoFaqs, seoMetrics, testimonials } from "@/mock/seo";
 import { seoPackages } from "@/mock/seo-packages";
 import { seoServices } from "@/mock/seo-services";
-export function SeoPage() {
+import { SharedPackage } from "@/types/shared";
+
+interface SeoPageProps {
+  livePackages?: SharedPackage[];
+}
+
+export function SeoPage({ livePackages }: SeoPageProps) {
+  const packages = livePackages && livePackages.length > 0 ? livePackages : seoPackages;
+
   return (
     <>
         <div className="px-4 pb-8 pt-4 sm:px-8 lg:px-10">
@@ -37,7 +45,7 @@ export function SeoPage() {
               <SeoApproach steps={approachSteps} />
             </div>
             <div className="grid gap-4 xl:grid-cols-[1.45fr_0.85fr]">
-              <SeoPackages packages={seoPackages} />
+              <SeoPackages packages={packages} />
               <SeoResults metrics={resultMetrics} testimonials={testimonials} />
             </div>
             <FAQSection faqs={seoFaqs} />

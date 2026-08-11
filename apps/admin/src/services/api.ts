@@ -35,151 +35,118 @@ async function fetchFromApi<T>(endpoint: string, options?: RequestInit, fallback
 export const api = {
   // CMS Modules
   homepage: {
-    get: async () => {
-      const fallback = {
-        hero: {
-          title: "AI-Powered Digital Marketing Matchmaking",
-          subtitle: "Find the perfect marketing agency for your business.",
-          ctaPrimary: "Get Matched",
-          ctaSecondary: "View Services"
-        }
-      };
-      return fetchFromApi('/cms/homepage', { method: 'GET' }, fallback);
-    },
-    update: async (data: any) => {
-      return fetchFromApi('/cms/homepage', {
-        method: 'PATCH',
-        body: JSON.stringify(data),
-      }, { success: true, data });
-    }
+    get: async () => fetchFromApi('/cms/homepage', { method: 'GET' }),
+    update: async (data: any) => fetchFromApi('/cms/homepage', { method: 'PATCH', body: JSON.stringify(data) }),
   },
-
   aboutUs: {
-    get: async () => fetchFromApi('/cms/about-us', { method: 'GET' }, { title: 'About The Simbolo' }),
-    update: async (data: any) => fetchFromApi('/cms/about-us', { method: 'PATCH', body: JSON.stringify(data) }, { success: true, data }),
+    get: async () => fetchFromApi('/cms/about-us', { method: 'GET' }),
+    update: async (data: any) => fetchFromApi('/cms/about-us', { method: 'PATCH', body: JSON.stringify(data) }),
   },
-
   helpCenter: {
-    get: async () => fetchFromApi('/cms/help-center', { method: 'GET' }, { title: 'Help Center & Knowledge Base' }),
-    update: async (data: any) => fetchFromApi('/cms/help-center', { method: 'PATCH', body: JSON.stringify(data) }, { success: true, data }),
+    get: async () => fetchFromApi('/cms/help-center', { method: 'GET' }),
+    update: async (data: any) => fetchFromApi('/cms/help-center', { method: 'PATCH', body: JSON.stringify(data) }),
   },
-
   navigation: {
-    get: async () => fetchFromApi('/cms/navigation', { method: 'GET' }, []),
-    createItem: async (data: any) => fetchFromApi('/cms/navigation/items', { method: 'POST', body: JSON.stringify(data) }, { success: true, data }),
+    get: async () => fetchFromApi('/cms/navigation', { method: 'GET' }),
+    createItem: async (data: any) => fetchFromApi('/cms/navigation/items', { method: 'POST', body: JSON.stringify(data) }),
   },
-
   footer: {
-    get: async () => fetchFromApi('/cms/footer', { method: 'GET' }, { copyright: '© 2026 The Simbolo. All rights reserved.' }),
-    update: async (data: any) => fetchFromApi('/cms/footer', { method: 'PATCH', body: JSON.stringify(data) }, { success: true, data }),
+    get: async () => fetchFromApi('/cms/footer', { method: 'GET' }),
+    update: async (data: any) => fetchFromApi('/cms/footer', { method: 'PATCH', body: JSON.stringify(data) }),
   },
 
   // Services Catalog & Packages
   services: {
-    getAll: async () => fetchFromApi('/services', { method: 'GET' }, []),
-    create: async (data: any) => fetchFromApi('/services', { method: 'POST', body: JSON.stringify(data) }, { success: true, data: { ...data, id: Date.now().toString() } }),
-    update: async (id: string, data: any) => fetchFromApi(`/services/${id}`, { method: 'PATCH', body: JSON.stringify(data) }, { success: true, data }),
-    delete: async (id: string) => fetchFromApi(`/services/${id}`, { method: 'DELETE' }, { success: true }),
+    getAll: async () => fetchFromApi('/services', { method: 'GET' }),
+    create: async (data: any) => fetchFromApi('/services', { method: 'POST', body: JSON.stringify(data) }),
+    update: async (id: string, data: any) => fetchFromApi(`/services/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+    delete: async (id: string) => fetchFromApi(`/services/${id}`, { method: 'DELETE' }),
   },
-
   packages: {
-    getAll: async () => {
-      const fallback = [
-        { id: "1", name: "Basic SEO", category: "SEO", price: "$499/mo", status: "Active" },
-        { id: "2", name: "Pro SEO", category: "SEO", price: "$999/mo", status: "Active" },
-        { id: "3", name: "Starter Website", category: "Web Dev", price: "$1,499", status: "Active" }
-      ];
-      return fetchFromApi('/packages', { method: 'GET' }, fallback);
-    },
-    create: async (data: any) => fetchFromApi('/packages', { method: 'POST', body: JSON.stringify(data) }, { success: true, data: { ...data, id: Date.now().toString() } }),
-    update: async (id: string, data: any) => fetchFromApi(`/packages/${id}`, { method: 'PATCH', body: JSON.stringify(data) }, { success: true, data }),
-    delete: async (id: string) => fetchFromApi(`/packages/${id}`, { method: 'DELETE' }, { success: true }),
+    getAll: async () => fetchFromApi('/packages', { method: 'GET' }),
+    create: async (data: any) => fetchFromApi('/packages', { method: 'POST', body: JSON.stringify(data) }),
+    update: async (id: string, data: any) => fetchFromApi(`/packages/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+    delete: async (id: string) => fetchFromApi(`/packages/${id}`, { method: 'DELETE' }),
   },
 
   // Content & Showcase Modules
   blogs: {
-    getAll: async () => fetchFromApi('/blogs', { method: 'GET' }, []),
-    create: async (data: any) => fetchFromApi('/blogs', { method: 'POST', body: JSON.stringify(data) }, { success: true, data: { ...data, id: Date.now().toString() } }),
-    update: async (id: string, data: any) => fetchFromApi(`/blogs/${id}`, { method: 'PATCH', body: JSON.stringify(data) }, { success: true, data }),
-    delete: async (id: string) => fetchFromApi(`/blogs/${id}`, { method: 'DELETE' }, { success: true }),
+    getAll: async () => fetchFromApi('/blogs', { method: 'GET' }),
+    create: async (data: any) => fetchFromApi('/blogs', { method: 'POST', body: JSON.stringify(data) }),
+    update: async (id: string, data: any) => fetchFromApi(`/blogs/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+    delete: async (id: string) => fetchFromApi(`/blogs/${id}`, { method: 'DELETE' }),
   },
-
   caseStudies: {
-    getAll: async () => fetchFromApi('/case-studies', { method: 'GET' }, []),
-    create: async (data: any) => fetchFromApi('/case-studies', { method: 'POST', body: JSON.stringify(data) }, { success: true, data: { ...data, id: Date.now().toString() } }),
-    update: async (id: string, data: any) => fetchFromApi(`/case-studies/${id}`, { method: 'PATCH', body: JSON.stringify(data) }, { success: true, data }),
-    delete: async (id: string) => fetchFromApi(`/case-studies/${id}`, { method: 'DELETE' }, { success: true }),
+    getAll: async () => fetchFromApi('/case-studies', { method: 'GET' }),
+    create: async (data: any) => fetchFromApi('/case-studies', { method: 'POST', body: JSON.stringify(data) }),
+    update: async (id: string, data: any) => fetchFromApi(`/case-studies/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+    delete: async (id: string) => fetchFromApi(`/case-studies/${id}`, { method: 'DELETE' }),
   },
-
   portfolio: {
-    getAll: async () => {
-      const fallback = [
-        { id: "1", title: "TechCorp Rebrand", category: "Design", status: "Active" },
-      ];
-      return fetchFromApi('/portfolio/projects', { method: 'GET' }, fallback);
-    },
-    create: async (data: any) => fetchFromApi('/portfolio/projects', { method: 'POST', body: JSON.stringify(data) }, { success: true, data: { ...data, id: Date.now().toString() } }),
-    update: async (id: string, data: any) => fetchFromApi(`/portfolio/projects/${id}`, { method: 'PATCH', body: JSON.stringify(data) }, { success: true, data }),
-    delete: async (id: string) => fetchFromApi(`/portfolio/projects/${id}`, { method: 'DELETE' }, { success: true }),
+    getAll: async () => fetchFromApi('/portfolio', { method: 'GET' }),
+    create: async (data: any) => fetchFromApi('/portfolio', { method: 'POST', body: JSON.stringify(data) }),
+    update: async (id: string, data: any) => fetchFromApi(`/portfolio/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+    delete: async (id: string) => fetchFromApi(`/portfolio/${id}`, { method: 'DELETE' }),
   },
-
   testimonials: {
-    getAll: async () => fetchFromApi('/testimonials', { method: 'GET' }, []),
-    create: async (data: any) => fetchFromApi('/testimonials', { method: 'POST', body: JSON.stringify(data) }, { success: true, data: { ...data, id: Date.now().toString() } }),
-    update: async (id: string, data: any) => fetchFromApi(`/testimonials/${id}`, { method: 'PATCH', body: JSON.stringify(data) }, { success: true, data }),
-    delete: async (id: string) => fetchFromApi(`/testimonials/${id}`, { method: 'DELETE' }, { success: true }),
+    getAll: async () => fetchFromApi('/testimonials', { method: 'GET' }),
+    create: async (data: any) => fetchFromApi('/testimonials', { method: 'POST', body: JSON.stringify(data) }),
+    update: async (id: string, data: any) => fetchFromApi(`/testimonials/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+    delete: async (id: string) => fetchFromApi(`/testimonials/${id}`, { method: 'DELETE' }),
   },
-
   faqs: {
-    getAll: async () => fetchFromApi('/faqs', { method: 'GET' }, []),
-    create: async (data: any) => fetchFromApi('/faqs', { method: 'POST', body: JSON.stringify(data) }, { success: true, data: { ...data, id: Date.now().toString() } }),
-    update: async (id: string, data: any) => fetchFromApi(`/faqs/${id}`, { method: 'PATCH', body: JSON.stringify(data) }, { success: true, data }),
-    delete: async (id: string) => fetchFromApi(`/faqs/${id}`, { method: 'DELETE' }, { success: true }),
+    getAll: async () => fetchFromApi('/faqs', { method: 'GET' }),
+    create: async (data: any) => fetchFromApi('/faqs', { method: 'POST', body: JSON.stringify(data) }),
+    update: async (id: string, data: any) => fetchFromApi(`/faqs/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+    delete: async (id: string) => fetchFromApi(`/faqs/${id}`, { method: 'DELETE' }),
   },
 
   // SEO & Media
   seo: {
-    getAll: async () => fetchFromApi('/seo', { method: 'GET' }, []),
-    getByPath: async (path: string) => fetchFromApi(`/seo/page?path=${encodeURIComponent(path)}`, { method: 'GET' }, null),
-    create: async (data: any) => fetchFromApi('/seo', { method: 'POST', body: JSON.stringify(data) }, { success: true, data: { ...data, id: Date.now().toString() } }),
-    update: async (id: string, data: any) => fetchFromApi(`/seo/${id}`, { method: 'PATCH', body: JSON.stringify(data) }, { success: true, data }),
-    delete: async (id: string) => fetchFromApi(`/seo/${id}`, { method: 'DELETE' }, { success: true }),
+    getAll: async () => fetchFromApi('/seo', { method: 'GET' }),
+    getByPath: async (path: string) => fetchFromApi(`/seo/page?path=${encodeURIComponent(path)}`, { method: 'GET' }),
+    create: async (data: any) => fetchFromApi('/seo', { method: 'POST', body: JSON.stringify(data) }),
+    update: async (id: string, data: any) => fetchFromApi(`/seo/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+    delete: async (id: string) => fetchFromApi(`/seo/${id}`, { method: 'DELETE' }),
   },
-
   media: {
-    getAll: async () => fetchFromApi('/media/assets', { method: 'GET' }, []),
-    upload: async (fileData: FormData) => {
-      try {
-        const res = await fetch(`${API_BASE_URL}/media/upload`, {
-          method: 'POST',
-          body: fileData,
-        });
-        if (!res.ok) throw new Error(`Upload failed (${res.status})`);
-        return await res.json();
-      } catch (err) {
-        console.warn('[Simbolo API Fallback] Media upload fallback:', err);
-        return { id: Date.now().toString(), url: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&auto=format&fit=crop" };
-      }
+    getAll: async (folder?: string) => {
+      const url = folder ? `/website-media?folder=${encodeURIComponent(folder)}` : '/website-media';
+      return fetchFromApi(url, { method: 'GET' });
     },
-    delete: async (id: string) => fetchFromApi(`/media/assets/${id}`, { method: 'DELETE' }, { success: true }),
+    upload: async (fileData: FormData) => {
+      const res = await fetch(`${API_BASE_URL}/website-media/upload`, {
+        method: 'POST',
+        body: fileData,
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('admin_token')}`
+        }
+      });
+      if (!res.ok) throw new Error(`Upload failed (${res.status})`);
+      return await res.json();
+    },
+    delete: async (id: string) => fetchFromApi(`/website-media/${id}`, { method: 'DELETE' }),
   },
 
   // Taxonomy & System Settings
   technologies: {
-    getAll: async () => fetchFromApi('/cms/settings/technologies', { method: 'GET' }, []),
-    update: async (data: any) => fetchFromApi('/cms/settings/technologies', { method: 'PATCH', body: JSON.stringify(data) }, { success: true, data }),
+    getAll: async () => fetchFromApi('/settings/technologies', { method: 'GET' }),
+    update: async (data: any) => fetchFromApi('/settings/technologies', { method: 'PATCH', body: JSON.stringify(data) }),
   },
-
   industries: {
-    getAll: async () => fetchFromApi('/cms/settings/industries', { method: 'GET' }, []),
-    update: async (data: any) => fetchFromApi('/cms/settings/industries', { method: 'PATCH', body: JSON.stringify(data) }, { success: true, data }),
+    getAll: async () => fetchFromApi('/settings/industries', { method: 'GET' }),
+    update: async (data: any) => fetchFromApi('/settings/industries', { method: 'PATCH', body: JSON.stringify(data) }),
   },
-
   settings: {
-    getTheme: async () => fetchFromApi('/cms/settings/theme', { method: 'GET' }, { primaryColor: '#14B8A6', mode: 'dark' }),
-    updateTheme: async (data: any) => fetchFromApi('/cms/settings/theme', { method: 'PATCH', body: JSON.stringify(data) }, { success: true, data }),
+    getTheme: async () => fetchFromApi('/settings/theme', { method: 'GET' }),
+    updateTheme: async (data: any) => fetchFromApi('/settings/theme', { method: 'PATCH', body: JSON.stringify(data) }),
   },
-
+  websiteTeam: {
+    getAll: async () => fetchFromApi('/website-team', { method: 'GET' }),
+    create: async (data: any) => fetchFromApi('/website-team', { method: 'POST', body: JSON.stringify(data) }),
+    update: async (id: string, data: any) => fetchFromApi(`/website-team/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+    delete: async (id: string) => fetchFromApi(`/website-team/${id}`, { method: 'DELETE' }),
+  },
   config: {
     baseURL: API_BASE_URL,
   },

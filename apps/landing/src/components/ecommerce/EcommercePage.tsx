@@ -26,7 +26,15 @@ import {
   ecommerceStoreFeatures,
 } from "@/data/services/ecommerce";
 
-export function EcommercePage() {
+import { SharedPackage } from "@/types/shared";
+
+interface EcommercePageProps {
+  livePackages?: SharedPackage[];
+}
+
+export function EcommercePage({ livePackages }: EcommercePageProps) {
+  const packages = livePackages && livePackages.length > 0 ? livePackages : ecommercePackages;
+
   return (
     <>
       <div className="px-4 pb-8 pt-4 sm:px-8 lg:px-10">
@@ -73,7 +81,7 @@ export function EcommercePage() {
 
           {/* 8. Packages (Wrapped for premium feel) */}
           <div className="grid gap-4 xl:grid-cols-1">
-            <PricingSection title="E-Commerce Packages" packages={ecommercePackages} />
+            <PricingSection title="E-Commerce Packages" packages={packages} />
           </div>
 
           {/* 9. Testimonials */}
