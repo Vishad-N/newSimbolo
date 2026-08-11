@@ -84,3 +84,5 @@ The CMS for your team to manage everything.
 | Variable Name | Description | Example / Default |
 | --- | --- | --- |
 | `NEXT_PUBLIC_API_URL` | The base URL to the deployed backend API | `https://simbolobackend-production.up.railway.app/api/v1` |
+| `ADMIN_USERNAME` | Username for basic auth protection of the admin panel | `admin` |
+| `ADMIN_PASSWORD` | Password for basic auth protection of the admin panel | `BilluBadmash` |

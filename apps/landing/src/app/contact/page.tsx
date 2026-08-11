@@ -29,24 +29,25 @@ export default function ContactPage() {
           </Suspense>
 
           <aside className="flex flex-col gap-8">
-            <div className="rounded-2xl border border-black/10 dark:border-white/10 bg-white/50 dark:bg-black/20 p-8 backdrop-blur-md">
-              <h3 className="font-heading text-xl font-bold text-[var(--text-primary)] mb-6">Contact Information</h3>
-              <div className="space-y-6">
-                <div>
-                  <p className="text-[0.85rem] font-bold text-[var(--muted)] uppercase tracking-wider mb-2">Email Us</p>
-                  <a href="mailto:hello@thesimbolo.com" className="text-[var(--text-primary)] font-medium hover:text-[var(--primary)] transition-colors">
+            <div className="rounded-3xl border border-white/10 bg-white/[0.02] p-8 backdrop-blur-xl relative overflow-hidden shadow-2xl">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--primary)]/10 rounded-full blur-3xl -mr-10 -mt-10" />
+              <h3 className="font-heading text-xl font-bold text-white mb-6 relative z-10">Contact Information</h3>
+              <div className="space-y-6 relative z-10">
+                <div className="group">
+                  <p className="text-[0.85rem] font-bold text-white/50 uppercase tracking-wider mb-2">Email Us</p>
+                  <a href="mailto:hello@thesimbolo.com" className="text-white font-medium hover:text-[var(--primary)] transition-colors inline-block group-hover:translate-x-1 duration-300">
                     hello@thesimbolo.com
                   </a>
                 </div>
-                <div>
-                  <p className="text-[0.85rem] font-bold text-[var(--muted)] uppercase tracking-wider mb-2">Call Us</p>
-                  <a href="tel:+919876543210" className="text-[var(--text-primary)] font-medium hover:text-[var(--primary)] transition-colors">
+                <div className="group">
+                  <p className="text-[0.85rem] font-bold text-white/50 uppercase tracking-wider mb-2">Call Us</p>
+                  <a href="tel:+919876543210" className="text-white font-medium hover:text-[var(--primary)] transition-colors inline-block group-hover:translate-x-1 duration-300">
                     +91 98765 43210
                   </a>
                 </div>
-                <div>
-                  <p className="text-[0.85rem] font-bold text-[var(--muted)] uppercase tracking-wider mb-2">Visit Us</p>
-                  <p className="text-[var(--text-primary)] font-medium">
+                <div className="group">
+                  <p className="text-[0.85rem] font-bold text-white/50 uppercase tracking-wider mb-2">Visit Us</p>
+                  <p className="text-white/90 font-medium leading-relaxed group-hover:text-white transition-colors duration-300">
                     123 Business Avenue, Tech Hub<br />
                     Mumbai, Maharashtra 400001<br />
                     India
@@ -55,19 +56,25 @@ export default function ContactPage() {
               </div>
             </div>
 
-            <div className="rounded-2xl border border-[var(--primary)]/30 bg-[var(--primary)]/10 p-8 backdrop-blur-md">
-              <h3 className="font-heading text-xl font-bold text-[var(--text-primary)] mb-3">Prefer a direct chat?</h3>
-              <p className="text-[var(--muted)] text-sm mb-6">
-                Skip the form and talk directly to our team via WhatsApp.
-              </p>
-              <a 
-                href="https://wa.me/919876543210" 
-                target="_blank" 
-                rel="noreferrer"
-                className="inline-flex h-12 w-full items-center justify-center rounded-lg bg-[#25D366] px-6 font-bold text-white transition-all hover:-translate-y-1 hover:shadow-lg hover:shadow-[#25D366]/30"
-              >
-                Chat on WhatsApp
-              </a>
+            <div className="rounded-3xl border border-[#25D366]/30 bg-gradient-to-b from-[#25D366]/10 to-transparent p-8 backdrop-blur-xl relative overflow-hidden shadow-2xl">
+              <div className="absolute inset-0 bg-[#25D366]/5 blur-2xl" />
+              <div className="relative z-10">
+                <h3 className="font-heading text-xl font-bold text-white mb-3">Prefer a direct chat?</h3>
+                <p className="text-white/60 text-sm mb-6">
+                  Skip the form and talk directly to our team via WhatsApp.
+                </p>
+                <a 
+                  href="https://wa.me/919876543210" 
+                  target="_blank" 
+                  rel="noreferrer"
+                  className="group relative inline-flex h-12 w-full items-center justify-center rounded-xl bg-[#25D366] px-6 font-bold text-white transition-all hover:bg-[#1DA851] overflow-hidden"
+                >
+                  <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
+                  <span className="relative z-10 flex items-center gap-2">
+                    Chat on WhatsApp
+                  </span>
+                </a>
+              </div>
             </div>
           </aside>
         </div>
