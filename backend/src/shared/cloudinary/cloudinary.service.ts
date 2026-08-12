@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { v2 as cloudinary, UploadApiErrorResponse, UploadApiResponse } from 'cloudinary';
+// @ts-ignore
 import toStream = require('buffer-to-stream');
 
 @Injectable()
