@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
-import { VersioningType } from '@nestjs/common';
+import { INestApplication, VersioningType } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { ExpressAdapter } from '@nestjs/platform-express';
 import helmet from 'helmet';
 import * as compression from 'compression';
 import * as cookieParser from 'cookie-parser';
@@ -8,22 +9,28 @@ import { AppModule } from './app.module';
 import { CustomLoggerService } from './shared/logger/logger.service';
 import { RedisIoAdapter } from './realtime/redis-io.adapter';
 
-const REDIS_STARTUP_TIMEOUT_MS = 7_500;
+const REDIS_STARTUP_TIMEOUT_MS = 2_000;
 
-async function bootstrap() {
-  console.log('[Bootstrap] Application bootstrap started');
-  const app = await NestFactory.create(AppModule, {
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const express = require('express') as typeof import('express');
+
+export async function createExpressApplication() {
+  const expressApp = express();
+  const app = await NestFactory.create(AppModule, new ExpressAdapter(expressApp), {
     bufferLogs: true,
     rawBody: true,
   });
+  await configureApplication(app);
+  await app.init();
+  return expressApp;
+}
 
+async function configureApplication(app: INestApplication): Promise<void> {
   const logger = app.get(CustomLoggerService);
   app.useLogger(logger);
 
   const configService = app.get(ConfigService);
   const isProduction = configService.get<string>('app.nodeEnv') === 'production';
-  const port = resolveListenPort(configService.get<number>('app.port', 3000), isProduction);
-  assertValidPort(port);
   const prefix = configService.get<string>('app.prefix', 'api');
   const version = configService.get<string>('app.version', '1').replace(/^v/i, '');
   const frontendUrls = configService.get<string[]>('app.frontendUrls', ['http://localhost:3000']);
@@ -75,17 +82,18 @@ async function bootstrap() {
     allowedHeaders: 'Content-Type, Accept, Authorization, X-Requested-With, x-request-id',
   });
 
-  const redisIoAdapter = new RedisIoAdapter(app);
-  try {
-    await withTimeout(redisIoAdapter.connectToRedis(), REDIS_STARTUP_TIMEOUT_MS, 'Redis Socket.IO adapter startup timed out');
-    app.useWebSocketAdapter(redisIoAdapter);
-    logger.log('Redis initialization completed for WebSockets.', 'Bootstrap');
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown Redis startup error';
-    logger.warn(
-      `Redis unavailable; continuing without Redis WebSocket adapter. Reason: ${message}`,
-      'Bootstrap',
-    );
+  if (process.env.REDIS_URL) {
+    const redisIoAdapter = new RedisIoAdapter(app);
+    try {
+      await withTimeout(redisIoAdapter.connectToRedis(), REDIS_STARTUP_TIMEOUT_MS, 'Redis Socket.IO adapter startup timed out');
+      app.useWebSocketAdapter(redisIoAdapter);
+      logger.log('Redis initialization completed for WebSockets.', 'Bootstrap');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown Redis startup error';
+      logger.warn(`Redis unavailable; continuing without Redis WebSocket adapter. Reason: ${message}`, 'Bootstrap');
+    }
+  } else {
+    logger.log('REDIS_URL not set; skipping Redis WebSocket adapter for Hostinger Business RAM limits.', 'Bootstrap');
   }
 
   app.setGlobalPrefix(prefix);
@@ -93,71 +101,24 @@ async function bootstrap() {
     type: VersioningType.URI,
     defaultVersion: version,
   });
+}
 
-  const swaggerEnabled = !isProduction || process.env.SWAGGER_ENABLED === 'true';
-  if (swaggerEnabled) {
-    const { DocumentBuilder, SwaggerModule } = await import('@nestjs/swagger');
-    const swaggerConfig = new DocumentBuilder()
-      .setTitle('The Simbolo API')
-      .setDescription(
-        'Enterprise-grade AI-powered Digital Marketing Platform API serving Landing Website, Client Dashboard, and Admin CMS.',
-      )
-      .setVersion('1.0.0')
-      .addBearerAuth(
-        {
-          type: 'http',
-          scheme: 'bearer',
-          bearerFormat: 'JWT',
-          name: 'JWT',
-          description: 'Enter JWT bearer token',
-          in: 'header',
-        },
-        'JWT-auth',
-      )
-      .addTag('Health', 'Real-time system health and database connectivity diagnostics')
-      .addTag('Users', 'User identity and profile management foundation')
-      .addTag('Payments', 'Razorpay payment gateway integration - order creation and HMAC signature verification')
-      .addTag('Transactions', 'Immutable financial ledger and revenue analytics')
-      .addTag('Webhooks', 'Secure inbound gateway webhook processing with signature validation')
-      .addTag('Invoices', 'Invoice lifecycle - generation, PDF download, email dispatch, status management')
-      .addTag('Subscriptions', 'Recurring billing management - pause, resume, upgrade, cancel, renewal reminders')
-      .addTag('Notifications', 'In-app and email notification center with preference management')
-      .addTag('Chat', 'Real-time project messaging via Socket.IO with REST fallback')
-      .addTag('Comments', 'Threaded comments on tasks and project entities')
-      .addTag('Activity', 'Activity feed and Timeline event tracking')
-      .addTag('Analytics', 'Business intelligence analytics and KPI engine')
-      .addTag('Reports', 'Dynamic report generation for revenue, clients, projects, operations, and content')
-      .addTag('Exports', 'PDF, CSV, and Excel-compatible report exports')
-      .addTag('AI', 'AI-assisted content generation through provider abstraction')
-      .addTag('Insights', 'Stored business insights and operational recommendations')
-      .addTag('Automation', 'Configurable workflow automation rules and trigger execution')
-      .addTag('Search', 'Enterprise-wide ranked search and recent search history')
-      .addTag('Audit', 'Searchable audit and business logs')
-      .build();
+export async function bootstrap() {
+  console.log('[Bootstrap] Application bootstrap started');
+  const expressApp = await createExpressApplication();
+  const isProduction = process.env.NODE_ENV === 'production';
+  const port = resolveListenPort(Number(process.env.PORT || process.env.API_PORT || 3000), isProduction);
+  assertValidPort(port);
 
-    const document = SwaggerModule.createDocument(app, swaggerConfig);
-    SwaggerModule.setup('docs', app, document, {
-      swaggerOptions: {
-        persistAuthorization: true,
-        docExpansion: 'list',
-        filter: true,
-      },
-    });
-  }
+  await new Promise<void>((resolve, reject) => {
+    const server = expressApp.listen(port, '0.0.0.0', () => resolve());
+    server.on('error', reject);
+  });
 
-  logger.log(`Starting HTTP server on 0.0.0.0:${port}.`, 'Bootstrap');
-  const server = await app.listen(port, '0.0.0.0');
-  const address = server.address();
-  const actualPort = typeof address === 'object' && address ? address.port : port;
-
-  logger.log('==========================================================', 'Bootstrap');
-  logger.log(`The Simbolo Backend is running on: http://localhost:${actualPort}/${prefix}/v${version}`, 'Bootstrap');
-  if (swaggerEnabled) {
-    logger.log(`Swagger documentation is accessible at: http://localhost:${actualPort}/docs`, 'Bootstrap');
-  }
-  logger.log(`WebSocket Chat Gateway: ws://localhost:${actualPort}/chat`, 'Bootstrap');
-  logger.log(`HTTP server listening on 0.0.0.0:${actualPort}`, 'Bootstrap');
-  logger.log('==========================================================', 'Bootstrap');
+  console.log('==========================================================');
+  console.log(`The Simbolo Backend is running on: http://localhost:${port}/api/v1`);
+  console.log(`HTTP server listening on 0.0.0.0:${port}`);
+  console.log('==========================================================');
 }
 
 function resolveListenPort(configuredPort: number, isProduction: boolean): number {
@@ -189,23 +150,10 @@ async function withTimeout<T>(promise: Promise<T>, timeoutMs: number, timeoutMes
   }
 }
 
-bootstrap().catch((err) => {
-  console.error('Fatal error during application bootstrap:', err);
-  const http = require('node:http') as typeof import('http');
-  const port = Number(process.env.PORT || 3000);
-  const payload = JSON.stringify({
-    status: 'boot_error',
-    service: 'simbolo-api',
-    port,
-    error: err instanceof Error ? err.stack || err.message : String(err),
+const launchedDirectly = typeof require !== 'undefined' && require.main === module;
+if (launchedDirectly) {
+  bootstrap().catch((err) => {
+    console.error('Fatal error during application bootstrap:', err);
+    process.exit(1);
   });
-
-  http
-    .createServer((_req, res) => {
-      res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(payload);
-    })
-    .listen(port, '0.0.0.0', () => {
-      console.error(`[emergency] Listening on 0.0.0.0:${port}`);
-    });
-});
+}

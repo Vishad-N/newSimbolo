@@ -18,7 +18,7 @@ function runStep(label, command, args, extraEnv = {}) {
     env: {
       ...process.env,
       ...extraEnv,
-      NODE_OPTIONS: `${process.env.NODE_OPTIONS || ''} --max-old-space-size=768`.trim(),
+      NODE_OPTIONS: `${process.env.NODE_OPTIONS || ''} --max-old-space-size=512`.trim(),
     },
   });
 
@@ -80,8 +80,8 @@ assertLocalModule('@nestjs/core');
 assertLocalModule('@prisma/client');
 
 console.log('[hostinger-build] Build completed successfully.');
-console.log('[hostinger-build] Hostinger must use Output directory=. and Entry file=app.js');
-console.log('[hostinger-build] Hostinger must set PORT=3000');
+console.log('[hostinger-build] Hostinger Business: Output directory=. Entry file=app.js PORT=3000');
+console.log('[hostinger-build] app.js binds port 3000 before Nest loads so the Business proxy does not 503.');
 process.exit(0);
 
 function pinGeneratedPrismaClient(targetNodeModules) {
