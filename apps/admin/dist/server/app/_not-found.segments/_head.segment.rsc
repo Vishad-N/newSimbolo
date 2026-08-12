@@ -1,0 +1,6 @@
+1:"$Sreact.fragment"
+2:I[68162,["/_next/static/chunks/42c90r2zjnvxw.js","/_next/static/chunks/03yzas0m2h3ay.js","/_next/static/chunks/2aubx9ui53304.js"],"ViewportBoundary"]
+3:I[68162,["/_next/static/chunks/42c90r2zjnvxw.js","/_next/static/chunks/03yzas0m2h3ay.js","/_next/static/chunks/2aubx9ui53304.js"],"MetadataBoundary"]
+4:"$Sreact.suspense"
+5:I[30272,["/_next/static/chunks/42c90r2zjnvxw.js","/_next/static/chunks/03yzas0m2h3ay.js","/_next/static/chunks/2aubx9ui53304.js"],"IconMark"]
+0:{"rsc":["$","$1","h",{"children":[["$","meta",null,{"name":"robots","content":"noindex"}],["$","$L2",null,{"children":[["$","meta","0",{"charSet":"utf-8"}],["$","meta","1",{"name":"viewport","content":"width=device-width, initial-scale=1"}]]}],["$","div",null,{"hidden":true,"children":["$","$L3",null,{"children":["$","$4",null,{"name":"Next.Metadata","children":[["$","title","0",{"children":"Simbolo Admin"}],["$","meta","1",{"name":"description","content":"Admin CMS for The Simbolo"}],["$","link","2",{"rel":"shortcut icon","href":"/favicon.png"}],["$","link","3",{"rel":"icon","href":"/favicon.png"}],["$","link","4",{"rel":"apple-touch-icon","href":"/favicon.png"}],["$","$L5","5",{}]]}]}]}],null]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"FtoTnL6gL5Vg7OAeHFYzW"}

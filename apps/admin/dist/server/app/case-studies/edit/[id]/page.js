@@ -1,0 +1,13 @@
+var R=require("../../../../chunks/ssr/[turbopack]_runtime.js")("server/app/case-studies/edit/[id]/page.js")
+R.c("server/chunks/ssr/[root-of-the-server]__1wbz0j7._.js")
+R.c("server/chunks/ssr/1yrn_next_dist_esm_build_templates_app-page_0bht074.js")
+R.c("server/chunks/ssr/[root-of-the-server]__0jnomtt._.js")
+R.c("server/chunks/ssr/[root-of-the-server]__0dzb2ue._.js")
+R.c("server/chunks/ssr/apps_admin_src_1u51pnn._.js")
+R.c("server/chunks/ssr/1yrn_next_dist_client_components_0vdyxkr._.js")
+R.c("server/chunks/ssr/1yrn_next_dist_client_components_builtin_forbidden_0y0286_.js")
+R.c("server/chunks/ssr/1yrn_next_dist_client_components_builtin_unauthorized_1lj4jmr.js")
+R.c("server/chunks/ssr/1yrn_next_dist_client_components_builtin_global-error_19-ina7.js")
+R.c("server/chunks/ssr/apps_admin__next-internal_server_app_case-studies_edit_[id]_page_actions_0lgpw1t.js")
+R.m(4772)
+module.exports=R.m(4772).exports
