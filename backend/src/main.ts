@@ -21,12 +21,12 @@ async function bootstrap() {
   app.useLogger(logger);
 
   const configService = app.get(ConfigService);
-  const port = Number(process.env.PORT || configService.get<number>('app.port', 3000));
+  const isProduction = configService.get<string>('app.nodeEnv') === 'production';
+  const port = resolveListenPort(configService.get<number>('app.port', 3000), isProduction);
   assertValidPort(port);
   const prefix = configService.get<string>('app.prefix', 'api');
   const version = configService.get<string>('app.version', '1').replace(/^v/i, '');
   const frontendUrls = configService.get<string[]>('app.frontendUrls', ['http://localhost:3000']);
-  const isProduction = configService.get<string>('app.nodeEnv') === 'production';
   logger.log('Configuration loaded.', 'Bootstrap');
   logger.log('Database initialization completed. Prisma will connect lazily on first database operation.', 'Bootstrap');
 
@@ -149,6 +149,18 @@ async function bootstrap() {
   logger.log(`WebSocket Chat Gateway: ws://localhost:${actualPort}/chat`, 'Bootstrap');
   logger.log(`HTTP server listening on 0.0.0.0:${actualPort}`, 'Bootstrap');
   logger.log('==========================================================', 'Bootstrap');
+}
+
+function resolveListenPort(configuredPort: number, isProduction: boolean): number {
+  if (process.env.PORT) {
+    return Number(process.env.PORT);
+  }
+
+  if (isProduction) {
+    return 3000;
+  }
+
+  return configuredPort;
 }
 
 function assertValidPort(port: number): void {

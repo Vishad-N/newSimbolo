@@ -1,5 +1,5 @@
 import { plainToInstance, Transform } from 'class-transformer';
-import { IsBoolean, IsEnum, IsNumber, IsOptional, IsString, IsUrl, validateSync } from 'class-validator';
+import { IsBoolean, IsEnum, IsNumber, IsOptional, IsString, IsUrl, ValidationError, validateSync } from 'class-validator';
 
 enum Environment {
   Development = 'development',
@@ -150,15 +150,15 @@ class EnvironmentVariables {
 }
 
 export function validate(config: Record<string, unknown>) {
-  const normalizedConfig = normalizeFeatureFlags(config);
+  const normalizedConfig = normalizeFeatureFlags(applyHostingDefaults(config));
   const validatedConfig = plainToInstance(EnvironmentVariables, normalizedConfig, {
     enableImplicitConversion: true,
   });
 
-  const errors = validateSync(validatedConfig, { skipMissingProperties: false });
+  const errors = validateSync(validatedConfig, { skipMissingProperties: true });
 
   if (errors.length > 0) {
-    throw new Error(`Environment validation failed: ${errors.toString()}`);
+    throw new Error(`Environment validation failed: ${formatValidationErrors(errors)}`);
   }
 
   if (validatedConfig.NODE_ENV === Environment.Production) {
@@ -168,10 +168,27 @@ export function validate(config: Record<string, unknown>) {
   return validatedConfig;
 }
 
+function applyHostingDefaults(config: Record<string, unknown>): Record<string, unknown> {
+  const normalized = { ...config };
+  const isProduction = String(normalized.NODE_ENV || process.env.NODE_ENV) === 'production';
+  const resolvedPort = normalized.PORT || (isProduction ? 3000 : normalized.API_PORT || 3000);
+
+  if (!normalized.PORT) {
+    normalized.PORT = resolvedPort;
+    process.env.PORT = String(resolvedPort);
+  }
+
+  if (!normalized.DIRECT_URL && typeof normalized.DATABASE_URL === 'string' && normalized.DATABASE_URL) {
+    normalized.DIRECT_URL = normalized.DATABASE_URL;
+    process.env.DIRECT_URL = normalized.DATABASE_URL;
+  }
+
+  return normalized;
+}
+
 function validateProductionConfig(config: EnvironmentVariables): void {
   const missingVariables: string[] = [];
 
-  requireValue(config.PORT, 'PORT', missingVariables);
   requireValue(config.DATABASE_URL, 'DATABASE_URL', missingVariables);
   requireValue(config.DIRECT_URL, 'DIRECT_URL', missingVariables);
   requireValue(config.FRONTEND_URLS, 'FRONTEND_URLS', missingVariables);
@@ -296,4 +313,17 @@ function normalizeFeatureFlags(config: Record<string, unknown>): Record<string, 
     normalized[key] = parseOptionalBoolean(normalized[key]);
   }
   return normalized;
+}
+
+function formatValidationErrors(errors: ValidationError[]): string {
+  return errors
+    .flatMap((error) => {
+      const constraints = Object.values(error.constraints || {});
+      if (constraints.length === 0) {
+        return [`Invalid environment variable: ${error.property}`];
+      }
+
+      return constraints.map((constraint) => `Invalid environment variable: ${error.property} (${constraint})`);
+    })
+    .join('; ');
 }

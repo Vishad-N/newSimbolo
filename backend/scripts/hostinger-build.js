@@ -38,13 +38,15 @@ runStep('Prisma client generation', 'node', [
   './prisma/schema.prisma',
 ]);
 
+runStep('Nest compilation', 'node', [require.resolve('@nestjs/cli/bin/nest.js'), 'build']);
+
 if (!existsSync('./dist/main.js')) {
   console.error('[hostinger-build] Missing dist/main.js.');
-  console.error('[hostinger-build] Run npm run build locally from the backend folder, commit backend/dist, then redeploy.');
+  console.error('[hostinger-build] Nest compilation did not produce dist/main.js.');
   process.exit(1);
 }
 
-console.log('[hostinger-build] Found dist/main.js. Skipping Nest compilation on Hostinger.');
+console.log('[hostinger-build] Found freshly compiled dist/main.js.');
 console.log('[hostinger-build] Preparing Hostinger runtime artifact.');
 
 removeDirectory(outputDirectory);
@@ -60,6 +62,7 @@ writeFileSync(
       engines: packageJson.engines,
       scripts: {
         start: 'node dist/main.js',
+        'start:prod': 'node dist/main.js',
       },
       dependencies: packageJson.dependencies,
     },
@@ -69,33 +72,47 @@ writeFileSync(
 );
 
 cpSync(path.resolve('dist'), path.join(outputDirectory, 'dist'), { recursive: true });
+stripSwaggerRuntimeImports(path.resolve('dist'));
 stripSwaggerRuntimeImports(path.join(outputDirectory, 'dist'));
 
-const installedNodeModules = resolveInstalledNodeModules('@nestjs/core');
-
-if (!existsSync(path.join(installedNodeModules, '@nestjs', 'core'))) {
-  console.error(`[hostinger-build] Missing installed dependency @nestjs/core in ${installedNodeModules}.`);
-  console.error('[hostinger-build] Hostinger must run npm install before npm run build.');
-  process.exit(1);
+for (const entryFile of ['app.js', 'server.js']) {
+  if (existsSync(path.resolve(entryFile))) {
+    cpSync(path.resolve(entryFile), path.join(outputDirectory, entryFile));
+  }
 }
 
-console.log(`[hostinger-build] Copying installed runtime dependencies from ${installedNodeModules} into artifact.`);
-cpSync(installedNodeModules, path.join(outputDirectory, 'node_modules'), {
-  recursive: true,
-  filter: (source) =>
-    !source.includes(`${path.sep}.cache${path.sep}`) &&
-    !source.includes(`${path.sep}@simbolo${path.sep}`),
-});
+const shouldBundleDependencies = process.env.HOSTINGER_BUNDLE_DEPENDENCIES === '1';
 
-const generatedPrismaPackage = path.dirname(resolvePackageJson('@prisma/client'));
-const generatedPrismaClient = path.join(path.dirname(path.dirname(generatedPrismaPackage)), '.prisma');
+if (shouldBundleDependencies) {
+  const installedNodeModules = resolveInstalledNodeModules('@nestjs/core');
 
-if (existsSync(generatedPrismaClient)) {
-  cpSync(generatedPrismaClient, path.join(outputDirectory, 'node_modules', '.prisma'), { recursive: true });
-}
+  if (!existsSync(path.join(installedNodeModules, '@nestjs', 'core'))) {
+    console.error(`[hostinger-build] Missing installed dependency @nestjs/core in ${installedNodeModules}.`);
+    console.error('[hostinger-build] Hostinger must run npm install before npm run build.');
+    process.exit(1);
+  }
 
-if (existsSync(generatedPrismaPackage)) {
-  cpSync(generatedPrismaPackage, path.join(outputDirectory, 'node_modules', '@prisma', 'client'), { recursive: true });
+  console.log(`[hostinger-build] Copying installed runtime dependencies from ${installedNodeModules} into artifact.`);
+  cpSync(installedNodeModules, path.join(outputDirectory, 'node_modules'), {
+    recursive: true,
+    filter: (source) =>
+      !source.includes(`${path.sep}.cache${path.sep}`) &&
+      !source.includes(`${path.sep}@simbolo${path.sep}`),
+  });
+
+  const generatedPrismaPackage = path.dirname(resolvePackageJson('@prisma/client'));
+  const generatedPrismaClient = path.join(path.dirname(path.dirname(generatedPrismaPackage)), '.prisma');
+
+  if (existsSync(generatedPrismaClient)) {
+    cpSync(generatedPrismaClient, path.join(outputDirectory, 'node_modules', '.prisma'), { recursive: true });
+  }
+
+  if (existsSync(generatedPrismaPackage)) {
+    cpSync(generatedPrismaPackage, path.join(outputDirectory, 'node_modules', '@prisma', 'client'), { recursive: true });
+  }
+} else {
+  console.log('[hostinger-build] Skipping node_modules copy. Hostinger installs dependencies during deploy.');
+  console.log('[hostinger-build] Set HOSTINGER_BUNDLE_DEPENDENCIES=1 only if you are uploading a prebuilt ZIP.');
 }
 
 console.log('[hostinger-build] Runtime artifact ready at hostinger-output.');
