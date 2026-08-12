@@ -3,7 +3,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const core_1 = require("@nestjs/core");
 const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
-const swagger_1 = require("@nestjs/swagger");
 const helmet_1 = require("helmet");
 const compression = require("compression");
 const cookieParser = require("cookie-parser");
@@ -63,52 +62,58 @@ async function bootstrap() {
         type: common_1.VersioningType.URI,
         defaultVersion: version,
     });
-    const swaggerConfig = new swagger_1.DocumentBuilder()
-        .setTitle('The Simbolo API')
-        .setDescription('Enterprise-grade AI-powered Digital Marketing Platform API serving Landing Website, Client Dashboard, and Admin CMS.')
-        .setVersion('1.0.0')
-        .addBearerAuth({
-        type: 'http',
-        scheme: 'bearer',
-        bearerFormat: 'JWT',
-        name: 'JWT',
-        description: 'Enter JWT bearer token',
-        in: 'header',
-    }, 'JWT-auth')
-        .addTag('Health', 'Real-time system health and database connectivity diagnostics')
-        .addTag('Users', 'User identity and profile management foundation')
-        .addTag('Payments', 'Razorpay payment gateway integration - order creation and HMAC signature verification')
-        .addTag('Transactions', 'Immutable financial ledger and revenue analytics')
-        .addTag('Webhooks', 'Secure inbound gateway webhook processing with signature validation')
-        .addTag('Invoices', 'Invoice lifecycle - generation, PDF download, email dispatch, status management')
-        .addTag('Subscriptions', 'Recurring billing management - pause, resume, upgrade, cancel, renewal reminders')
-        .addTag('Notifications', 'In-app and email notification center with preference management')
-        .addTag('Chat', 'Real-time project messaging via Socket.IO with REST fallback')
-        .addTag('Comments', 'Threaded comments on tasks and project entities')
-        .addTag('Activity', 'Activity feed and Timeline event tracking')
-        .addTag('Analytics', 'Business intelligence analytics and KPI engine')
-        .addTag('Reports', 'Dynamic report generation for revenue, clients, projects, operations, and content')
-        .addTag('Exports', 'PDF, CSV, and Excel-compatible report exports')
-        .addTag('AI', 'AI-assisted content generation through provider abstraction')
-        .addTag('Insights', 'Stored business insights and operational recommendations')
-        .addTag('Automation', 'Configurable workflow automation rules and trigger execution')
-        .addTag('Search', 'Enterprise-wide ranked search and recent search history')
-        .addTag('Audit', 'Searchable audit and business logs')
-        .build();
-    const document = swagger_1.SwaggerModule.createDocument(app, swaggerConfig);
-    swagger_1.SwaggerModule.setup('docs', app, document, {
-        swaggerOptions: {
-            persistAuthorization: true,
-            docExpansion: 'list',
-            filter: true,
-        },
-    });
+    const swaggerEnabled = !isProduction || process.env.SWAGGER_ENABLED === 'true';
+    if (swaggerEnabled) {
+        const { DocumentBuilder, SwaggerModule } = await Promise.resolve().then(() => require('@nestjs/swagger'));
+        const swaggerConfig = new DocumentBuilder()
+            .setTitle('The Simbolo API')
+            .setDescription('Enterprise-grade AI-powered Digital Marketing Platform API serving Landing Website, Client Dashboard, and Admin CMS.')
+            .setVersion('1.0.0')
+            .addBearerAuth({
+            type: 'http',
+            scheme: 'bearer',
+            bearerFormat: 'JWT',
+            name: 'JWT',
+            description: 'Enter JWT bearer token',
+            in: 'header',
+        }, 'JWT-auth')
+            .addTag('Health', 'Real-time system health and database connectivity diagnostics')
+            .addTag('Users', 'User identity and profile management foundation')
+            .addTag('Payments', 'Razorpay payment gateway integration - order creation and HMAC signature verification')
+            .addTag('Transactions', 'Immutable financial ledger and revenue analytics')
+            .addTag('Webhooks', 'Secure inbound gateway webhook processing with signature validation')
+            .addTag('Invoices', 'Invoice lifecycle - generation, PDF download, email dispatch, status management')
+            .addTag('Subscriptions', 'Recurring billing management - pause, resume, upgrade, cancel, renewal reminders')
+            .addTag('Notifications', 'In-app and email notification center with preference management')
+            .addTag('Chat', 'Real-time project messaging via Socket.IO with REST fallback')
+            .addTag('Comments', 'Threaded comments on tasks and project entities')
+            .addTag('Activity', 'Activity feed and Timeline event tracking')
+            .addTag('Analytics', 'Business intelligence analytics and KPI engine')
+            .addTag('Reports', 'Dynamic report generation for revenue, clients, projects, operations, and content')
+            .addTag('Exports', 'PDF, CSV, and Excel-compatible report exports')
+            .addTag('AI', 'AI-assisted content generation through provider abstraction')
+            .addTag('Insights', 'Stored business insights and operational recommendations')
+            .addTag('Automation', 'Configurable workflow automation rules and trigger execution')
+            .addTag('Search', 'Enterprise-wide ranked search and recent search history')
+            .addTag('Audit', 'Searchable audit and business logs')
+            .build();
+        const document = SwaggerModule.createDocument(app, swaggerConfig);
+        SwaggerModule.setup('docs', app, document, {
+            swaggerOptions: {
+                persistAuthorization: true,
+                docExpansion: 'list',
+                filter: true,
+            },
+        });
+    }
     const server = await app.listen(port, '0.0.0.0');
     const address = server.address();
     const actualPort = typeof address === 'object' && address ? address.port : port;
     logger.log('==========================================================', 'Bootstrap');
     logger.log(`The Simbolo Backend is running on: http://localhost:${actualPort}/${prefix}/v${version}`, 'Bootstrap');
-    logger.log(`Swagger documentation is accessible at: http://localhost:${actualPort}/docs`, 'Bootstrap');
+    if (swaggerEnabled) {
+        logger.log(`Swagger documentation is accessible at: http://localhost:${actualPort}/docs`, 'Bootstrap');
+    }
     logger.log(`WebSocket Chat Gateway: ws://localhost:${actualPort}/chat`, 'Bootstrap');
     logger.log(`System successfully bound to 0.0.0.0 on port ${actualPort}`, 'Bootstrap');
     logger.log('==========================================================', 'Bootstrap');
