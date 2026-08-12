@@ -402,15 +402,15 @@ let AuthService = AuthService_1 = class AuthService extends base_service_1.BaseS
                         clientProfile: {
                             include: {
                                 subscriptions: {
-                                    where: { status: { in: ['ACTIVE', 'TRIALING'] } }
+                                    where: { status: { in: ['ACTIVE', 'TRIALING'] } },
                                 },
                                 orders: {
-                                    where: { status: { in: ['CONFIRMED', 'ACTIVE', 'IN_PROGRESS', 'COMPLETED'] } }
-                                }
-                            }
-                        }
-                    }
-                }
+                                    where: { status: { in: ['CONFIRMED', 'ACTIVE', 'IN_PROGRESS', 'COMPLETED'] } },
+                                },
+                            },
+                        },
+                    },
+                },
             },
         });
         let user;
@@ -432,13 +432,13 @@ let AuthService = AuthService_1 = class AuthService extends base_service_1.BaseS
                     clientProfile: {
                         include: {
                             subscriptions: {
-                                where: { status: { in: ['ACTIVE', 'TRIALING'] } }
+                                where: { status: { in: ['ACTIVE', 'TRIALING'] } },
                             },
                             orders: {
-                                where: { status: { in: ['CONFIRMED', 'ACTIVE', 'IN_PROGRESS', 'COMPLETED'] } }
-                            }
-                        }
-                    }
+                                where: { status: { in: ['CONFIRMED', 'ACTIVE', 'IN_PROGRESS', 'COMPLETED'] } },
+                            },
+                        },
+                    },
                 },
             });
             if (!user) {
@@ -457,13 +457,13 @@ let AuthService = AuthService_1 = class AuthService extends base_service_1.BaseS
                         clientProfile: {
                             include: {
                                 subscriptions: {
-                                    where: { status: { in: ['ACTIVE', 'TRIALING'] } }
+                                    where: { status: { in: ['ACTIVE', 'TRIALING'] } },
                                 },
                                 orders: {
-                                    where: { status: { in: ['CONFIRMED', 'ACTIVE', 'IN_PROGRESS', 'COMPLETED'] } }
-                                }
-                            }
-                        }
+                                    where: { status: { in: ['CONFIRMED', 'ACTIVE', 'IN_PROGRESS', 'COMPLETED'] } },
+                                },
+                            },
+                        },
                     },
                 });
             }

@@ -38,7 +38,7 @@ let ClarificationAgent = class ClarificationAgent extends base_agent_1.BaseAgent
         const responseText = await this.provider.chat(session.history.slice(-5), prompt);
         return {
             response: responseText,
-            recommendations: ["I have a limited budget", "I'm in the e-commerce industry", "I want to increase my sales"]
+            recommendations: ['I have a limited budget', "I'm in the e-commerce industry", 'I want to increase my sales'],
         };
     }
 };

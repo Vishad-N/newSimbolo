@@ -28,19 +28,19 @@ let SessionMemory = SessionMemory_1 = class SessionMemory {
         if (!session) {
             const dbConversation = await this.prisma.aiConversation.findFirst({
                 where: { sessionId },
-                include: { messages: { orderBy: { createdAt: 'asc' } } }
+                include: { messages: { orderBy: { createdAt: 'asc' } } },
             });
             if (dbConversation) {
                 session = {
                     sessionId: dbConversation.sessionId,
                     userId: dbConversation.userId || userId,
-                    history: dbConversation.messages.map(m => ({
+                    history: dbConversation.messages.map((m) => ({
                         role: m.role,
                         content: m.content,
                         intentDetected: m.intentDetected || undefined,
-                        createdAt: m.createdAt.toISOString()
+                        createdAt: m.createdAt.toISOString(),
                     })),
-                    metadata: dbConversation.metadata || {}
+                    metadata: dbConversation.metadata || {},
                 };
             }
             else {
@@ -48,7 +48,7 @@ let SessionMemory = SessionMemory_1 = class SessionMemory {
                     sessionId,
                     userId,
                     history: [],
-                    metadata: {}
+                    metadata: {},
                 };
             }
             await this.saveSessionToCache(session);
@@ -70,7 +70,7 @@ let SessionMemory = SessionMemory_1 = class SessionMemory {
             session.metadata = { ...session.metadata, ...metadataUpdates };
         }
         await this.saveSessionToCache(session);
-        this.persistSession(session).catch(e => {
+        this.persistSession(session).catch((e) => {
             this.logger.error(`Failed to persist session to DB: ${e.message}`);
         });
         return session;
@@ -83,7 +83,7 @@ let SessionMemory = SessionMemory_1 = class SessionMemory {
     }
     async persistSession(session) {
         let dbConversation = await this.prisma.aiConversation.findFirst({
-            where: { sessionId: session.sessionId }
+            where: { sessionId: session.sessionId },
         });
         if (!dbConversation) {
             dbConversation = await this.prisma.aiConversation.create({
@@ -91,8 +91,8 @@ let SessionMemory = SessionMemory_1 = class SessionMemory {
                     sessionId: session.sessionId,
                     userId: session.userId,
                     metadata: session.metadata,
-                    title: 'AI Consultation'
-                }
+                    title: 'AI Consultation',
+                },
             });
         }
         else {
@@ -100,19 +100,20 @@ let SessionMemory = SessionMemory_1 = class SessionMemory {
                 where: { id: dbConversation.id },
                 data: {
                     userId: session.userId,
-                    metadata: session.metadata
-                }
+                    metadata: session.metadata,
+                },
             });
         }
         const lastMessage = session.history[session.history.length - 1];
-        if (lastMessage && !lastMessage.createdAt) { // Only insert if not already from DB
+        if (lastMessage && !lastMessage.createdAt) {
+            // Only insert if not already from DB
             await this.prisma.aiMessage.create({
                 data: {
                     conversationId: dbConversation.id,
                     role: lastMessage.role,
                     content: lastMessage.content,
-                    intentDetected: lastMessage.intentDetected
-                }
+                    intentDetected: lastMessage.intentDetected,
+                },
             });
             lastMessage.createdAt = new Date().toISOString(); // mark as persisted
         }

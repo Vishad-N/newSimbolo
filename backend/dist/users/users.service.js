@@ -113,7 +113,7 @@ let UsersService = UsersService_1 = class UsersService extends base_service_1.Ba
                 clientProfile: {
                     include: {
                         company: true,
-                    }
+                    },
                 },
             },
         });

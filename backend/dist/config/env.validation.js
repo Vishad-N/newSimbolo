@@ -269,7 +269,12 @@ function validateProductionConfig(config) {
         requireValue(config.RAZORPAY_KEY_ID, 'RAZORPAY_KEY_ID', missingVariables);
         requireSecret(config.RAZORPAY_KEY_SECRET, 'RAZORPAY_KEY_SECRET', missingVariables);
     }
-    if (isIntegrationEnabled(config.EMAIL_ENABLED, [config.SMTP_HOST, config.SMTP_USER, config.SMTP_PASSWORD, config.SMTP_PASS])) {
+    if (isIntegrationEnabled(config.EMAIL_ENABLED, [
+        config.SMTP_HOST,
+        config.SMTP_USER,
+        config.SMTP_PASSWORD,
+        config.SMTP_PASS,
+    ])) {
         requireValue(config.SMTP_HOST, 'SMTP_HOST', missingVariables);
         requireValue(config.SMTP_PORT, 'SMTP_PORT', missingVariables);
         requireValue(config.SMTP_USER, 'SMTP_USER', missingVariables);
@@ -304,7 +309,10 @@ function requireSecret(value, name, missingVariables) {
     if (typeof value !== 'string')
         return;
     const normalized = value.toLowerCase();
-    if (value.length < 16 || normalized.includes('change-me') || normalized.includes('mock') || normalized.includes('your-')) {
+    if (value.length < 16 ||
+        normalized.includes('change-me') ||
+        normalized.includes('mock') ||
+        normalized.includes('your-')) {
         missingVariables.push(`${name} must be a non-placeholder secret with at least 16 characters`);
     }
 }
@@ -338,7 +346,13 @@ function isIntegrationEnabled(flag, values) {
 }
 function normalizeFeatureFlags(config) {
     const normalized = { ...config };
-    for (const key of ['GOOGLE_OAUTH_ENABLED', 'GEMINI_ENABLED', 'RAZORPAY_ENABLED', 'EMAIL_ENABLED', 'CLOUDINARY_ENABLED']) {
+    for (const key of [
+        'GOOGLE_OAUTH_ENABLED',
+        'GEMINI_ENABLED',
+        'RAZORPAY_ENABLED',
+        'EMAIL_ENABLED',
+        'CLOUDINARY_ENABLED',
+    ]) {
         normalized[key] = parseOptionalBoolean(normalized[key]);
     }
     return normalized;

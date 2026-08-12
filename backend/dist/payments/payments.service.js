@@ -161,7 +161,7 @@ let PaymentsService = class PaymentsService extends base_service_1.BaseService {
                     interval: 'MONTHLY',
                     currentPeriodStart,
                     currentPeriodEnd,
-                }
+                },
             }));
         }
         // Successful payment — update records

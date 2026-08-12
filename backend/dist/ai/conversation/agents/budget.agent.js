@@ -26,7 +26,7 @@ let BudgetAgent = class BudgetAgent extends base_agent_1.BaseAgent {
     async process(message, session, contextOverrides) {
         const budget = session.metadata.budget;
         const searchResult = await this.aiService.search({
-            query: `Find services and packages that fit a budget of ${budget}. User says: ${message}. Industry: ${session.metadata.industry || 'Any'}.`
+            query: `Find services and packages that fit a budget of ${budget}. User says: ${message}. Industry: ${session.metadata.industry || 'Any'}.`,
         });
         const typedResult = searchResult;
         const customPrompt = `
@@ -40,7 +40,7 @@ let BudgetAgent = class BudgetAgent extends base_agent_1.BaseAgent {
         return {
             response: responseText,
             data: typedResult,
-            recommendations: ["What is included in the package?", "Can I customize the package?"]
+            recommendations: ['What is included in the package?', 'Can I customize the package?'],
         };
     }
 };

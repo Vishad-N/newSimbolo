@@ -10,6 +10,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CloudinaryService = void 0;
 const common_1 = require("@nestjs/common");
 const cloudinary_1 = require("cloudinary");
+// @ts-ignore
 const toStream = require("buffer-to-stream");
 let CloudinaryService = CloudinaryService_1 = class CloudinaryService {
     logger = new common_1.Logger(CloudinaryService_1.name);

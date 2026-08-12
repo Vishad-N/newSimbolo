@@ -48,7 +48,7 @@ let AgentOrchestrator = AgentOrchestrator_1 = class AgentOrchestrator {
         await this.memory.appendMessage(sessionId, {
             role: 'user',
             content: message,
-            intentDetected: intentResult.intent
+            intentDetected: intentResult.intent,
         });
         // Re-fetch session to get updated metadata
         const updatedSession = await this.memory.getSession(sessionId);
@@ -58,13 +58,13 @@ let AgentOrchestrator = AgentOrchestrator_1 = class AgentOrchestrator {
         await this.memory.appendMessage(sessionId, {
             role: 'assistant',
             content: response.response,
-            intentDetected: agent.intentName
+            intentDetected: agent.intentName,
         });
         return {
             intent: agent.intentName,
             content: response.response,
             recommendations: response.recommendations,
-            data: response.data
+            data: response.data,
         };
     }
     async detectIntent(message, session) {
@@ -90,11 +90,11 @@ let AgentOrchestrator = AgentOrchestrator_1 = class AgentOrchestrator {
                     properties: {
                         budget: { type: generative_ai_1.SchemaType.STRING },
                         industry: { type: generative_ai_1.SchemaType.STRING },
-                        goals: { type: generative_ai_1.SchemaType.ARRAY, items: { type: generative_ai_1.SchemaType.STRING } }
-                    }
-                }
+                        goals: { type: generative_ai_1.SchemaType.ARRAY, items: { type: generative_ai_1.SchemaType.STRING } },
+                    },
+                },
             },
-            required: ['intent']
+            required: ['intent'],
         };
         try {
             const response = await this.provider.chat(session.history.slice(-5), prompt, schema);

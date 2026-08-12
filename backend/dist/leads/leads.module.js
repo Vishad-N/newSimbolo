@@ -19,7 +19,7 @@ exports.LeadsModule = LeadsModule = __decorate([
         imports: [prisma_module_1.PrismaModule],
         controllers: [leads_controller_1.LeadsController],
         providers: [leads_service_1.LeadsService],
-        exports: [leads_service_1.LeadsService]
+        exports: [leads_service_1.LeadsService],
     })
 ], LeadsModule);
 //# sourceMappingURL=leads.module.js.map

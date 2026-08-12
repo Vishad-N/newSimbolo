@@ -102,7 +102,7 @@ async function buildInvoicePdf(data) {
             }
             xPos = tableLeft + 8;
             const desc = item.name ? item.name + (item.description ? `\n${item.description}` : '') : item.description;
-            const taxable = item.taxableAmount ?? (item.quantity * item.unitPrice - (item.discount || 0));
+            const taxable = item.taxableAmount ?? item.quantity * item.unitPrice - (item.discount || 0);
             const taxStr = item.gstRate ? `${item.gstRate}%` : '-';
             const itemTotal = item.totalAmount ?? item.total ?? 0;
             const vals = [
@@ -132,9 +132,7 @@ async function buildInvoicePdf(data) {
             .strokeColor('#E5E7EB')
             .stroke();
         rowY += 8;
-        const totalsRows = [
-            ['Subtotal', `${symbol}${data.subtotal.toLocaleString('en-IN')}`]
-        ];
+        const totalsRows = [['Subtotal', `${symbol}${data.subtotal.toLocaleString('en-IN')}`]];
         if (data.igstAmount && data.igstAmount > 0) {
             totalsRows.push(['IGST', `${symbol}${data.igstAmount.toLocaleString('en-IN')}`]);
         }

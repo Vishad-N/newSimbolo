@@ -40,7 +40,7 @@ let AiEmbeddingService = AiEmbeddingService_1 = class AiEmbeddingService {
         return this.queueService.add('ai', `embed-${entityType}-${entityId}`, {
             entityType,
             entityId,
-            textToEmbed
+            textToEmbed,
         });
     }
     async getEmbedding(text) {
@@ -53,12 +53,12 @@ let AiEmbeddingService = AiEmbeddingService_1 = class AiEmbeddingService {
         try {
             const embedding = await this.getEmbedding(data.textToEmbed);
             const tableNameMap = {
-                'Service': 'Service',
-                'Package': 'Package',
-                'User': 'User',
-                'Blog': 'Blog',
-                'CaseStudy': 'CaseStudy',
-                'Testimonial': 'Testimonial',
+                Service: 'Service',
+                Package: 'Package',
+                User: 'User',
+                Blog: 'Blog',
+                CaseStudy: 'CaseStudy',
+                Testimonial: 'Testimonial',
             };
             const tableName = tableNameMap[data.entityType];
             if (!tableName)

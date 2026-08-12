@@ -67,7 +67,7 @@ let AssetsService = class AssetsService {
                 uploadedBy: {
                     select: { id: true, firstName: true, lastName: true },
                 },
-            }
+            },
         });
     }
     async createUploadRequest(clientId, userId, dto) {

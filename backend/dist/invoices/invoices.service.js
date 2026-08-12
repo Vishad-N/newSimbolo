@@ -65,12 +65,12 @@ let InvoicesService = class InvoicesService extends base_service_1.BaseService {
         const taxParams = {
             supplierStateCode,
             customerStateCode,
-            items: dto.items.map(item => ({
+            items: dto.items.map((item) => ({
                 description: item.name + (item.description ? ` - ${item.description}` : ''),
                 quantity: item.quantity,
                 unitPrice: item.unitPrice,
                 gstRate: dto.taxPercentage ?? 18,
-            }))
+            })),
         };
         const taxResult = this.taxService.calculateTax(taxParams);
         const { number: invoiceNumber, fy } = await this.generateInvoiceNumber();
@@ -97,7 +97,7 @@ let InvoicesService = class InvoicesService extends base_service_1.BaseService {
                 subscriptionId: dto.subscriptionId ?? null,
                 createdBy: createdBy ?? null,
                 items: {
-                    create: taxResult.items.map(item => ({
+                    create: taxResult.items.map((item) => ({
                         description: item.description,
                         sacCode: item.sacCode,
                         quantity: item.quantity,
@@ -108,14 +108,14 @@ let InvoicesService = class InvoicesService extends base_service_1.BaseService {
                         cgstAmount: item.cgstAmount,
                         sgstAmount: item.sgstAmount,
                         igstAmount: item.igstAmount,
-                        totalAmount: item.totalAmount
-                    }))
-                }
+                        totalAmount: item.totalAmount,
+                    })),
+                },
             },
             include: {
                 client: { include: { user: true, company: true } },
                 order: { select: { orderNumber: true } },
-                items: true
+                items: true,
             },
         });
         await this.prisma.timeline.create({
@@ -135,7 +135,7 @@ let InvoicesService = class InvoicesService extends base_service_1.BaseService {
             where: { id: orderId },
             include: {
                 items: { include: { service: true, package: true } },
-            }
+            },
         });
         if (!order)
             throw new common_1.NotFoundException(`Order ${orderId} not found`);
@@ -148,14 +148,14 @@ let InvoicesService = class InvoicesService extends base_service_1.BaseService {
             orderId: order.id,
             dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
             currency: order.currency,
-            items: order.items.map(item => ({
+            items: order.items.map((item) => ({
                 name: item.name,
                 description: item.description ?? undefined,
                 quantity: item.quantity,
                 unitPrice: item.unitPrice,
                 sacCode: item.service?.sacCode ?? item.package?.sacCode ?? undefined,
                 gstRate: item.service?.gstRate ?? item.package?.gstRate ?? 18,
-            }))
+            })),
         };
         const invoice = await this.create(dto, createdBy);
         // Automatically generate PDF
@@ -237,7 +237,7 @@ let InvoicesService = class InvoicesService extends base_service_1.BaseService {
                 cgstAmount: item.cgstAmount,
                 sgstAmount: item.sgstAmount,
                 igstAmount: item.igstAmount,
-                totalAmount: item.totalAmount
+                totalAmount: item.totalAmount,
             })),
             subtotal: invoice.subtotal,
             cgstAmount: invoice.cgstAmount,
@@ -259,7 +259,7 @@ let InvoicesService = class InvoicesService extends base_service_1.BaseService {
         const uploadResult = await this.storageService.upload(file, storageKey);
         await this.prisma.invoice.update({
             where: { id },
-            data: { pdfUrl: uploadResult.url }
+            data: { pdfUrl: uploadResult.url },
         });
         this.logger.log(`📄 Invoice PDF uploaded to R2: ${storageKey}`);
         return pdfBuffer;

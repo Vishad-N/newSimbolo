@@ -34,7 +34,7 @@ exports.AiModule = AiModule = __decorate([
             agent_orchestrator_1.AgentOrchestrator,
             search_agent_1.SearchAgent,
             clarification_agent_1.ClarificationAgent,
-            budget_agent_1.BudgetAgent
+            budget_agent_1.BudgetAgent,
         ],
         exports: [ai_service_1.AiService, ai_embedding_service_1.AiEmbeddingService, agent_orchestrator_1.AgentOrchestrator],
     })

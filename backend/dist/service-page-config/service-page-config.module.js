@@ -18,7 +18,7 @@ exports.ServicePageConfigModule = ServicePageConfigModule = __decorate([
     (0, common_1.Module)({
         imports: [prisma_module_1.PrismaModule],
         providers: [service_page_config_service_1.ServicePageConfigService],
-        controllers: [service_page_config_controller_1.ServicePageConfigController]
+        controllers: [service_page_config_controller_1.ServicePageConfigController],
     })
 ], ServicePageConfigModule);
 //# sourceMappingURL=service-page-config.module.js.map

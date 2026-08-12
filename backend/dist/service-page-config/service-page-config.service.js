@@ -20,19 +20,19 @@ let ServicePageConfigService = class ServicePageConfigService {
     async findByServiceSlug(slug) {
         const service = await this.prisma.service.findUnique({
             where: { slug },
-            select: { id: true }
+            select: { id: true },
         });
         if (!service) {
             throw new common_1.NotFoundException(`Service with slug ${slug} not found`);
         }
         return this.prisma.servicePageConfig.findUnique({
-            where: { serviceId: service.id }
+            where: { serviceId: service.id },
         });
     }
     async upsert(slug, dto) {
         const service = await this.prisma.service.findUnique({
             where: { slug },
-            select: { id: true }
+            select: { id: true },
         });
         if (!service) {
             throw new common_1.NotFoundException(`Service with slug ${slug} not found`);
@@ -52,7 +52,7 @@ let ServicePageConfigService = class ServicePageConfigService {
                 statsBar: dto.statsBar || [],
                 servicesList: dto.servicesList || [],
                 resultMetrics: dto.resultMetrics || [],
-            }
+            },
         });
     }
 };

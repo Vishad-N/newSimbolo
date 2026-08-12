@@ -32,17 +32,12 @@ let AiService = class AiService extends base_service_1.BaseService {
     getCapabilities() {
         return {
             provider: 'Gemini',
-            capabilities: [
-                'AI Search',
-                'Generate Blog Drafts',
-                'Improve Existing Content',
-                'SEO Recommendations',
-            ],
+            capabilities: ['AI Search', 'Generate Blog Drafts', 'Improve Existing Content', 'SEO Recommendations'],
         };
     }
     generate(dto) {
         // Legacy generation endpoint placeholder
-        return { message: "Generation not implemented with Gemini yet." };
+        return { message: 'Generation not implemented with Gemini yet.' };
     }
     async search(dto) {
         const query = dto.query.toLowerCase();
@@ -129,16 +124,16 @@ let AiService = class AiService extends base_service_1.BaseService {
         const experts = await this.prisma.user.findMany({
             where: {
                 role: {
-                    name: { in: ['CONTENT_MANAGER', 'PROJECT_MANAGER', 'MARKETING_MANAGER', 'ADMIN'] }
-                }
+                    name: { in: ['CONTENT_MANAGER', 'PROJECT_MANAGER', 'MARKETING_MANAGER', 'ADMIN'] },
+                },
             },
             take: 10,
         });
-        const contextExperts = experts.map(e => ({
+        const contextExperts = experts.map((e) => ({
             id: e.id,
             name: `${e.firstName} ${e.lastName}`,
             title: 'Digital Marketing Expert',
-            imageUrl: e.avatarUrl || `https://i.pravatar.cc/150?u=${e.id}`
+            imageUrl: e.avatarUrl || `https://i.pravatar.cc/150?u=${e.id}`,
         }));
         // 6. Gemini Generation
         const prompt = (0, search_prompt_1.buildSearchPrompt)(query, {

@@ -46,7 +46,7 @@ let ConversationController = class ConversationController {
         });
         return {
             totalConversations,
-            actions
+            actions,
         };
     }
 };

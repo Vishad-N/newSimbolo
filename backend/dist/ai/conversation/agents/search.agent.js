@@ -39,7 +39,7 @@ let SearchAgent = class SearchAgent extends base_agent_1.BaseAgent {
         return {
             response: typedResult.summary,
             data: typedResult,
-            recommendations: typedResult.suggestions?.map(s => s.label) || ["Show me more packages", "Talk to an expert"]
+            recommendations: typedResult.suggestions?.map((s) => s.label) || ['Show me more packages', 'Talk to an expert'],
         };
     }
 };

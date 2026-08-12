@@ -16,7 +16,7 @@ exports.WebsiteTeamModule = WebsiteTeamModule;
 exports.WebsiteTeamModule = WebsiteTeamModule = __decorate([
     (0, common_1.Module)({
         controllers: [website_team_controller_1.WebsiteTeamController],
-        providers: [website_team_service_1.WebsiteTeamService]
+        providers: [website_team_service_1.WebsiteTeamService],
     })
 ], WebsiteTeamModule);
 //# sourceMappingURL=website-team.module.js.map

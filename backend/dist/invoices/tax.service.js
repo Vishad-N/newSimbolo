@@ -20,9 +20,7 @@ let TaxService = class TaxService extends base_service_1.BaseService {
         // Rule: if customerStateCode is present and different from supplierStateCode, it's Inter-State (IGST)
         // If not, it's Intra-State (CGST + SGST).
         // Note: Export logic or B2C unregistered out-of-state can be handled by providing proper customer state code.
-        const isInterState = params.customerStateCode
-            ? params.customerStateCode !== params.supplierStateCode
-            : false; // defaults to intra-state if no customer state code is given (assuming walk-in/local unregistered).
+        const isInterState = params.customerStateCode ? params.customerStateCode !== params.supplierStateCode : false; // defaults to intra-state if no customer state code is given (assuming walk-in/local unregistered).
         let subtotal = 0;
         let totalCgst = 0;
         let totalSgst = 0;
