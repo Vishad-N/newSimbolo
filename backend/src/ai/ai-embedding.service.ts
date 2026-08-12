@@ -15,7 +15,7 @@ export class AiEmbeddingService implements OnModuleInit {
   private readonly logger = new Logger(AiEmbeddingService.name);
   private readonly genAI: GoogleGenerativeAI;
   private readonly embeddingModel: string;
-  
+
   constructor(
     private readonly queueService: QueueService,
     private readonly prisma: PrismaService,
@@ -36,7 +36,7 @@ export class AiEmbeddingService implements OnModuleInit {
     return this.queueService.add<EmbeddingJob>('ai', `embed-${entityType}-${entityId}`, {
       entityType,
       entityId,
-      textToEmbed
+      textToEmbed,
     });
   }
 
@@ -50,26 +50,26 @@ export class AiEmbeddingService implements OnModuleInit {
     this.logger.log(`Generating embedding for ${data.entityType} ${data.entityId}`);
     try {
       const embedding = await this.getEmbedding(data.textToEmbed);
-      
+
       const tableNameMap: Record<string, string> = {
-        'Service': 'Service',
-        'Package': 'Package',
-        'User': 'User',
-        'Blog': 'Blog',
-        'CaseStudy': 'CaseStudy',
-        'Testimonial': 'Testimonial',
+        Service: 'Service',
+        Package: 'Package',
+        User: 'User',
+        Blog: 'Blog',
+        CaseStudy: 'CaseStudy',
+        Testimonial: 'Testimonial',
       };
-      
+
       const tableName = tableNameMap[data.entityType];
       if (!tableName) throw new Error(`Unknown entity type ${data.entityType}`);
 
       const vectorString = `[${embedding.join(',')}]`;
       await this.prisma.$executeRawUnsafe(
-        `UPDATE "${tableName}" SET embedding = $1::vector WHERE id = $2`, 
-        vectorString, 
-        data.entityId
+        `UPDATE "${tableName}" SET embedding = $1::vector WHERE id = $2`,
+        vectorString,
+        data.entityId,
       );
-      
+
       this.logger.log(`Successfully embedded ${data.entityType} ${data.entityId}`);
     } catch (error: any) {
       this.logger.error(`Failed to generate embedding for ${data.entityType} ${data.entityId}: ${error.message}`);

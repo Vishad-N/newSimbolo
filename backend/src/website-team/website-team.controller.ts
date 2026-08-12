@@ -1,14 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  Query,
-  ParseUUIDPipe,
-} from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, ParseUUIDPipe } from '@nestjs/common';
 import { WebsiteTeamService } from './website-team.service';
 import { CreateWebsiteTeamMemberDto } from './dto/create-website-team-member.dto';
 import { UpdateWebsiteTeamMemberDto } from './dto/update-website-team-member.dto';
@@ -53,10 +43,7 @@ export class WebsiteTeamController {
   @Permissions('content.update')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update a website team member' })
-  update(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() updateDto: UpdateWebsiteTeamMemberDto,
-  ) {
+  update(@Param('id', ParseUUIDPipe) id: string, @Body() updateDto: UpdateWebsiteTeamMemberDto) {
     return this.websiteTeamService.update(id, updateDto);
   }
 

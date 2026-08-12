@@ -454,22 +454,22 @@ export class AuthService extends BaseService {
           providerAccountId: profile.providerAccountId,
         },
       },
-      include: { 
-        user: { 
-          include: { 
+      include: {
+        user: {
+          include: {
             role: { include: { permissions: true } },
             clientProfile: {
               include: {
                 subscriptions: {
-                  where: { status: { in: ['ACTIVE', 'TRIALING'] } }
+                  where: { status: { in: ['ACTIVE', 'TRIALING'] } },
                 },
                 orders: {
-                  where: { status: { in: ['CONFIRMED', 'ACTIVE', 'IN_PROGRESS', 'COMPLETED'] } }
-                }
-              }
-            }
-          } 
-        } 
+                  where: { status: { in: ['CONFIRMED', 'ACTIVE', 'IN_PROGRESS', 'COMPLETED'] } },
+                },
+              },
+            },
+          },
+        },
       },
     });
 
@@ -486,18 +486,18 @@ export class AuthService extends BaseService {
     } else {
       user = await this.prisma.user.findUnique({
         where: { email: profile.email },
-        include: { 
+        include: {
           role: { include: { permissions: true } },
           clientProfile: {
             include: {
               subscriptions: {
-                where: { status: { in: ['ACTIVE', 'TRIALING'] } }
+                where: { status: { in: ['ACTIVE', 'TRIALING'] } },
               },
               orders: {
-                where: { status: { in: ['CONFIRMED', 'ACTIVE', 'IN_PROGRESS', 'COMPLETED'] } }
-              }
-            }
-          }
+                where: { status: { in: ['CONFIRMED', 'ACTIVE', 'IN_PROGRESS', 'COMPLETED'] } },
+              },
+            },
+          },
         },
       });
 
@@ -512,18 +512,18 @@ export class AuthService extends BaseService {
             status: UserStatusEnum.ACTIVE,
             roleId: clientRole!.id,
           },
-          include: { 
+          include: {
             role: { include: { permissions: true } },
             clientProfile: {
               include: {
                 subscriptions: {
-                  where: { status: { in: ['ACTIVE', 'TRIALING'] } }
+                  where: { status: { in: ['ACTIVE', 'TRIALING'] } },
                 },
                 orders: {
-                  where: { status: { in: ['CONFIRMED', 'ACTIVE', 'IN_PROGRESS', 'COMPLETED'] } }
-                }
-              }
-            }
+                  where: { status: { in: ['CONFIRMED', 'ACTIVE', 'IN_PROGRESS', 'COMPLETED'] } },
+                },
+              },
+            },
           },
         });
       }

@@ -5,7 +5,7 @@ export const buildSearchPrompt = (
     packages: any[];
     experts: any[];
     reviews: any[];
-  }
+  },
 ) => {
   return `You are an AI assistant for "The Simbolo", a Digital Marketing SaaS Platform.
 Your goal is to parse the user's query and return a structured JSON recommendation based ONLY on the provided context.

@@ -32,7 +32,7 @@ export class AgentOrchestrator {
     const session = await this.memory.getSession(sessionId);
 
     const intentResult = await this.detectIntent(message, session);
-    
+
     if (intentResult.extractedContext) {
       await this.memory.updateMetadata(sessionId, intentResult.extractedContext);
     }
@@ -40,29 +40,29 @@ export class AgentOrchestrator {
     await this.memory.appendMessage(sessionId, {
       role: 'user',
       content: message,
-      intentDetected: intentResult.intent
+      intentDetected: intentResult.intent,
     });
 
     // Re-fetch session to get updated metadata
     const updatedSession = await this.memory.getSession(sessionId);
 
     const agent = this.agents.get(intentResult.intent) || this.clarificationAgent;
-    
+
     this.logger.log(`Routing message to ${agent.intentName}`);
-    
+
     const response = await agent.process(message, updatedSession, contextOverrides);
 
     await this.memory.appendMessage(sessionId, {
       role: 'assistant',
       content: response.response,
-      intentDetected: agent.intentName
+      intentDetected: agent.intentName,
     });
 
     return {
       intent: agent.intentName,
       content: response.response,
       recommendations: response.recommendations,
-      data: (response as any).data
+      data: (response as any).data,
     };
   }
 
@@ -90,18 +90,18 @@ export class AgentOrchestrator {
           properties: {
             budget: { type: SchemaType.STRING },
             industry: { type: SchemaType.STRING },
-            goals: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } }
-          }
-        }
+            goals: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
+          },
+        },
       },
-      required: ['intent']
+      required: ['intent'],
     };
 
     try {
-      const response = await this.provider.chat<{ intent: string, extractedContext?: any }>(
-        session.history.slice(-5), 
-        prompt, 
-        schema
+      const response = await this.provider.chat<{ intent: string; extractedContext?: any }>(
+        session.history.slice(-5),
+        prompt,
+        schema,
       );
       return response;
     } catch (e) {

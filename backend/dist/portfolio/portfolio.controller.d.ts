@@ -1,0 +1,110 @@
+import { PortfolioService } from './portfolio.service';
+import { CreatePortfolioProjectDto } from './dto/create-portfolio-project.dto';
+import { UpdatePortfolioProjectDto } from './dto/update-portfolio-project.dto';
+import { CreatePortfolioCategoryDto } from './dto/create-portfolio-category.dto';
+import { PortfolioStatusEnum } from '@prisma/client';
+import { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
+export declare class PortfolioController {
+    private readonly portfolioService;
+    constructor(portfolioService: PortfolioService);
+    getCategories(): Promise<{
+        id: string;
+        createdAt: Date;
+        name: string;
+        updatedAt: Date;
+        deletedAt: Date | null;
+        description: string | null;
+        slug: string;
+    }[]>;
+    getProjects(categoryId?: string, serviceId?: string, isFeatured?: string, search?: string, status?: PortfolioStatusEnum): Promise<{
+        id: string;
+        createdAt: Date;
+        status: import(".prisma/client").$Enums.PortfolioStatusEnum;
+        updatedAt: Date;
+        deletedAt: Date | null;
+        createdBy: string | null;
+        updatedBy: string | null;
+        description: string | null;
+        title: string;
+        slug: string;
+        serviceId: string | null;
+        categoryId: string | null;
+        coverImageId: string | null;
+        clientName: string | null;
+        liveUrl: string | null;
+        completionDate: Date | null;
+        isFeatured: boolean;
+    }[]>;
+    getProjectBySlug(slug: string): Promise<{
+        id: string;
+        createdAt: Date;
+        status: import(".prisma/client").$Enums.PortfolioStatusEnum;
+        updatedAt: Date;
+        deletedAt: Date | null;
+        createdBy: string | null;
+        updatedBy: string | null;
+        description: string | null;
+        title: string;
+        slug: string;
+        serviceId: string | null;
+        categoryId: string | null;
+        coverImageId: string | null;
+        clientName: string | null;
+        liveUrl: string | null;
+        completionDate: Date | null;
+        isFeatured: boolean;
+    }>;
+    createProject(dto: CreatePortfolioProjectDto, user: JwtPayload): Promise<{
+        id: string;
+        createdAt: Date;
+        status: import(".prisma/client").$Enums.PortfolioStatusEnum;
+        updatedAt: Date;
+        deletedAt: Date | null;
+        createdBy: string | null;
+        updatedBy: string | null;
+        description: string | null;
+        title: string;
+        slug: string;
+        serviceId: string | null;
+        categoryId: string | null;
+        coverImageId: string | null;
+        clientName: string | null;
+        liveUrl: string | null;
+        completionDate: Date | null;
+        isFeatured: boolean;
+    }>;
+    updateProject(id: string, dto: UpdatePortfolioProjectDto, user: JwtPayload): Promise<{
+        id: string;
+        createdAt: Date;
+        status: import(".prisma/client").$Enums.PortfolioStatusEnum;
+        updatedAt: Date;
+        deletedAt: Date | null;
+        createdBy: string | null;
+        updatedBy: string | null;
+        description: string | null;
+        title: string;
+        slug: string;
+        serviceId: string | null;
+        categoryId: string | null;
+        coverImageId: string | null;
+        clientName: string | null;
+        liveUrl: string | null;
+        completionDate: Date | null;
+        isFeatured: boolean;
+    }>;
+    deleteProject(id: string, user: JwtPayload): Promise<{
+        success: boolean;
+    }>;
+    createCategory(dto: CreatePortfolioCategoryDto): Promise<{
+        id: string;
+        createdAt: Date;
+        name: string;
+        updatedAt: Date;
+        deletedAt: Date | null;
+        description: string | null;
+        slug: string;
+    }>;
+    deleteCategory(id: string): Promise<{
+        success: boolean;
+    }>;
+}

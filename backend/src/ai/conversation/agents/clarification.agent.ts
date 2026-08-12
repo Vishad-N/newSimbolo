@@ -28,12 +28,12 @@ export class ClarificationAgent extends BaseAgent {
       
       User's latest message: "${message}"
     `;
-    
+
     const responseText = await this.provider.chat<string>(session.history.slice(-5), prompt);
-    
+
     return {
       response: responseText,
-      recommendations: ["I have a limited budget", "I'm in the e-commerce industry", "I want to increase my sales"]
+      recommendations: ['I have a limited budget', "I'm in the e-commerce industry", 'I want to increase my sales'],
     };
   }
 }

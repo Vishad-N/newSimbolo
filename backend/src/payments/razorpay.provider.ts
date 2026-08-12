@@ -118,7 +118,9 @@ export class RazorpayGateway extends BaseService implements IPaymentGateway {
     const isValid = crypto.timingSafeEqual(Buffer.from(expectedSignature, 'hex'), Buffer.from(signature, 'hex'));
 
     if (!isValid) {
-      this.logger.error(`Webhook signature mismatch! Expected: ${expectedSignature}, Received: ${signature}. Body length: ${rawBody.length}`);
+      this.logger.error(
+        `Webhook signature mismatch! Expected: ${expectedSignature}, Received: ${signature}. Body length: ${rawBody.length}`,
+      );
     }
 
     return isValid;

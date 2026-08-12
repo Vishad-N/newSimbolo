@@ -9,7 +9,7 @@ import { SearchResponse } from '../../interfaces/search-response.interface';
 export class SearchAgent extends BaseAgent {
   constructor(
     provider: GeminiProvider,
-    private readonly aiService: AiService
+    private readonly aiService: AiService,
   ) {
     super(provider);
   }
@@ -37,7 +37,7 @@ export class SearchAgent extends BaseAgent {
     return {
       response: typedResult.summary,
       data: typedResult,
-      recommendations: typedResult.suggestions?.map(s => s.label) || ["Show me more packages", "Talk to an expert"]
+      recommendations: typedResult.suggestions?.map((s) => s.label) || ['Show me more packages', 'Talk to an expert'],
     };
   }
 }

@@ -12,10 +12,7 @@ export class ServicePageConfigController {
   }
 
   @Put(':slug')
-  async updateConfig(
-    @Param('slug') slug: string,
-    @Body() dto: ServicePageConfigDto
-  ) {
+  async updateConfig(@Param('slug') slug: string, @Body() dto: ServicePageConfigDto) {
     return this.configService.upsert(slug, dto);
   }
 }

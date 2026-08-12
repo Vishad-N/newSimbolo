@@ -15,14 +15,14 @@ import { BudgetAgent } from './conversation/agents/budget.agent';
   imports: [PrismaModule],
   controllers: [AiController, ConversationController],
   providers: [
-    AiService, 
-    GeminiProvider, 
+    AiService,
+    GeminiProvider,
     AiEmbeddingService,
     SessionMemory,
     AgentOrchestrator,
     SearchAgent,
     ClarificationAgent,
-    BudgetAgent
+    BudgetAgent,
   ],
   exports: [AiService, AiEmbeddingService, AgentOrchestrator],
 })

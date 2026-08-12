@@ -26,7 +26,9 @@ export class WebhooksController {
   @ApiResponse({ status: 400, description: 'Invalid signature or payload' })
   handleRazorpayWebhook(@Headers('x-razorpay-signature') signature: string, @Req() req: Request) {
     if (!(req as any).rawBody) {
-      console.warn('⚠️ req.rawBody is undefined! Falling back to JSON.stringify(req.body). This will likely fail signature validation.');
+      console.warn(
+        '⚠️ req.rawBody is undefined! Falling back to JSON.stringify(req.body). This will likely fail signature validation.',
+      );
     }
     const rawBody: Buffer = (req as any).rawBody ?? Buffer.from(JSON.stringify(req.body));
     return this.webhooksService.handleRazorpayWebhook(rawBody, signature ?? '');

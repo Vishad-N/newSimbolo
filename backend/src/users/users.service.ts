@@ -108,7 +108,7 @@ export class UsersService extends BaseService {
         clientProfile: {
           include: {
             company: true,
-          }
+          },
         },
       },
     });

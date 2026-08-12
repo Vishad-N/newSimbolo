@@ -17,7 +17,7 @@ export class WebsiteTeamService {
       displayOrder: createDto.displayOrder,
       isActive: createDto.isActive,
     };
-    
+
     if (createDto.socialLinks) {
       data.socialLinks = createDto.socialLinks as Prisma.InputJsonValue;
     }

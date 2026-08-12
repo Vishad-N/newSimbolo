@@ -80,7 +80,7 @@ export class CaseStudiesService extends BaseService {
         testimonials: true,
       },
     });
-    
+
     if (study) {
       (study as any).beforeAfters = (study as any).beforeAfters.map((ba: any) => ({
         ...ba,

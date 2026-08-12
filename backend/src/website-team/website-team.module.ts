@@ -4,6 +4,6 @@ import { WebsiteTeamService } from './website-team.service';
 
 @Module({
   controllers: [WebsiteTeamController],
-  providers: [WebsiteTeamService]
+  providers: [WebsiteTeamService],
 })
 export class WebsiteTeamModule {}

@@ -9,7 +9,7 @@ import { SearchResponse } from '../../interfaces/search-response.interface';
 export class BudgetAgent extends BaseAgent {
   constructor(
     provider: GeminiProvider,
-    private readonly aiService: AiService
+    private readonly aiService: AiService,
   ) {
     super(provider);
   }
@@ -20,9 +20,9 @@ export class BudgetAgent extends BaseAgent {
 
   async process(message: string, session: SessionMemoryData, contextOverrides?: Record<string, any>) {
     const budget = session.metadata.budget;
-    
-    const searchResult = await this.aiService.search({ 
-      query: `Find services and packages that fit a budget of ${budget}. User says: ${message}. Industry: ${session.metadata.industry || 'Any'}.` 
+
+    const searchResult = await this.aiService.search({
+      query: `Find services and packages that fit a budget of ${budget}. User says: ${message}. Industry: ${session.metadata.industry || 'Any'}.`,
     });
 
     const typedResult = searchResult as SearchResponse;
@@ -34,13 +34,13 @@ export class BudgetAgent extends BaseAgent {
       We retrieved these packages: ${typedResult.recommendedPackage}.
       Write a friendly message explaining how we can maximize their budget with these packages.
     `;
-    
+
     const responseText = await this.provider.chat<string>(session.history.slice(-5), customPrompt);
 
     return {
       response: responseText,
       data: typedResult,
-      recommendations: ["What is included in the package?", "Can I customize the package?"]
+      recommendations: ['What is included in the package?', 'Can I customize the package?'],
     };
   }
 }

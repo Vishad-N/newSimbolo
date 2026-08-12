@@ -87,11 +87,11 @@ export async function buildInvoicePdf(data: InvoicePdfData): Promise<Buffer> {
       .fontSize(11)
       .fillColor(darkColor)
       .text(data.companyName ? data.companyName : data.clientName, 50, billToY + 15);
-    
+
     let currentY = billToY + 30;
     doc.font('Helvetica').fontSize(9).fillColor(grayColor).text(data.clientEmail, 50, currentY);
     currentY += 14;
-    
+
     if (data.clientAddress) {
       doc.text(data.clientAddress, 50, currentY);
       currentY += 14;
@@ -111,7 +111,7 @@ export async function buildInvoicePdf(data: InvoicePdfData): Promise<Buffer> {
       .fontSize(11)
       .fillColor(darkColor)
       .text('The Simbolo Pvt. Ltd.', 350, billToY + 15);
-    
+
     let fromY = billToY + 30;
     doc.font('Helvetica').fontSize(9).fillColor(grayColor).text('billing@simbolo.ai', 350, fromY);
     fromY += 14;
@@ -155,9 +155,9 @@ export async function buildInvoicePdf(data: InvoicePdfData): Promise<Buffer> {
         doc.rect(tableLeft, rowY, doc.page.width - 100, 22).fill(lightGray);
       }
       xPos = tableLeft + 8;
-      
+
       const desc = item.name ? item.name + (item.description ? `\n${item.description}` : '') : item.description;
-      const taxable = item.taxableAmount ?? (item.quantity * item.unitPrice - (item.discount || 0));
+      const taxable = item.taxableAmount ?? item.quantity * item.unitPrice - (item.discount || 0);
       const taxStr = item.gstRate ? `${item.gstRate}%` : '-';
       const itemTotal = item.totalAmount ?? item.total ?? 0;
 
@@ -191,9 +191,7 @@ export async function buildInvoicePdf(data: InvoicePdfData): Promise<Buffer> {
       .stroke();
     rowY += 8;
 
-    const totalsRows = [
-      ['Subtotal', `${symbol}${data.subtotal.toLocaleString('en-IN')}`]
-    ];
+    const totalsRows = [['Subtotal', `${symbol}${data.subtotal.toLocaleString('en-IN')}`]];
 
     if (data.igstAmount && data.igstAmount > 0) {
       totalsRows.push(['IGST', `${symbol}${data.igstAmount.toLocaleString('en-IN')}`]);

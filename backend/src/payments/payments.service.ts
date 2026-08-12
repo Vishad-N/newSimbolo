@@ -172,8 +172,8 @@ export class PaymentsService extends BaseService {
             interval: 'MONTHLY',
             currentPeriodStart,
             currentPeriodEnd,
-          }
-        })
+          },
+        }),
       );
     }
 

@@ -67,7 +67,7 @@ export class OrdersService extends BaseService {
     let client = await this.prisma.clientProfile.findUnique({
       where: { userId },
     });
-    
+
     if (!client) {
       client = await this.prisma.clientProfile.create({
         data: { userId },

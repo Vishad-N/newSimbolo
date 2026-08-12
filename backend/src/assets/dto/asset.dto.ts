@@ -34,7 +34,7 @@ export class UploadRequestDto {
   @IsOptional()
   @IsUUID()
   folderId?: string;
-  
+
   @ApiProperty({ required: false })
   @IsOptional()
   @IsUUID()

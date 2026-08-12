@@ -10,7 +10,7 @@ export class ServicePageConfigService {
   async findByServiceSlug(slug: string) {
     const service = await this.prisma.service.findUnique({
       where: { slug },
-      select: { id: true }
+      select: { id: true },
     });
 
     if (!service) {
@@ -18,14 +18,14 @@ export class ServicePageConfigService {
     }
 
     return this.prisma.servicePageConfig.findUnique({
-      where: { serviceId: service.id }
+      where: { serviceId: service.id },
     });
   }
 
   async upsert(slug: string, dto: ServicePageConfigDto) {
     const service = await this.prisma.service.findUnique({
       where: { slug },
-      select: { id: true }
+      select: { id: true },
     });
 
     if (!service) {
@@ -48,7 +48,7 @@ export class ServicePageConfigService {
         statsBar: dto.statsBar || [],
         servicesList: dto.servicesList || [],
         resultMetrics: dto.resultMetrics || [],
-      }
+      },
     });
   }
 }

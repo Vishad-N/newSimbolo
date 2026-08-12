@@ -18,9 +18,9 @@ describe('Phase 7 AI Endpoints Verification (e2e)', () => {
     app = moduleFixture.createNestApplication();
     app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
     await app.init();
-    
+
     prisma = app.get<PrismaService>(PrismaService);
-    
+
     // Mock Authentication Setup (Assuming valid JWT signing mechanism exists)
     // authToken = ... (Generate mock user token)
     // adminToken = ... (Generate mock admin token)
@@ -38,7 +38,7 @@ describe('Phase 7 AI Endpoints Verification (e2e)', () => {
         .post(endpoint)
         .send({ query: 'I need marketing for my restaurant' })
         .expect(201);
-      
+
       expect(response.body).toHaveProperty('summary');
       expect(response.body).toHaveProperty('matchPercentage');
       expect(response.body).toHaveProperty('recommendedService');
@@ -46,10 +46,7 @@ describe('Phase 7 AI Endpoints Verification (e2e)', () => {
     });
 
     it('should reject empty queries', async () => {
-      await request(app.getHttpServer())
-        .post(endpoint)
-        .send({ query: '' })
-        .expect(400);
+      await request(app.getHttpServer()).post(endpoint).send({ query: '' }).expect(400);
     });
 
     it('should mitigate XSS payloads', async () => {
@@ -57,7 +54,7 @@ describe('Phase 7 AI Endpoints Verification (e2e)', () => {
         .post(endpoint)
         .send({ query: '<script>alert("XSS")</script>' })
         .expect(201);
-      
+
       // AI provider should process this as literal text, not execute it
       expect(response.body).toHaveProperty('summary');
     });
@@ -67,21 +64,21 @@ describe('Phase 7 AI Endpoints Verification (e2e)', () => {
         .post(endpoint)
         .send({ query: "marketing'; DROP TABLE users;--" })
         .expect(201);
-      
+
       expect(response.body).toHaveProperty('summary');
     });
   });
 
   describe('Phase 5 — Conversation Endpoints (/api/v1/ai/chat)', () => {
     const chatEndpoint = '/ai/chat';
-    let testSessionId = 'test-session-' + Date.now();
+    const testSessionId = 'test-session-' + Date.now();
 
     it('should create an anonymous session and return an initial intent', async () => {
       const response = await request(app.getHttpServer())
         .post(chatEndpoint)
         .send({ sessionId: testSessionId, message: 'I need a website' })
         .expect(201);
-      
+
       expect(response.body).toHaveProperty('intent');
       expect(response.body).toHaveProperty('content');
     });
@@ -91,15 +88,13 @@ describe('Phase 7 AI Endpoints Verification (e2e)', () => {
         .post(chatEndpoint)
         .send({ sessionId: testSessionId, message: 'My budget is 5000' })
         .expect(201);
-      
+
       expect(['BUDGET_PLANNING', 'SEARCH']).toContain(response.body.intent);
     });
 
     it('should retrieve conversation history accurately', async () => {
-      const response = await request(app.getHttpServer())
-        .get(`${chatEndpoint}/${testSessionId}`)
-        .expect(200);
-      
+      const response = await request(app.getHttpServer()).get(`${chatEndpoint}/${testSessionId}`).expect(200);
+
       expect(response.body.history.length).toBeGreaterThanOrEqual(2);
       expect(response.body.metadata.budget).toBeDefined();
     });
@@ -107,15 +102,11 @@ describe('Phase 7 AI Endpoints Verification (e2e)', () => {
 
   describe('Phase 14 — Security & Auth Protection', () => {
     it('should reject unauthorized access to sync-embeddings', async () => {
-      await request(app.getHttpServer())
-        .post('/ai/sync-embeddings')
-        .expect(401);
+      await request(app.getHttpServer()).post('/ai/sync-embeddings').expect(401);
     });
 
     it('should reject unauthorized access to analytics', async () => {
-      await request(app.getHttpServer())
-        .get('/ai/chat/analytics/metrics')
-        .expect(401);
+      await request(app.getHttpServer()).get('/ai/chat/analytics/metrics').expect(401);
     });
   });
 });

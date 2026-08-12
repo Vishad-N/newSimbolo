@@ -53,6 +53,7 @@
     "@sentry/node": "^10.68.0",
     "@socket.io/redis-adapter": "^8.3.0",
     "@types/bcrypt": "^5.0.2",
+    "@types/buffer-to-stream": "^1.0.3",
     "@types/compression": "^1.7.5",
     "@types/cookie-parser": "^1.4.10",
     "@types/express": "^5.0.0",
@@ -92,7 +93,6 @@
   },
   "devDependencies": {
     "@nestjs/testing": "^11.0.1",
-    "@types/buffer-to-stream": "^1.0.3",
     "@types/jest": "^29.5.14",
     "@types/supertest": "^6.0.2",
     "@typescript-eslint/eslint-plugin": "^8.21.0",

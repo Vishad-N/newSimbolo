@@ -15,7 +15,7 @@ export class AssetsService {
   // =====================================
   // FOLDERS
   // =====================================
-  
+
   async getFolders(clientId: string) {
     return this.prisma.assetFolder.findMany({
       where: { clientId },
@@ -63,14 +63,14 @@ export class AssetsService {
         uploadedBy: {
           select: { id: true, firstName: true, lastName: true },
         },
-      }
+      },
     });
   }
 
   async createUploadRequest(clientId: string, userId: string, dto: UploadRequestDto) {
     const ext = path.extname(dto.filename);
     const storageKey = `client-${clientId}/${randomUUID()}${ext}`;
-    
+
     // Generate the presigned URL
     const uploadUrl = await this.storage.getPresignedUploadUrl(storageKey, dto.mimeType);
 

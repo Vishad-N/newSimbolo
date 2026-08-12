@@ -46,7 +46,7 @@ class EnvironmentVariables {
   @IsOptional()
   @IsUrl({ require_tld: false })
   GOOGLE_CALLBACK_URL?: string;
-  
+
   @IsOptional()
   @IsString()
   REDIS_URL?: string;
@@ -154,13 +154,13 @@ export function validate(config: Record<string, unknown>) {
   const validatedConfig = plainToInstance(EnvironmentVariables, normalizedConfig, {
     enableImplicitConversion: true,
   });
-  
+
   const errors = validateSync(validatedConfig, { skipMissingProperties: false });
 
   if (errors.length > 0) {
     throw new Error(`Environment validation failed: ${errors.toString()}`);
   }
-  
+
   if (validatedConfig.NODE_ENV === Environment.Production) {
     validateProductionConfig(validatedConfig);
   }
@@ -179,11 +179,13 @@ function validateProductionConfig(config: EnvironmentVariables): void {
   requireSecret(config.JWT_SECRET, 'JWT_SECRET', missingVariables);
   requireSecret(config.JWT_REFRESH_SECRET, 'JWT_REFRESH_SECRET', missingVariables);
 
-  if (isIntegrationEnabled(config.GOOGLE_OAUTH_ENABLED, [
-    config.GOOGLE_CLIENT_ID,
-    config.GOOGLE_CLIENT_SECRET,
-    config.GOOGLE_CALLBACK_URL,
-  ])) {
+  if (
+    isIntegrationEnabled(config.GOOGLE_OAUTH_ENABLED, [
+      config.GOOGLE_CLIENT_ID,
+      config.GOOGLE_CLIENT_SECRET,
+      config.GOOGLE_CALLBACK_URL,
+    ])
+  ) {
     requireValue(config.GOOGLE_CLIENT_ID, 'GOOGLE_CLIENT_ID', missingVariables);
     requireSecret(config.GOOGLE_CLIENT_SECRET, 'GOOGLE_CLIENT_SECRET', missingVariables);
     requireValue(config.GOOGLE_CALLBACK_URL, 'GOOGLE_CALLBACK_URL', missingVariables);
@@ -198,18 +200,27 @@ function validateProductionConfig(config: EnvironmentVariables): void {
     requireSecret(config.RAZORPAY_KEY_SECRET, 'RAZORPAY_KEY_SECRET', missingVariables);
   }
 
-  if (isIntegrationEnabled(config.EMAIL_ENABLED, [config.SMTP_HOST, config.SMTP_USER, config.SMTP_PASSWORD, config.SMTP_PASS])) {
+  if (
+    isIntegrationEnabled(config.EMAIL_ENABLED, [
+      config.SMTP_HOST,
+      config.SMTP_USER,
+      config.SMTP_PASSWORD,
+      config.SMTP_PASS,
+    ])
+  ) {
     requireValue(config.SMTP_HOST, 'SMTP_HOST', missingVariables);
     requireValue(config.SMTP_PORT, 'SMTP_PORT', missingVariables);
     requireValue(config.SMTP_USER, 'SMTP_USER', missingVariables);
     requireCredential(config.SMTP_PASSWORD || config.SMTP_PASS, 'SMTP_PASSWORD', missingVariables);
   }
 
-  if (isIntegrationEnabled(config.CLOUDINARY_ENABLED, [
-    config.CLOUDINARY_CLOUD_NAME,
-    config.CLOUDINARY_API_KEY,
-    config.CLOUDINARY_API_SECRET,
-  ])) {
+  if (
+    isIntegrationEnabled(config.CLOUDINARY_ENABLED, [
+      config.CLOUDINARY_CLOUD_NAME,
+      config.CLOUDINARY_API_KEY,
+      config.CLOUDINARY_API_SECRET,
+    ])
+  ) {
     requireValue(config.CLOUDINARY_CLOUD_NAME, 'CLOUDINARY_CLOUD_NAME', missingVariables);
     requireValue(config.CLOUDINARY_API_KEY, 'CLOUDINARY_API_KEY', missingVariables);
     requireSecret(config.CLOUDINARY_API_SECRET, 'CLOUDINARY_API_SECRET', missingVariables);
@@ -238,7 +249,12 @@ function requireSecret(value: unknown, name: string, missingVariables: string[])
   if (typeof value !== 'string') return;
 
   const normalized = value.toLowerCase();
-  if (value.length < 16 || normalized.includes('change-me') || normalized.includes('mock') || normalized.includes('your-')) {
+  if (
+    value.length < 16 ||
+    normalized.includes('change-me') ||
+    normalized.includes('mock') ||
+    normalized.includes('your-')
+  ) {
     missingVariables.push(`${name} must be a non-placeholder secret with at least 16 characters`);
   }
 }
@@ -271,7 +287,13 @@ function isIntegrationEnabled(flag: boolean | undefined, values: Array<unknown>)
 
 function normalizeFeatureFlags(config: Record<string, unknown>): Record<string, unknown> {
   const normalized = { ...config };
-  for (const key of ['GOOGLE_OAUTH_ENABLED', 'GEMINI_ENABLED', 'RAZORPAY_ENABLED', 'EMAIL_ENABLED', 'CLOUDINARY_ENABLED']) {
+  for (const key of [
+    'GOOGLE_OAUTH_ENABLED',
+    'GEMINI_ENABLED',
+    'RAZORPAY_ENABLED',
+    'EMAIL_ENABLED',
+    'CLOUDINARY_ENABLED',
+  ]) {
     normalized[key] = parseOptionalBoolean(normalized[key]);
   }
   return normalized;

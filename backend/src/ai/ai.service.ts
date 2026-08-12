@@ -27,18 +27,13 @@ export class AiService extends BaseService {
   getCapabilities() {
     return {
       provider: 'Gemini',
-      capabilities: [
-        'AI Search',
-        'Generate Blog Drafts',
-        'Improve Existing Content',
-        'SEO Recommendations',
-      ],
+      capabilities: ['AI Search', 'Generate Blog Drafts', 'Improve Existing Content', 'SEO Recommendations'],
     };
   }
 
   generate(dto: AiGenerationDto) {
     // Legacy generation endpoint placeholder
-    return { message: "Generation not implemented with Gemini yet." };
+    return { message: 'Generation not implemented with Gemini yet.' };
   }
 
   async search(dto: AiSearchDto) {
@@ -61,7 +56,7 @@ export class AiService extends BaseService {
     } catch (e) {
       this.logger.warn(`Failed to generate embedding for query: ${query}. Falling back to keyword search only.`);
     }
-    
+
     let services: any[] = [];
     let packages: any[] = [];
 
@@ -84,31 +79,40 @@ export class AiService extends BaseService {
 
       // 3. Hybrid Search Services
       if (hasServicesTable) {
-        services = await this.queryCatalogTable<any>(`
+        services = await this.queryCatalogTable<any>(
+          `
           SELECT id, name, "shortDescription",
           COALESCE(1 - (embedding <=> $1::vector), 0) as similarity,
           (CASE WHEN name ILIKE $2 THEN 0.5 ELSE 0 END) as keyword_score
           FROM "services"
           ORDER BY COALESCE(1 - (embedding <=> $1::vector), 0) + (CASE WHEN name ILIKE $2 THEN 0.5 ELSE 0 END) DESC
           LIMIT 5
-        `, [vectorString, keywordPattern], 'services');
+        `,
+          [vectorString, keywordPattern],
+          'services',
+        );
       }
 
       // 4. Hybrid Search Packages
       if (hasPackagesTable) {
-        packages = await this.queryCatalogTable<any>(`
+        packages = await this.queryCatalogTable<any>(
+          `
           SELECT id, name, description,
           COALESCE(1 - (embedding <=> $1::vector), 0) as similarity,
           (CASE WHEN name ILIKE $2 THEN 0.5 ELSE 0 END) as keyword_score
           FROM "packages"
           ORDER BY COALESCE(1 - (embedding <=> $1::vector), 0) + (CASE WHEN name ILIKE $2 THEN 0.5 ELSE 0 END) DESC
           LIMIT 5
-        `, [vectorString, keywordPattern], 'packages');
+        `,
+          [vectorString, keywordPattern],
+          'packages',
+        );
       }
     } else {
       // Fallback to purely keyword if embedding fails
       if (hasServicesTable) {
-        services = await this.queryCatalogTable<any>(`
+        services = await this.queryCatalogTable<any>(
+          `
           SELECT id, name, "shortDescription",
           0 as similarity,
           (CASE WHEN name ILIKE $1 THEN 0.5 ELSE 0 END) as keyword_score
@@ -116,11 +120,15 @@ export class AiService extends BaseService {
           WHERE name ILIKE $1 OR "shortDescription" ILIKE $1
           ORDER BY keyword_score DESC
           LIMIT 5
-        `, [keywordPattern], 'services');
+        `,
+          [keywordPattern],
+          'services',
+        );
       }
 
       if (hasPackagesTable) {
-        packages = await this.queryCatalogTable<any>(`
+        packages = await this.queryCatalogTable<any>(
+          `
           SELECT id, name, description,
           0 as similarity,
           (CASE WHEN name ILIKE $1 THEN 0.5 ELSE 0 END) as keyword_score
@@ -128,7 +136,10 @@ export class AiService extends BaseService {
           WHERE name ILIKE $1 OR description ILIKE $1
           ORDER BY keyword_score DESC
           LIMIT 5
-        `, [keywordPattern], 'packages');
+        `,
+          [keywordPattern],
+          'packages',
+        );
       }
     }
 
@@ -136,22 +147,22 @@ export class AiService extends BaseService {
     const experts = await this.prisma.user.findMany({
       where: {
         role: {
-          name: { in: ['CONTENT_MANAGER', 'PROJECT_MANAGER', 'MARKETING_MANAGER', 'ADMIN'] }
-        }
+          name: { in: ['CONTENT_MANAGER', 'PROJECT_MANAGER', 'MARKETING_MANAGER', 'ADMIN'] },
+        },
       },
       take: 10,
     });
 
-    const contextExperts = experts.map(e => ({
+    const contextExperts = experts.map((e) => ({
       id: e.id,
       name: `${e.firstName} ${e.lastName}`,
-      title: 'Digital Marketing Expert', 
-      imageUrl: e.avatarUrl || `https://i.pravatar.cc/150?u=${e.id}`
+      title: 'Digital Marketing Expert',
+      imageUrl: e.avatarUrl || `https://i.pravatar.cc/150?u=${e.id}`,
     }));
 
     // 6. Gemini Generation
     const prompt = buildSearchPrompt(query, {
-      services, 
+      services,
       packages,
       experts: contextExperts,
       reviews: [],
@@ -251,7 +262,11 @@ export class AiService extends BaseService {
 
     const services = await this.prisma.service.findMany();
     for (const service of services) {
-      await this.embeddingService.queueEmbeddingGeneration('Service', service.id, `${service.name} ${service.shortDescription || ''}`);
+      await this.embeddingService.queueEmbeddingGeneration(
+        'Service',
+        service.id,
+        `${service.name} ${service.shortDescription || ''}`,
+      );
       queued++;
     }
 

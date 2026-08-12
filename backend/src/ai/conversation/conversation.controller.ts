@@ -39,10 +39,10 @@ export class ConversationController {
         id: true,
       },
     });
-    
+
     return {
       totalConversations,
-      actions
+      actions,
     };
   }
 }

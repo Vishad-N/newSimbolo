@@ -23,7 +23,7 @@ export class ChatResponseDto {
 
   @ApiProperty({ description: 'The actual response content' })
   content: string;
-  
+
   @ApiProperty({ description: 'Recommended actions or quick replies' })
   recommendations?: string[];
 

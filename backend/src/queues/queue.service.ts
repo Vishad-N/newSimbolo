@@ -71,7 +71,7 @@ export class QueueService extends BaseService implements OnModuleDestroy {
     if (!this.connection) return { status: 'disabled', queues: [] };
     try {
       await this.connection.ping();
-      
+
       const now = Date.now();
       if (now - this.lastQueueCountsTime > 60000) {
         this.lastQueueCounts = await Promise.all(

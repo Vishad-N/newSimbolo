@@ -59,12 +59,12 @@ export class InvoicesService extends BaseService {
     const taxParams = {
       supplierStateCode,
       customerStateCode,
-      items: dto.items.map(item => ({
+      items: dto.items.map((item) => ({
         description: item.name + (item.description ? ` - ${item.description}` : ''),
         quantity: item.quantity,
         unitPrice: item.unitPrice,
         gstRate: dto.taxPercentage ?? 18,
-      }))
+      })),
     };
 
     const taxResult = this.taxService.calculateTax(taxParams);
@@ -93,7 +93,7 @@ export class InvoicesService extends BaseService {
         subscriptionId: dto.subscriptionId ?? null,
         createdBy: createdBy ?? null,
         items: {
-          create: taxResult.items.map(item => ({
+          create: taxResult.items.map((item) => ({
             description: item.description,
             sacCode: item.sacCode,
             quantity: item.quantity,
@@ -104,14 +104,14 @@ export class InvoicesService extends BaseService {
             cgstAmount: item.cgstAmount,
             sgstAmount: item.sgstAmount,
             igstAmount: item.igstAmount,
-            totalAmount: item.totalAmount
-          }))
-        }
+            totalAmount: item.totalAmount,
+          })),
+        },
       },
       include: {
         client: { include: { user: true, company: true } },
         order: { select: { orderNumber: true } },
-        items: true
+        items: true,
       },
     });
 
@@ -134,7 +134,7 @@ export class InvoicesService extends BaseService {
       where: { id: orderId },
       include: {
         items: { include: { service: true, package: true } },
-      }
+      },
     });
 
     if (!order) throw new NotFoundException(`Order ${orderId} not found`);
@@ -148,21 +148,21 @@ export class InvoicesService extends BaseService {
       orderId: order.id,
       dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
       currency: order.currency,
-      items: order.items.map(item => ({
+      items: order.items.map((item) => ({
         name: item.name,
         description: item.description ?? undefined,
         quantity: item.quantity,
         unitPrice: item.unitPrice,
         sacCode: item.service?.sacCode ?? item.package?.sacCode ?? undefined,
         gstRate: item.service?.gstRate ?? item.package?.gstRate ?? 18,
-      })) as any
+      })) as any,
     };
 
     const invoice = await this.create(dto, createdBy);
-    
+
     // Automatically generate PDF
     await this.generatePdf(invoice.id);
-    
+
     return invoice;
   }
 
@@ -244,7 +244,7 @@ export class InvoicesService extends BaseService {
         cgstAmount: item.cgstAmount,
         sgstAmount: item.sgstAmount,
         igstAmount: item.igstAmount,
-        totalAmount: item.totalAmount
+        totalAmount: item.totalAmount,
       })),
       subtotal: invoice.subtotal,
       cgstAmount: invoice.cgstAmount,
@@ -270,7 +270,7 @@ export class InvoicesService extends BaseService {
 
     await this.prisma.invoice.update({
       where: { id },
-      data: { pdfUrl: uploadResult.url }
+      data: { pdfUrl: uploadResult.url },
     });
 
     this.logger.log(`📄 Invoice PDF uploaded to R2: ${storageKey}`);

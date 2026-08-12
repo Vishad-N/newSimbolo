@@ -12,10 +12,7 @@ export class CloudinaryService {
    * @param folder The folder in Cloudinary (e.g. "blogs", "services")
    * @returns The Cloudinary upload response
    */
-  async uploadImage(
-    file: Express.Multer.File,
-    folder: string,
-  ): Promise<UploadApiResponse> {
+  async uploadImage(file: Express.Multer.File, folder: string): Promise<UploadApiResponse> {
     return new Promise((resolve, reject) => {
       const upload = cloudinary.uploader.upload_stream(
         {

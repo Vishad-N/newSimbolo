@@ -46,11 +46,7 @@ export class AssetsController {
 
   @Post(':clientId/upload-request')
   @ApiOperation({ summary: 'Request a presigned URL to upload a file' })
-  createUploadRequest(
-    @Param('clientId') clientId: string, 
-    @Body() dto: UploadRequestDto,
-    @CurrentUser() user: any
-  ) {
+  createUploadRequest(@Param('clientId') clientId: string, @Body() dto: UploadRequestDto, @CurrentUser() user: any) {
     return this.assetsService.createUploadRequest(clientId, user.id, dto);
   }
 

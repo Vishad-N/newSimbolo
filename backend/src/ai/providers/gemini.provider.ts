@@ -9,7 +9,7 @@ export class GeminiProvider implements AIProvider {
   private readonly logger = new Logger(GeminiProvider.name);
   private readonly genAI: GoogleGenerativeAI;
   private readonly generationModel: string;
-  
+
   constructor(private readonly configService: ConfigService) {
     const apiKey = this.configService.get<string>('GEMINI_API_KEY') || '';
     if (!apiKey) {
@@ -23,9 +23,9 @@ export class GeminiProvider implements AIProvider {
     const model = this.genAI.getGenerativeModel({
       model: this.generationModel,
       generationConfig: {
-        responseMimeType: "application/json",
+        responseMimeType: 'application/json',
         responseSchema: this.getSchema(),
-      }
+      },
     });
 
     try {
@@ -41,15 +41,17 @@ export class GeminiProvider implements AIProvider {
   async chat<T = any>(history: any[], prompt: string, schema?: any): Promise<T> {
     const model = this.genAI.getGenerativeModel({
       model: this.generationModel,
-      generationConfig: schema ? {
-        responseMimeType: "application/json",
-        responseSchema: schema as Schema,
-      } : undefined
+      generationConfig: schema
+        ? {
+            responseMimeType: 'application/json',
+            responseSchema: schema as Schema,
+          }
+        : undefined,
     });
 
-    const formattedHistory = history.map(h => ({
+    const formattedHistory = history.map((h) => ({
       role: h.role === 'assistant' ? 'model' : 'user',
-      parts: [{ text: h.content }]
+      parts: [{ text: h.content }],
     }));
 
     const chatSession = model.startChat({ history: formattedHistory });
@@ -68,10 +70,13 @@ export class GeminiProvider implements AIProvider {
     return {
       type: SchemaType.OBJECT,
       properties: {
-        summary: { type: SchemaType.STRING, description: "A concise, engaging summary recommending the best path forward." },
-        matchPercentage: { type: SchemaType.INTEGER, description: "A match percentage score up to 99." },
-        recommendedService: { type: SchemaType.STRING, description: "The name of the most recommended service." },
-        recommendedPackage: { type: SchemaType.STRING, description: "The name of the most recommended package." },
+        summary: {
+          type: SchemaType.STRING,
+          description: 'A concise, engaging summary recommending the best path forward.',
+        },
+        matchPercentage: { type: SchemaType.INTEGER, description: 'A match percentage score up to 99.' },
+        recommendedService: { type: SchemaType.STRING, description: 'The name of the most recommended service.' },
+        recommendedPackage: { type: SchemaType.STRING, description: 'The name of the most recommended package.' },
         experts: {
           type: SchemaType.ARRAY,
           items: {
@@ -91,8 +96,22 @@ export class GeminiProvider implements AIProvider {
               experience: { type: SchemaType.STRING },
               availability: { type: SchemaType.STRING },
             },
-            required: ["id", "name", "title", "rating", "projectsCompleted", "specialization", "responseTime", "hourlyPrice", "imageUrl", "isSimboloExpert", "skills", "experience", "availability"]
-          }
+            required: [
+              'id',
+              'name',
+              'title',
+              'rating',
+              'projectsCompleted',
+              'specialization',
+              'responseTime',
+              'hourlyPrice',
+              'imageUrl',
+              'isSimboloExpert',
+              'skills',
+              'experience',
+              'availability',
+            ],
+          },
         },
         suggestions: {
           type: SchemaType.ARRAY,
@@ -100,10 +119,10 @@ export class GeminiProvider implements AIProvider {
             type: SchemaType.OBJECT,
             properties: {
               id: { type: SchemaType.STRING },
-              label: { type: SchemaType.STRING }
+              label: { type: SchemaType.STRING },
             },
-            required: ["id", "label"]
-          }
+            required: ['id', 'label'],
+          },
         },
         reviews: {
           type: SchemaType.ARRAY,
@@ -116,10 +135,10 @@ export class GeminiProvider implements AIProvider {
               rating: { type: SchemaType.INTEGER },
               servicePurchased: { type: SchemaType.STRING },
               content: { type: SchemaType.STRING },
-              date: { type: SchemaType.STRING }
+              date: { type: SchemaType.STRING },
             },
-            required: ["id", "name", "avatarUrl", "rating", "servicePurchased", "content", "date"]
-          }
+            required: ['id', 'name', 'avatarUrl', 'rating', 'servicePurchased', 'content', 'date'],
+          },
         },
         relatedServices: {
           type: SchemaType.ARRAY,
@@ -129,13 +148,22 @@ export class GeminiProvider implements AIProvider {
               id: { type: SchemaType.STRING },
               title: { type: SchemaType.STRING },
               description: { type: SchemaType.STRING },
-              icon: { type: SchemaType.STRING }
+              icon: { type: SchemaType.STRING },
             },
-            required: ["id", "title", "description", "icon"]
-          }
-        }
+            required: ['id', 'title', 'description', 'icon'],
+          },
+        },
       },
-      required: ["summary", "matchPercentage", "recommendedService", "recommendedPackage", "experts", "suggestions", "reviews", "relatedServices"]
+      required: [
+        'summary',
+        'matchPercentage',
+        'recommendedService',
+        'recommendedPackage',
+        'experts',
+        'suggestions',
+        'reviews',
+        'relatedServices',
+      ],
     };
   }
 }

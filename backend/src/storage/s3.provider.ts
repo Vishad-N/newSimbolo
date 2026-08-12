@@ -42,7 +42,7 @@ export class S3StorageProvider implements StorageProvider {
       await this.s3Client.send(command);
       return {
         storageKey: key,
-        url: `s3://${this.bucketName}/${key}`, 
+        url: `s3://${this.bucketName}/${key}`,
         provider: 'cloudflare-r2',
       };
     } catch (error) {
@@ -78,7 +78,7 @@ export class S3StorageProvider implements StorageProvider {
       throw error;
     }
   }
-  
+
   async getPresignedUploadUrl(key: string, mimeType: string, expiresInSeconds = 3600): Promise<string> {
     const command = new PutObjectCommand({
       Bucket: this.bucketName,

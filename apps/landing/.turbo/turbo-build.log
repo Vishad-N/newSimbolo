@@ -6,43 +6,43 @@
    - Environments: .env.local
 
    Creating an optimized production build ...
- ✓ Compiled successfully in 63s
+ ✓ Compiled successfully in 28.8s
    Skipping validation of types
    Skipping linting
    Collecting page data ...
    Generating static pages (0/17) ...
 [fetchMappedCaseStudies] No case studies found in backend. Using mock fallback.
+[Simbolo Landing API Fallback] Could not fetch /service-page-config/video-editing, using static fallback: Error: API error (401): Unauthorized
+    at e (C:\Users\visha\simbolonew\apps\landing\.next\server\chunks\468.js:1:9444)
+    at async j (C:\Users\visha\simbolonew\apps\landing\.next\server\app\services\video-editing\page.js:2:39543)
    Generating static pages (4/17) 
    Generating static pages (8/17) 
 [Simbolo Landing API Fallback] Could not fetch /service-page-config/graphic-design, using static fallback: Error: API error (401): Unauthorized
-    at e (C:\Users\visha\simbolonew\apps\landing\.next\server\chunks\656.js:1:9526)
+    at e (C:\Users\visha\simbolonew\apps\landing\.next\server\chunks\468.js:1:9444)
     at async j (C:\Users\visha\simbolonew\apps\landing\.next\server\app\services\graphic-design\page.js:1:2357)
-[Simbolo Landing API Fallback] Could not fetch /service-page-config/video-editing, using static fallback: Error: API error (401): Unauthorized
-    at e (C:\Users\visha\simbolonew\apps\landing\.next\server\chunks\656.js:1:9526)
-    at async j (C:\Users\visha\simbolonew\apps\landing\.next\server\app\services\video-editing\page.js:2:39543)
-   Generating static pages (12/17) 
-[Simbolo Landing API Fallback] Could not fetch /service-page-config/meta-ads, using static fallback: Error: API error (401): Unauthorized
-    at e (C:\Users\visha\simbolonew\apps\landing\.next\server\chunks\656.js:1:9526)
-    at async i (C:\Users\visha\simbolonew\apps\landing\.next\server\app\services\meta-ads\page.js:2:13034)
 [Simbolo Landing API Fallback] Could not fetch /service-page-config/google-ads, using static fallback: Error: API error (401): Unauthorized
-    at e (C:\Users\visha\simbolonew\apps\landing\.next\server\chunks\656.js:1:9526)
+    at e (C:\Users\visha\simbolonew\apps\landing\.next\server\chunks\468.js:1:9444)
     at async i (C:\Users\visha\simbolonew\apps\landing\.next\server\app\services\google-ads\page.js:2:21797)
-[Simbolo Landing API Fallback] Could not fetch /portfolio/projects, using static fallback: Error: API error (404): Not Found
-    at e (C:\Users\visha\simbolonew\apps\landing\.next\server\chunks\656.js:1:9526)
-    at async e (C:\Users\visha\simbolonew\apps\landing\.next\server\app\services\website-design\page.js:1:19067)
-    at async k (C:\Users\visha\simbolonew\apps\landing\.next\server\app\services\ecommerce\page.js:2:47386)
-[fetchMappedPortfolioProjects] No portfolio items found for ecommerce. Using mock.
-[Simbolo Landing API Fallback] Could not fetch /portfolio/projects, using static fallback: Error: API error (404): Not Found
-    at e (C:\Users\visha\simbolonew\apps\landing\.next\server\chunks\656.js:1:9526)
-    at async e (C:\Users\visha\simbolonew\apps\landing\.next\server\app\services\website-design\page.js:1:19067)
-    at async l (C:\Users\visha\simbolonew\apps\landing\.next\server\app\services\website-design\page.js:1:17747)
-[fetchMappedPortfolioProjects] No portfolio items found for website-design. Using mock.
-[Simbolo Landing API Fallback] Could not fetch /service-page-config/website-design, using static fallback: Error: API error (401): Unauthorized
-    at e (C:\Users\visha\simbolonew\apps\landing\.next\server\chunks\656.js:1:9526)
-    at async l (C:\Users\visha\simbolonew\apps\landing\.next\server\app\services\website-design\page.js:1:17784)
 [Simbolo Landing API Fallback] Could not fetch /service-page-config/seo, using static fallback: Error: API error (401): Unauthorized
-    at e (C:\Users\visha\simbolonew\apps\landing\.next\server\chunks\656.js:1:9526)
+    at e (C:\Users\visha\simbolonew\apps\landing\.next\server\chunks\468.js:1:9444)
     at async i (C:\Users\visha\simbolonew\apps\landing\.next\server\app\services\seo\page.js:2:38488)
+   Generating static pages (12/17) 
+[Simbolo Landing API Fallback] Could not fetch /portfolio/projects, using static fallback: Error: API error (404): Not Found
+[fetchMappedPortfolioProjects] No portfolio items found for website-design. Using mock.
+    at e (C:\Users\visha\simbolonew\apps\landing\.next\server\chunks\468.js:1:9444)
+    at async e (C:\Users\visha\simbolonew\apps\landing\.next\server\app\services\ecommerce\page.js:2:7533)
+    at async l (C:\Users\visha\simbolonew\apps\landing\.next\server\app\services\website-design\page.js:1:17747)
+[Simbolo Landing API Fallback] Could not fetch /service-page-config/website-design, using static fallback: Error: API error (401): Unauthorized
+    at e (C:\Users\visha\simbolonew\apps\landing\.next\server\chunks\468.js:1:9444)
+    at async l (C:\Users\visha\simbolonew\apps\landing\.next\server\app\services\website-design\page.js:1:17784)
+[Simbolo Landing API Fallback] Could not fetch /portfolio/projects, using static fallback: Error: API error (404): Not Found
+[fetchMappedPortfolioProjects] No portfolio items found for ecommerce. Using mock.
+    at e (C:\Users\visha\simbolonew\apps\landing\.next\server\chunks\468.js:1:9444)
+    at async e (C:\Users\visha\simbolonew\apps\landing\.next\server\app\services\ecommerce\page.js:2:7533)
+    at async k (C:\Users\visha\simbolonew\apps\landing\.next\server\app\services\ecommerce\page.js:2:47386)
+[Simbolo Landing API Fallback] Could not fetch /service-page-config/meta-ads, using static fallback: Error: API error (401): Unauthorized
+    at e (C:\Users\visha\simbolonew\apps\landing\.next\server\chunks\468.js:1:9444)
+    at async i (C:\Users\visha\simbolonew\apps\landing\.next\server\app\services\meta-ads\page.js:2:13034)
  ✓ Generating static pages (17/17)
    Finalizing page optimization ...
    Collecting build traces ...
@@ -62,7 +62,7 @@ Route (app)                                 Size  First Load JS  Revalidate  Exp
 ├ ○ /services/graphic-design             11.6 kB         365 kB          1m      1y
 ├ ○ /services/meta-ads                   5.53 kB         357 kB          1m      1y
 ├ ○ /services/seo                        7.98 kB         356 kB          1m      1y
-├ ○ /services/video-editing                13 kB         366 kB          1m      1y
+├ ○ /services/video-editing                13 kB         367 kB          1m      1y
 └ ○ /services/website-design             8.95 kB         366 kB          1m      1y
 + First Load JS shared by all             103 kB
   ├ chunks/18-f90a2cd1d449c47a.js        46.3 kB

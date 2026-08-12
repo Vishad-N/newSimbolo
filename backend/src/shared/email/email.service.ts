@@ -63,12 +63,12 @@ export class EmailService extends BaseService implements OnModuleInit {
         subject,
         htmlContent,
       });
-      
+
       if (!result.queued) {
         this.logger.warn(`Failed to queue email to ${to} (BullMQ disabled)`);
         return false;
       }
-      
+
       return true;
     } catch (error) {
       this.logger.error(`Failed to enqueue email to ${to}:`, (error as Error).stack);
@@ -82,7 +82,7 @@ export class EmailService extends BaseService implements OnModuleInit {
    */
   private async processEmailJob(job: Job<SendEmailJobData>): Promise<void> {
     const { to, subject, htmlContent } = job.data;
-    
+
     if (this.transporter) {
       await this.transporter.sendMail({
         from: `"The Simbolo Platform" <${this.fromEmail}>`,
