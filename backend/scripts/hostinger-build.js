@@ -1,3 +1,4 @@
+const { existsSync } = require('node:fs');
 const { spawnSync } = require('node:child_process');
 
 function runStep(label, command, args) {
@@ -33,6 +34,11 @@ runStep('Prisma client generation', 'node', [
   './prisma/schema.prisma',
 ]);
 
-runStep('Nest compilation', 'npx', ['nest', 'build']);
+if (!existsSync('./dist/main.js')) {
+  console.error('[hostinger-build] Missing dist/main.js.');
+  console.error('[hostinger-build] Run npm run build locally from the backend folder, commit backend/dist, then redeploy.');
+  process.exit(1);
+}
 
+console.log('[hostinger-build] Found dist/main.js. Skipping Nest compilation on Hostinger.');
 console.log('[hostinger-build] Build completed successfully.');
