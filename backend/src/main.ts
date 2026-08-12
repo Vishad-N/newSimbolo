@@ -195,5 +195,14 @@ async function withTimeout<T>(promise: Promise<T>, timeoutMs: number, timeoutMes
 
 bootstrap().catch((err) => {
   console.error('Fatal error during application bootstrap:', err);
+  for (const candidate of ['./emergency-server.js', '../emergency-server.js']) {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      require(candidate)(err);
+      return;
+    } catch {
+      // Try the next known Hostinger layout.
+    }
+  }
   process.exit(1);
 });
