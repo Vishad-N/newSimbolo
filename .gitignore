@@ -15,6 +15,7 @@ node_modules/
 
 # production
 /build
+backend/hostinger-output/
 
 # misc
 .DS_Store
