@@ -249,7 +249,6 @@ function validateProductionConfig(config) {
     requireValue(config.PORT, 'PORT', missingVariables);
     requireValue(config.DATABASE_URL, 'DATABASE_URL', missingVariables);
     requireValue(config.DIRECT_URL, 'DIRECT_URL', missingVariables);
-    requireValue(config.REDIS_URL, 'REDIS_URL', missingVariables);
     requireValue(config.FRONTEND_URLS, 'FRONTEND_URLS', missingVariables);
     requireSecret(config.JWT_SECRET, 'JWT_SECRET', missingVariables);
     requireSecret(config.JWT_REFRESH_SECRET, 'JWT_REFRESH_SECRET', missingVariables);
@@ -296,12 +295,12 @@ function validateProductionConfig(config) {
         requireValue(config.R2_BUCKET_NAME, 'R2_BUCKET_NAME', missingVariables);
     }
     if (missingVariables.length > 0) {
-        throw new Error(`Environment validation failed: ${missingVariables.join(', ')}`);
+        throw new Error(`Environment validation failed: ${missingVariables.join('; ')}`);
     }
 }
 function requireValue(value, name, missingVariables) {
     if (value === undefined || value === null || value === '') {
-        missingVariables.push(`${name} is required in production`);
+        missingVariables.push(`Missing required environment variable: ${name}`);
     }
 }
 function requireSecret(value, name, missingVariables) {

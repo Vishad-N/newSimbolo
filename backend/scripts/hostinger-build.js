@@ -47,7 +47,7 @@ if (!existsSync('./dist/main.js')) {
 console.log('[hostinger-build] Found dist/main.js. Skipping Nest compilation on Hostinger.');
 console.log('[hostinger-build] Preparing Hostinger runtime artifact.');
 
-rmSync(outputDirectory, { recursive: true, force: true });
+removeDirectory(outputDirectory);
 mkdirSync(outputDirectory, { recursive: true });
 
 writeFileSync(
@@ -71,15 +71,15 @@ writeFileSync(
 cpSync(path.resolve('dist'), path.join(outputDirectory, 'dist'), { recursive: true });
 stripSwaggerRuntimeImports(path.join(outputDirectory, 'dist'));
 
-const installedNodeModules = path.resolve('..', 'node_modules');
+const installedNodeModules = resolveInstalledNodeModules('@nestjs/core');
 
 if (!existsSync(path.join(installedNodeModules, '@nestjs', 'core'))) {
-  console.error('[hostinger-build] Missing installed dependency @nestjs/core in ../node_modules.');
+  console.error(`[hostinger-build] Missing installed dependency @nestjs/core in ${installedNodeModules}.`);
   console.error('[hostinger-build] Hostinger must run npm install before npm run build.');
   process.exit(1);
 }
 
-console.log('[hostinger-build] Copying installed runtime dependencies into artifact.');
+console.log(`[hostinger-build] Copying installed runtime dependencies from ${installedNodeModules} into artifact.`);
 cpSync(installedNodeModules, path.join(outputDirectory, 'node_modules'), {
   recursive: true,
   filter: (source) =>
@@ -87,8 +87,8 @@ cpSync(installedNodeModules, path.join(outputDirectory, 'node_modules'), {
     !source.includes(`${path.sep}@simbolo${path.sep}`),
 });
 
-const generatedPrismaClient = path.resolve('..', 'node_modules', '.prisma');
-const generatedPrismaPackage = path.resolve('..', 'node_modules', '@prisma', 'client');
+const generatedPrismaPackage = path.dirname(resolvePackageJson('@prisma/client'));
+const generatedPrismaClient = path.join(path.dirname(path.dirname(generatedPrismaPackage)), '.prisma');
 
 if (existsSync(generatedPrismaClient)) {
   cpSync(generatedPrismaClient, path.join(outputDirectory, 'node_modules', '.prisma'), { recursive: true });
@@ -185,4 +185,47 @@ function* walkJavaScriptFiles(directory) {
 function toRequirePath(relativePath) {
   const normalizedPath = relativePath.split(path.sep).join('/');
   return normalizedPath.startsWith('.') ? normalizedPath : `./${normalizedPath}`;
+}
+
+function removeDirectory(directory) {
+  for (let attempt = 1; attempt <= 5; attempt += 1) {
+    try {
+      rmSync(directory, { recursive: true, force: true, maxRetries: 3, retryDelay: 250 });
+      return;
+    } catch (error) {
+      if (attempt === 5) {
+        throw error;
+      }
+
+      console.warn(`[hostinger-build] Retrying cleanup of ${directory} after ${error.code || error.message}.`);
+    }
+  }
+}
+
+function resolveInstalledNodeModules(packageName) {
+  const packageJsonPath = resolvePackageJson(packageName);
+  let directory = path.dirname(packageJsonPath);
+
+  while (directory !== path.dirname(directory)) {
+    if (path.basename(directory) === packageName.split('/').pop() && path.basename(path.dirname(directory)) === packageName.split('/')[0]) {
+      return path.dirname(path.dirname(directory));
+    }
+
+    if (path.basename(directory) === 'node_modules') {
+      return directory;
+    }
+
+    directory = path.dirname(directory);
+  }
+
+  throw new Error(`[hostinger-build] Could not resolve node_modules directory for ${packageName}.`);
+}
+
+function resolvePackageJson(packageName) {
+  try {
+    return require.resolve(`${packageName}/package.json`, { paths: [process.cwd()] });
+  } catch (error) {
+    console.error(`[hostinger-build] Unable to resolve ${packageName}. Run npm install before npm run build.`);
+    throw error;
+  }
 }

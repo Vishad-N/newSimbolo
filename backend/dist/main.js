@@ -9,7 +9,9 @@ const cookieParser = require("cookie-parser");
 const app_module_1 = require("./app.module");
 const logger_service_1 = require("./shared/logger/logger.service");
 const redis_io_adapter_1 = require("./realtime/redis-io.adapter");
+const REDIS_STARTUP_TIMEOUT_MS = 7_500;
 async function bootstrap() {
+    console.log('[Bootstrap] Application bootstrap started');
     const app = await core_1.NestFactory.create(app_module_1.AppModule, {
         bufferLogs: true,
         rawBody: true,
@@ -18,14 +20,18 @@ async function bootstrap() {
     app.useLogger(logger);
     const configService = app.get(config_1.ConfigService);
     const port = Number(process.env.PORT || configService.get('app.port', 3000));
+    assertValidPort(port);
     const prefix = configService.get('app.prefix', 'api');
     const version = configService.get('app.version', '1').replace(/^v/i, '');
     const frontendUrls = configService.get('app.frontendUrls', ['http://localhost:3000']);
     const isProduction = configService.get('app.nodeEnv') === 'production';
+    logger.log('Configuration loaded.', 'Bootstrap');
+    logger.log('Database initialization completed. Prisma will connect lazily on first database operation.', 'Bootstrap');
     app.getHttpAdapter().getInstance().set('trust proxy', 1);
     app.getHttpAdapter().get('/health/live', (_req, res) => {
         res.status(200).json({ status: 'ok', uptime: process.uptime(), timestamp: new Date().toISOString() });
     });
+    logger.log('Liveness endpoint registered at /health/live.', 'Bootstrap');
     logger.log('Trust proxy enabled for reverse proxy compatibility.', 'Bootstrap');
     app.use((0, helmet_1.default)({
         contentSecurityPolicy: isProduction ? undefined : false,
@@ -51,11 +57,13 @@ async function bootstrap() {
     });
     const redisIoAdapter = new redis_io_adapter_1.RedisIoAdapter(app);
     try {
-        await redisIoAdapter.connectToRedis();
+        await withTimeout(redisIoAdapter.connectToRedis(), REDIS_STARTUP_TIMEOUT_MS, 'Redis Socket.IO adapter startup timed out');
         app.useWebSocketAdapter(redisIoAdapter);
+        logger.log('Redis initialization completed for WebSockets.', 'Bootstrap');
     }
-    catch {
-        logger.warn('Failed to connect to Redis for WebSockets. Falling back to default adapter.', 'Bootstrap');
+    catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown Redis startup error';
+        logger.warn(`Redis unavailable; continuing without Redis WebSocket adapter. Reason: ${message}`, 'Bootstrap');
     }
     app.setGlobalPrefix(prefix);
     app.enableVersioning({
@@ -106,6 +114,7 @@ async function bootstrap() {
             },
         });
     }
+    logger.log(`Starting HTTP server on 0.0.0.0:${port}.`, 'Bootstrap');
     const server = await app.listen(port, '0.0.0.0');
     const address = server.address();
     const actualPort = typeof address === 'object' && address ? address.port : port;
@@ -115,8 +124,27 @@ async function bootstrap() {
         logger.log(`Swagger documentation is accessible at: http://localhost:${actualPort}/docs`, 'Bootstrap');
     }
     logger.log(`WebSocket Chat Gateway: ws://localhost:${actualPort}/chat`, 'Bootstrap');
-    logger.log(`System successfully bound to 0.0.0.0 on port ${actualPort}`, 'Bootstrap');
+    logger.log(`HTTP server listening on 0.0.0.0:${actualPort}`, 'Bootstrap');
     logger.log('==========================================================', 'Bootstrap');
+}
+function assertValidPort(port) {
+    if (!Number.isInteger(port) || port <= 0 || port > 65535) {
+        throw new Error(`Invalid PORT value. Expected an integer between 1 and 65535.`);
+    }
+}
+async function withTimeout(promise, timeoutMs, timeoutMessage) {
+    let timeoutId;
+    const timeout = new Promise((_, reject) => {
+        timeoutId = setTimeout(() => reject(new Error(timeoutMessage)), timeoutMs);
+    });
+    try {
+        return await Promise.race([promise, timeout]);
+    }
+    finally {
+        if (timeoutId) {
+            clearTimeout(timeoutId);
+        }
+    }
 }
 bootstrap().catch((err) => {
     console.error('Fatal error during application bootstrap:', err);
