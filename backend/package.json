@@ -5,6 +5,7 @@
   "engines": {
     "node": ">=20"
   },
+  "main": "app.js",
   "scripts": {
     "dev": "npm run start:dev",
     "build": "node ./scripts/hostinger-build.js",

@@ -31,10 +31,19 @@ async function bootstrap() {
   logger.log('Database initialization completed. Prisma will connect lazily on first database operation.', 'Bootstrap');
 
   app.getHttpAdapter().getInstance().set('trust proxy', 1);
-  app.getHttpAdapter().get('/health/live', (_req, res) => {
-    res.status(200).json({ status: 'ok', uptime: process.uptime(), timestamp: new Date().toISOString() });
+  const livePayload = () => ({
+    status: 'ok',
+    service: 'simbolo-api',
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString(),
   });
-  logger.log('Liveness endpoint registered at /health/live.', 'Bootstrap');
+  app.getHttpAdapter().get('/', (_req, res) => {
+    res.status(200).json(livePayload());
+  });
+  app.getHttpAdapter().get('/health/live', (_req, res) => {
+    res.status(200).json(livePayload());
+  });
+  logger.log('Liveness endpoints registered at / and /health/live.', 'Bootstrap');
   logger.log('Trust proxy enabled for reverse proxy compatibility.', 'Bootstrap');
 
   app.use(
