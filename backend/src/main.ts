@@ -165,11 +165,7 @@ function resolveListenPort(configuredPort: number, isProduction: boolean): numbe
     return Number(process.env.PORT);
   }
 
-  if (isProduction) {
-    return 3000;
-  }
-
-  return configuredPort;
+  return isProduction ? 3000 : configuredPort;
 }
 
 function assertValidPort(port: number): void {
@@ -195,14 +191,21 @@ async function withTimeout<T>(promise: Promise<T>, timeoutMs: number, timeoutMes
 
 bootstrap().catch((err) => {
   console.error('Fatal error during application bootstrap:', err);
-  for (const candidate of ['./emergency-server.js', '../emergency-server.js']) {
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      require(candidate)(err);
-      return;
-    } catch {
-      // Try the next known Hostinger layout.
-    }
-  }
-  process.exit(1);
+  const http = require('node:http') as typeof import('http');
+  const port = Number(process.env.PORT || 3000);
+  const payload = JSON.stringify({
+    status: 'boot_error',
+    service: 'simbolo-api',
+    port,
+    error: err instanceof Error ? err.stack || err.message : String(err),
+  });
+
+  http
+    .createServer((_req, res) => {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(payload);
+    })
+    .listen(port, '0.0.0.0', () => {
+      console.error(`[emergency] Listening on 0.0.0.0:${port}`);
+    });
 });

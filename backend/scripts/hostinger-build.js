@@ -6,7 +6,7 @@ const packageJson = require('../package.json');
 const backendRoot = process.cwd();
 const distDirectory = path.resolve('dist');
 
-function runStep(label, command, args) {
+function runStep(label, command, args, extraEnv = {}) {
   const startedAt = new Date();
   console.log(`[hostinger-build] ${label} started at ${startedAt.toISOString()}`);
   console.log(`[hostinger-build] running: ${command} ${args.join(' ')}`);
@@ -14,8 +14,10 @@ function runStep(label, command, args) {
   const result = spawnSync(command, args, {
     stdio: 'inherit',
     shell: process.platform === 'win32',
+    cwd: backendRoot,
     env: {
       ...process.env,
+      ...extraEnv,
       NODE_OPTIONS: `${process.env.NODE_OPTIONS || ''} --max-old-space-size=768`.trim(),
     },
   });
@@ -32,6 +34,13 @@ function runStep(label, command, args) {
 const nestCliPath = require.resolve('@nestjs/cli/bin/nest.js', { paths: [backendRoot] });
 console.log(`[hostinger-build] Nest CLI resolved at ${nestCliPath}`);
 
+runStep(
+  'Standalone backend dependency install',
+  'npm',
+  ['install', '--omit=dev', '--no-workspaces', '--install-strategy=hoisted', '--no-fund', '--no-audit'],
+  { NPM_CONFIG_WORKSPACES: 'false' },
+);
+
 runStep('Prisma client generation', 'node', [
   './scripts/with-direct-url.js',
   'prisma',
@@ -40,9 +49,7 @@ runStep('Prisma client generation', 'node', [
   './prisma/schema.prisma',
 ]);
 
-pinGeneratedPrismaClient(path.join(backendRoot, '..', 'node_modules'));
 pinGeneratedPrismaClient(path.join(backendRoot, 'node_modules'));
-mergeNodeModules(path.join(backendRoot, '..', 'node_modules'), path.join(backendRoot, 'node_modules'));
 
 runStep('Nest compilation', 'node', [nestCliPath, 'build']);
 
@@ -53,17 +60,7 @@ if (!existsSync(path.join(distDirectory, 'main.js'))) {
 
 console.log('[hostinger-build] Found freshly compiled dist/main.js.');
 stripSwaggerRuntimeImports(distDirectory);
-
-const nestMainPath = path.join(distDirectory, 'nest-main.js');
-cpSync(path.join(distDirectory, 'main.js'), nestMainPath);
-writeFileSync(
-  path.join(distDirectory, 'main.js'),
-  "try { require('./nest-main.js'); } catch (error) { require('./emergency-server.js')(error); }\n",
-);
-writeFileSync(path.join(distDirectory, 'app.js'), "try { require('./nest-main.js'); } catch (error) { require('./emergency-server.js')(error); }\n");
-writeFileSync(path.join(distDirectory, 'index.js'), "require('./app.js');\n");
-writeFileSync(path.join(distDirectory, 'server.js'), "require('./app.js');\n");
-cpSync(path.resolve('emergency-server.js'), path.join(distDirectory, 'emergency-server.js'));
+cpSync(path.join(distDirectory, 'main.js'), path.join(distDirectory, 'nest-main.js'));
 writeFileSync(
   path.join(distDirectory, 'package.json'),
   JSON.stringify(
@@ -71,7 +68,7 @@ writeFileSync(
       name: `${packageJson.name}-hostinger-runtime`,
       version: packageJson.version,
       private: true,
-      main: 'app.js',
+      main: 'nest-main.js',
       engines: packageJson.engines,
     },
     null,
@@ -79,78 +76,46 @@ writeFileSync(
   ),
 );
 
-assertModuleExists(path.join(backendRoot, 'node_modules'), '@nestjs/core');
-assertModuleExists(path.join(backendRoot, 'node_modules'), '@prisma/client');
+assertLocalModule('@nestjs/core');
+assertLocalModule('@prisma/client');
 
 console.log('[hostinger-build] Build completed successfully.');
-console.log('[hostinger-build] Hostinger custom settings must be:');
-console.log('[hostinger-build]   Output directory: .');
-console.log('[hostinger-build]   Entry file: app.js');
-console.log('[hostinger-build]   PORT=3000');
-console.log('[hostinger-build] Do not set output directory to dist or hostinger-output.');
+console.log('[hostinger-build] Hostinger must use Output directory=. and Entry file=app.js');
+console.log('[hostinger-build] Hostinger must set PORT=3000');
 process.exit(0);
 
-function mergeNodeModules(source, destination) {
-  if (!existsSync(source) || path.resolve(source) === path.resolve(destination)) {
-    return;
-  }
-
-  console.log(`[hostinger-build] Merging ${source} -> ${destination} without deleting existing packages.`);
-  mkdirSync(destination, { recursive: true });
-  if (process.platform !== 'win32') {
-    const result = spawnSync('cp', ['-a', `${source}/.`, destination], { stdio: 'inherit' });
-    if (result.status === 0) {
-      return;
-    }
-  }
-  cpSync(source, destination, {
-    recursive: true,
-    dereference: true,
-    filter: (filePath) => !filePath.includes(`${path.sep}.cache${path.sep}`),
-  });
-}
-
 function pinGeneratedPrismaClient(targetNodeModules) {
-  if (!existsSync(targetNodeModules)) {
-    return;
-  }
-
   const destinationClient = path.join(targetNodeModules, '@prisma', 'client');
   const destinationGenerated = path.join(targetNodeModules, '.prisma');
   const parentClient = path.join(backendRoot, '..', 'node_modules', '@prisma', 'client');
   const parentGenerated = path.join(backendRoot, '..', 'node_modules', '.prisma');
 
-  if (existsSync(parentClient) && path.resolve(parentClient) !== path.resolve(destinationClient)) {
+  if (existsSync(parentClient) && !existsSync(path.join(destinationClient, 'index.js'))) {
+    console.log(`[hostinger-build] Pinning Prisma client into ${destinationClient}`);
     mkdirSync(path.dirname(destinationClient), { recursive: true });
-    if (!existsSync(path.join(destinationClient, 'package.json'))) {
-      console.log(`[hostinger-build] Pinning Prisma client into ${destinationClient}`);
-      cpSync(parentClient, destinationClient, { recursive: true, dereference: true });
-    }
+    cpSync(parentClient, destinationClient, { recursive: true, dereference: true });
   }
 
-  if (existsSync(parentGenerated) && path.resolve(parentGenerated) !== path.resolve(destinationGenerated)) {
-    if (!existsSync(path.join(destinationGenerated, 'client'))) {
-      console.log(`[hostinger-build] Pinning Prisma engine into ${destinationGenerated}`);
-      mkdirSync(path.dirname(destinationGenerated), { recursive: true });
-      cpSync(parentGenerated, destinationGenerated, { recursive: true, dereference: true });
-    }
+  if (existsSync(parentGenerated) && !existsSync(path.join(destinationGenerated, 'client'))) {
+    console.log(`[hostinger-build] Pinning Prisma engine into ${destinationGenerated}`);
+    mkdirSync(path.dirname(destinationGenerated), { recursive: true });
+    cpSync(parentGenerated, destinationGenerated, { recursive: true, dereference: true });
   }
 }
 
-function assertModuleExists(nodeModulesDirectory, packageName) {
-  const packageJsonPath = path.join(nodeModulesDirectory, ...packageName.split('/'), 'package.json');
-  const parentPackageJsonPath = path.join(backendRoot, '..', 'node_modules', ...packageName.split('/'), 'package.json');
-  if (existsSync(packageJsonPath) || existsSync(parentPackageJsonPath)) {
-    console.log(`[hostinger-build] ${packageName} is available for runtime resolution.`);
-    return;
+function assertLocalModule(packageName) {
+  const packageJsonPath = path.join(backendRoot, 'node_modules', ...packageName.split('/'), 'package.json');
+  if (!existsSync(packageJsonPath)) {
+    console.error(`[hostinger-build] ${packageName} is missing from backend/node_modules.`);
+    console.error('[hostinger-build] Hostinger only publishes the backend folder, so parent workspace node_modules is not available at runtime.');
+    process.exit(1);
   }
 
-  console.error(`[hostinger-build] ${packageName} is not installed.`);
-  process.exit(1);
+  console.log(`[hostinger-build] Verified ${packageName} in backend/node_modules.`);
 }
 
-function stripSwaggerRuntimeImports(distDirectory) {
-  const shimPath = path.join(distDirectory, 'swagger-shim.js');
+function stripSwaggerRuntimeImports(targetDirectory) {
+  const shimPath = path.join(targetDirectory, 'swagger-shim.js');
   writeFileSync(
     shimPath,
     `class DocumentBuilder {
@@ -195,11 +160,7 @@ module.exports = new Proxy(
   );
 
   let patchedFiles = 0;
-  for (const filePath of walkJavaScriptFiles(distDirectory)) {
-    if (path.basename(filePath) === 'main.js' || path.basename(filePath) === 'app.js') {
-      continue;
-    }
-
+  for (const filePath of walkJavaScriptFiles(targetDirectory)) {
     const source = readFileSync(filePath, 'utf8');
     if (!source.includes('@nestjs/swagger')) {
       continue;
