@@ -39,6 +39,10 @@ function runStep(label, command, args) {
   console.log(`[hostinger-build] ${label} finished after ${elapsedSeconds}s`);
 }
 
+const nestCliPath = resolveNestCli();
+const completeNodeModules = resolveCompleteNodeModules();
+const localNodeModules = path.join(backendRoot, 'node_modules');
+
 runStep('Prisma client generation', 'node', [
   './scripts/with-direct-url.js',
   'prisma',
@@ -47,11 +51,10 @@ runStep('Prisma client generation', 'node', [
   './prisma/schema.prisma',
 ]);
 
-const completeNodeModules = resolveCompleteNodeModules();
 pinGeneratedPrismaClient(completeNodeModules);
-ensureLocalNodeModules(completeNodeModules);
+mergeNodeModules(completeNodeModules, localNodeModules);
 
-runStep('Nest compilation', 'node', [require.resolve('@nestjs/cli/bin/nest.js'), 'build']);
+runStep('Nest compilation', 'node', [nestCliPath, 'build']);
 
 if (!existsSync(path.join(distDirectory, 'main.js'))) {
   console.error('[hostinger-build] Missing dist/main.js.');
@@ -64,8 +67,9 @@ writeHostingerEntryFiles(distDirectory, './main.js');
 writeHostingerPackageJson(distDirectory, 'main.js');
 
 const distNodeModules = path.join(distDirectory, 'node_modules');
-console.log(`[hostinger-build] Copying runtime dependencies into dist/node_modules from ${completeNodeModules}.`);
+console.log(`[hostinger-build] Assembling dist/node_modules from ${completeNodeModules} and ${localNodeModules}.`);
 copyDirectory(completeNodeModules, distNodeModules);
+mergeNodeModules(localNodeModules, distNodeModules);
 pinGeneratedPrismaClient(distNodeModules);
 assertRuntimeResolves(distDirectory);
 
@@ -108,15 +112,38 @@ function resolveCompleteNodeModules() {
   return complete;
 }
 
-function ensureLocalNodeModules(completeNodeModules) {
-  const localNodeModules = path.join(backendRoot, 'node_modules');
-  if (path.resolve(completeNodeModules) === path.resolve(localNodeModules)) {
-    console.log('[hostinger-build] backend/node_modules already contains the runtime dependencies.');
+function resolveNestCli() {
+  try {
+    const nestCliPath = require.resolve('@nestjs/cli/bin/nest.js', { paths: [backendRoot] });
+    console.log(`[hostinger-build] Nest CLI resolved at ${nestCliPath}`);
+    return nestCliPath;
+  } catch {
+    console.error('[hostinger-build] Cannot find @nestjs/cli. Hostinger must run npm install before npm run build.');
+    process.exit(1);
+  }
+}
+
+function mergeNodeModules(source, destination) {
+  if (!existsSync(source) || path.resolve(source) === path.resolve(destination)) {
     return;
   }
 
-  console.log(`[hostinger-build] Hostinger packages the backend folder only. Copying ${completeNodeModules} -> ${localNodeModules}`);
-  copyDirectory(completeNodeModules, localNodeModules);
+  console.log(`[hostinger-build] Merging ${source} -> ${destination} without deleting existing packages.`);
+  mkdirSync(destination, { recursive: true });
+
+  if (process.platform !== 'win32') {
+    const result = spawnSync('cp', ['-a', `${source}/.`, destination], { stdio: 'inherit' });
+    if (result.status === 0) {
+      return;
+    }
+    console.warn('[hostinger-build] cp merge failed, falling back to Node copy.');
+  }
+
+  cpSync(source, destination, {
+    recursive: true,
+    dereference: true,
+    filter: (filePath) => !filePath.includes(`${path.sep}.cache${path.sep}`),
+  });
 }
 
 function copyDirectory(source, destination) {
