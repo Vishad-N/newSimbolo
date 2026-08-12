@@ -18,6 +18,7 @@ export function RazorpayCheckout({ amount, packageName, packageId, profile, vali
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isShaking, setIsShaking] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
 
   const loadRazorpayScript = () => {
     return new Promise((resolve) => {
@@ -98,6 +99,7 @@ export function RazorpayCheckout({ amount, packageName, packageId, profile, vali
         handler: async function (response: any) {
           // Success handler
           try {
+            setIsVerifying(true);
             // Verify payment on the backend via proxy API
             const verifyRes = await fetch("/api/verify", {
               method: "POST",
@@ -117,7 +119,8 @@ export function RazorpayCheckout({ amount, packageName, packageId, profile, vali
             onSuccess();
           } catch (err) {
             console.error("Payment verification failed", err);
-            setError("Payment verification failed on the server.");
+            setError("Payment verification failed on the server. If money was deducted, please contact support.");
+            setIsVerifying(false);
           }
         },
         prefill: {
@@ -167,24 +170,34 @@ export function RazorpayCheckout({ amount, packageName, packageId, profile, vali
           {error}
         </div>
       )}
-      
-      <button
-        onClick={handlePayment}
-        disabled={isProcessing}
-        style={{ animation: isShaking ? "shake 0.4s cubic-bezier(.36,.07,.19,.97) both" : "none" }}
-        className="group relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-[14px] bg-[var(--primary)] p-4 text-sm font-bold text-white transition-all hover:bg-[var(--primary-hover)] active:scale-[0.98] disabled:opacity-70 disabled:active:scale-100 shadow-[0_8px_20px_var(--primary-glow)] hover:shadow-[0_12px_24px_var(--primary-glow)]"
-      >
-        {isProcessing ? (
-          <>
-            <Loader2 className="h-5 w-5 animate-spin" />
-            Initializing Secure Checkout...
-          </>
-        ) : (
-          <>
-            Pay ₹{amount.toLocaleString('en-IN')} with Razorpay
-          </>
-        )}
-      </button>
+
+      {isVerifying ? (
+        <div className="flex w-full flex-col items-center justify-center gap-3 rounded-[14px] bg-[var(--primary)]/10 border border-[var(--primary)]/30 p-6">
+          <Loader2 className="h-8 w-8 animate-spin text-[var(--primary)]" />
+          <div className="text-center">
+            <p className="font-bold text-[var(--primary)]">Verifying Payment...</p>
+            <p className="text-xs text-gray-400 mt-1">Please do not close or refresh this page.</p>
+          </div>
+        </div>
+      ) : (
+        <button
+          onClick={handlePayment}
+          disabled={isProcessing}
+          style={{ animation: isShaking ? "shake 0.4s cubic-bezier(.36,.07,.19,.97) both" : "none" }}
+          className="group relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-[14px] bg-[var(--primary)] p-4 text-sm font-bold text-white transition-all hover:bg-[var(--primary-hover)] active:scale-[0.98] disabled:opacity-70 disabled:active:scale-100 shadow-[0_8px_20px_var(--primary-glow)] hover:shadow-[0_12px_24px_var(--primary-glow)]"
+        >
+          {isProcessing ? (
+            <>
+              <Loader2 className="h-5 w-5 animate-spin" />
+              Initializing Secure Checkout...
+            </>
+          ) : (
+            <>
+              Pay ₹{amount.toLocaleString('en-IN')} with Razorpay
+            </>
+          )}
+        </button>
+      )}
       
       <div className="flex items-center justify-center gap-2 mt-2 opacity-50">
         <span className="text-[10px] font-medium text-white uppercase tracking-wider">Secured By Razorpay</span>

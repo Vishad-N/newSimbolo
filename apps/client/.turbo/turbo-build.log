@@ -6,8 +6,43 @@
 - Environments: .env.local
 
   Creating an optimized production build ...
-✓ Compiled successfully in 27.1s
+✓ Compiled successfully in 35.9s
   Running TypeScript ...
-  Finished TypeScript in 15.9s ...
+  Finished TypeScript in 23.3s ...
   Collecting page data using 11 workers ...
   Generating static pages using 11 workers (0/22) ...
+  Generating static pages using 11 workers (5/22) 
+  Generating static pages using 11 workers (10/22) 
+  Generating static pages using 11 workers (16/22) 
+✓ Generating static pages using 11 workers (22/22) in 9.5s
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ƒ /api/checkout
+├ ƒ /api/orders
+├ ƒ /api/profile
+├ ƒ /api/proxy/[...path]
+├ ƒ /api/verify
+├ ○ /checkout
+├ ○ /dashboard
+├ ○ /documents
+├ ○ /meetings
+├ ○ /messages
+├ ○ /notifications
+├ ○ /orders
+├ ○ /payments
+├ ○ /profile
+├ ○ /projects
+├ ƒ /projects/[id]
+├ ○ /reports
+├ ○ /settings
+├ ○ /subscription
+├ ○ /support
+└ ○ /tasks
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

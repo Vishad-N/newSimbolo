@@ -2,6 +2,7 @@
 
 import { useUIStore } from "@/store/uiStore";
 import { Sidebar } from "@/components/Sidebar";
+import { SubscriptionGuard } from "@/components/SubscriptionGuard";
 import { StickyRenewCard } from "@/components/ui/StickyRenewCard";
 import { cn } from "@/utils/utils";
 import { Bell, Search, Menu } from "lucide-react";
@@ -52,10 +53,12 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
         </header>
 
         {/* Main Content Area */}
-        <main className="flex-1 p-4 lg:p-8 overflow-x-hidden">
-          <div className="max-w-7xl mx-auto">
-            {children}
-          </div>
+        <main className="flex-1 p-4 lg:p-8 overflow-x-hidden relative">
+          <SubscriptionGuard>
+            <div className="max-w-7xl mx-auto">
+              {children}
+            </div>
+          </SubscriptionGuard>
         </main>
       </div>
 

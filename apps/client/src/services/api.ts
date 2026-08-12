@@ -96,10 +96,12 @@ export const mockApi = {
       const sub = res.activeSubscription;
       const end = new Date(sub.currentPeriodEnd);
       const now = new Date();
-      const diffTime = Math.abs(end.getTime() - now.getTime());
+      const diffTime = end.getTime() - now.getTime();
       const daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
       return {
+        id: sub.id,
+        packageId: sub.package?.id,
         currentPlan: sub.package?.name || "Standard Plan",
         rank: sub.package?.type === 'MONTHLY' ? 1 : 2,
         highestPlan: "Enterprise",

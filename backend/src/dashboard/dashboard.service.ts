@@ -276,8 +276,8 @@ export class DashboardService extends BaseService {
         orderBy: { dueDate: 'asc' },
       }),
       this.prisma.subscription.findFirst({
-        where: { clientId, status: 'ACTIVE', deletedAt: null },
-        include: { package: { select: { name: true, type: true } } },
+        where: { clientId, deletedAt: null },
+        include: { package: { select: { id: true, name: true, type: true } } },
         orderBy: { createdAt: 'desc' },
       }),
       this.prisma.notification.count({ where: { userId: clientId, isRead: false, deletedAt: null } }),
