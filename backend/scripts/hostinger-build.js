@@ -1,4 +1,4 @@
-const { cpSync, existsSync, mkdirSync, rmSync, writeFileSync } = require('node:fs');
+const { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } = require('node:fs');
 const { spawnSync } = require('node:child_process');
 const path = require('node:path');
 const packageJson = require('../package.json');
@@ -69,6 +69,7 @@ writeFileSync(
 );
 
 cpSync(path.resolve('dist'), path.join(outputDirectory, 'dist'), { recursive: true });
+stripSwaggerRuntimeImports(path.join(outputDirectory, 'dist'));
 
 const installedNodeModules = path.resolve('..', 'node_modules');
 
@@ -99,3 +100,89 @@ if (existsSync(generatedPrismaPackage)) {
 
 console.log('[hostinger-build] Runtime artifact ready at hostinger-output.');
 console.log('[hostinger-build] Build completed successfully.');
+
+function stripSwaggerRuntimeImports(distDirectory) {
+  const shimPath = path.join(distDirectory, 'swagger-shim.js');
+  writeFileSync(
+    shimPath,
+    `class DocumentBuilder {
+  setTitle() { return this; }
+  setDescription() { return this; }
+  setVersion() { return this; }
+  addBearerAuth() { return this; }
+  addTag() { return this; }
+  build() { return {}; }
+}
+
+const SwaggerModule = {
+  createDocument() { return {}; },
+  setup() {},
+};
+
+function createDecorator() {
+  return () => undefined;
+}
+
+function PartialType(classRef) {
+  return class extends classRef {};
+}
+
+module.exports = new Proxy(
+  {
+    DocumentBuilder,
+    SwaggerModule,
+    PartialType,
+  },
+  {
+    get(target, property) {
+      if (property in target) {
+        return target[property];
+      }
+
+      return createDecorator;
+    },
+  },
+);
+`,
+  );
+
+  let patchedFiles = 0;
+  for (const filePath of walkJavaScriptFiles(distDirectory)) {
+    const source = readFileSync(filePath, 'utf8');
+    if (!source.includes('@nestjs/swagger')) {
+      continue;
+    }
+
+    const relativeShimPath = toRequirePath(path.relative(path.dirname(filePath), shimPath));
+    const patchedSource = source
+      .replaceAll('require("@nestjs/swagger")', `require("${relativeShimPath}")`)
+      .replaceAll("require('@nestjs/swagger')", `require('${relativeShimPath}')`);
+
+    if (patchedSource !== source) {
+      writeFileSync(filePath, patchedSource);
+      patchedFiles += 1;
+    }
+  }
+
+  console.log(`[hostinger-build] Replaced Swagger runtime imports in ${patchedFiles} compiled files.`);
+}
+
+function* walkJavaScriptFiles(directory) {
+  for (const entry of readdirSync(directory)) {
+    const filePath = path.join(directory, entry);
+    const stats = statSync(filePath);
+    if (stats.isDirectory()) {
+      yield* walkJavaScriptFiles(filePath);
+      continue;
+    }
+
+    if (filePath.endsWith('.js')) {
+      yield filePath;
+    }
+  }
+}
+
+function toRequirePath(relativePath) {
+  const normalizedPath = relativePath.split(path.sep).join('/');
+  return normalizedPath.startsWith('.') ? normalizedPath : `./${normalizedPath}`;
+}
