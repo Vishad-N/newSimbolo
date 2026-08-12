@@ -19,6 +19,7 @@ const swagger_1 = require("@nestjs/swagger");
 const clients_service_1 = require("./clients.service");
 const create_client_dto_1 = require("./dto/create-client.dto");
 const update_client_dto_1 = require("./dto/update-client.dto");
+const create_client_with_plan_dto_1 = require("./dto/create-client-with-plan.dto");
 const permissions_decorator_1 = require("../common/decorators/permissions.decorator");
 const current_user_decorator_1 = require("../common/decorators/current-user.decorator");
 let ClientsController = class ClientsController {
@@ -43,6 +44,9 @@ let ClientsController = class ClientsController {
     }
     async create(dto, user) {
         return this.clientsService.create(dto, user?.sub);
+    }
+    async createManualClient(dto, user) {
+        return this.clientsService.createWithUserAndPlan(dto, user?.sub);
     }
     async update(id, dto, user) {
         return this.clientsService.update(id, dto, user?.sub);
@@ -130,6 +134,17 @@ __decorate([
     __metadata("design:paramtypes", [create_client_dto_1.CreateClientDto, Object]),
     __metadata("design:returntype", Promise)
 ], ClientsController.prototype, "create", null);
+__decorate([
+    (0, common_1.Post)('manual'),
+    (0, permissions_decorator_1.Permissions)('clients.manage'),
+    (0, swagger_1.ApiOperation)({ summary: 'Create a client user, client profile, and optional plan subscription manually' }),
+    (0, swagger_1.ApiResponse)({ status: 201, description: 'Client user created successfully' }),
+    __param(0, (0, common_1.Body)()),
+    __param(1, (0, current_user_decorator_1.CurrentUser)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [create_client_with_plan_dto_1.CreateClientWithPlanDto, Object]),
+    __metadata("design:returntype", Promise)
+], ClientsController.prototype, "createManualClient", null);
 __decorate([
     (0, common_1.Patch)(':id'),
     (0, permissions_decorator_1.Permissions)('clients.manage'),

@@ -9,12 +9,20 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/a
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
+const getAuthHeaders = (): Record<string, string> => {
+  if (typeof window === "undefined") return {};
+
+  const token = localStorage.getItem("admin_token");
+  return token ? { Authorization: `Bearer ${token}` } : {};
+};
+
 async function fetchFromApi<T>(endpoint: string, options?: RequestInit, fallback?: T): Promise<T> {
   try {
     const res = await fetch(`${API_BASE_URL}${endpoint}`, {
       ...options,
       headers: {
         'Content-Type': 'application/json',
+        ...getAuthHeaders(),
         ...(options?.headers || {}),
       },
     });
@@ -30,6 +38,22 @@ async function fetchFromApi<T>(endpoint: string, options?: RequestInit, fallback
     }
     throw error;
   }
+}
+
+export interface ManualClientPayload {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  phone?: string;
+  packageId?: string;
+  interval?: "MONTHLY" | "QUARTERLY" | "YEARLY";
+  price?: number;
+  currency?: string;
+  billingAddress?: string;
+  gstNumber?: string;
+  timezone?: string;
+  notes?: string;
 }
 
 export const api = {
@@ -74,6 +98,11 @@ export const api = {
     create: async (data: any) => fetchFromApi('/packages', { method: 'POST', body: JSON.stringify(data) }),
     update: async (id: string, data: any) => fetchFromApi(`/packages/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
     delete: async (id: string) => fetchFromApi(`/packages/${id}`, { method: 'DELETE' }),
+  },
+  clients: {
+    getAll: async () => fetchFromApi('/clients', { method: 'GET' }),
+    createManual: async (data: ManualClientPayload) =>
+      fetchFromApi('/clients/manual', { method: 'POST', body: JSON.stringify(data) }),
   },
 
   // Content & Showcase Modules

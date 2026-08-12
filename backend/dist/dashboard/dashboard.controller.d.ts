@@ -527,9 +527,9 @@ export declare class DashboardController {
             currency: string;
             price: number;
             clientId: string;
-            subscriptionNumber: string;
             interval: import(".prisma/client").$Enums.SubscriptionIntervalEnum;
             currentPeriodStart: Date;
+            subscriptionNumber: string;
             currentPeriodEnd: Date;
             cancelAtPeriodEnd: boolean;
             stripeSubscriptionId: string | null;

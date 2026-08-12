@@ -15,6 +15,7 @@ import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse, ApiQuery } from '@ne
 import { ClientsService } from './clients.service';
 import { CreateClientDto } from './dto/create-client.dto';
 import { UpdateClientDto } from './dto/update-client.dto';
+import { CreateClientWithPlanDto } from './dto/create-client-with-plan.dto';
 import { Permissions } from '../common/decorators/permissions.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
@@ -92,6 +93,14 @@ export class ClientsController {
   @ApiResponse({ status: 409, description: 'Client profile already exists for this user' })
   async create(@Body() dto: CreateClientDto, @CurrentUser() user: JwtPayload) {
     return this.clientsService.create(dto, user?.sub);
+  }
+
+  @Post('manual')
+  @Permissions('clients.manage')
+  @ApiOperation({ summary: 'Create a client user, client profile, and optional plan subscription manually' })
+  @ApiResponse({ status: 201, description: 'Client user created successfully' })
+  async createManualClient(@Body() dto: CreateClientWithPlanDto, @CurrentUser() user: JwtPayload) {
+    return this.clientsService.createWithUserAndPlan(dto, user?.sub);
   }
 
   @Patch(':id')
