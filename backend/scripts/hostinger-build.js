@@ -6,7 +6,7 @@ const packageJson = require('../package.json');
 const backendRoot = process.cwd();
 const distDirectory = path.resolve('dist');
 
-function runStep(label, command, args, extraEnv = {}) {
+function runStep(label, command, args, extraEnv = {}, heapMegabytes = 768) {
   const startedAt = new Date();
   console.log(`[hostinger-build] ${label} started at ${startedAt.toISOString()}`);
   console.log(`[hostinger-build] running: ${command} ${args.join(' ')}`);
@@ -18,7 +18,7 @@ function runStep(label, command, args, extraEnv = {}) {
     env: {
       ...process.env,
       ...extraEnv,
-      NODE_OPTIONS: `${process.env.NODE_OPTIONS || ''} --max-old-space-size=512`.trim(),
+      NODE_OPTIONS: `${process.env.NODE_OPTIONS || ''} --max-old-space-size=${heapMegabytes}`.trim(),
     },
   });
 
@@ -31,14 +31,15 @@ function runStep(label, command, args, extraEnv = {}) {
   console.log(`[hostinger-build] ${label} finished after ${elapsedSeconds}s`);
 }
 
-const nestCliPath = require.resolve('@nestjs/cli/bin/nest.js', { paths: [backendRoot] });
-console.log(`[hostinger-build] Nest CLI resolved at ${nestCliPath}`);
+const typescriptCompilerPath = require.resolve('typescript/bin/tsc', { paths: [backendRoot] });
+console.log(`[hostinger-build] TypeScript compiler resolved at ${typescriptCompilerPath}`);
 
 runStep(
   'Standalone backend dependency install',
   'npm',
   ['install', '--omit=dev', '--no-workspaces', '--install-strategy=hoisted', '--no-fund', '--no-audit'],
   { NPM_CONFIG_WORKSPACES: 'false' },
+  768,
 );
 
 runStep('Prisma client generation', 'node', [
@@ -51,7 +52,7 @@ runStep('Prisma client generation', 'node', [
 
 pinGeneratedPrismaClient(path.join(backendRoot, 'node_modules'));
 
-runStep('Nest compilation', 'node', [nestCliPath, 'build']);
+runStep('TypeScript compilation', 'node', [typescriptCompilerPath, '-p', 'tsconfig.build.json', '--pretty', 'false'], {}, 768);
 
 if (!existsSync(path.join(distDirectory, 'main.js'))) {
   console.error('[hostinger-build] Missing dist/main.js.');
