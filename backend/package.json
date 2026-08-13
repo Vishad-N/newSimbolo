@@ -5,16 +5,13 @@
   "engines": {
     "node": ">=20"
   },
-  "main": "app.js",
   "scripts": {
     "dev": "npm run start:dev",
-    "build": "node ./scripts/hostinger-build.js",
+    "build": "npm run prisma:generate && nest build",
     "build:compile": "npm run prisma:generate && nest build",
-    "build:hostinger": "node ./scripts/hostinger-build.js",
-    "build:diagnose": "npm run prisma:generate && nest build && node -e \"const fs=require('fs'); console.log('BUILD COMPLETE'); console.log(fs.readdirSync('dist',{recursive:true}))\"",
     "build:production": "npm ci && npm run build:compile",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-    "start": "node app.js",
+    "start": "node dist/main.js",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main.js",

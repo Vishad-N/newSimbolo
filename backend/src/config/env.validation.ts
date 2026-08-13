@@ -150,7 +150,7 @@ class EnvironmentVariables {
 }
 
 export function validate(config: Record<string, unknown>) {
-  const normalizedConfig = normalizeFeatureFlags(applyHostingDefaults(config));
+  const normalizedConfig = normalizeFeatureFlags(applyRuntimeDefaults(config));
   const validatedConfig = plainToInstance(EnvironmentVariables, normalizedConfig, {
     enableImplicitConversion: true,
   });
@@ -168,14 +168,12 @@ export function validate(config: Record<string, unknown>) {
   return validatedConfig;
 }
 
-function applyHostingDefaults(config: Record<string, unknown>): Record<string, unknown> {
+function applyRuntimeDefaults(config: Record<string, unknown>): Record<string, unknown> {
   const normalized = { ...config };
-  const isProduction = String(normalized.NODE_ENV || process.env.NODE_ENV) === 'production';
-  const resolvedPort = normalized.PORT || (isProduction ? 3000 : normalized.API_PORT || 3000);
 
-  if (!normalized.PORT) {
-    normalized.PORT = resolvedPort;
-    process.env.PORT = String(resolvedPort);
+  if (!normalized.PORT && normalized.API_PORT) {
+    normalized.PORT = normalized.API_PORT;
+    process.env.PORT = String(normalized.API_PORT);
   }
 
   if (!normalized.DIRECT_URL && typeof normalized.DATABASE_URL === 'string' && normalized.DATABASE_URL) {
@@ -189,6 +187,7 @@ function applyHostingDefaults(config: Record<string, unknown>): Record<string, u
 function validateProductionConfig(config: EnvironmentVariables): void {
   const missingVariables: string[] = [];
 
+  requireValue(config.PORT || config.API_PORT, 'PORT', missingVariables);
   requireValue(config.DATABASE_URL, 'DATABASE_URL', missingVariables);
   requireValue(config.DIRECT_URL, 'DIRECT_URL', missingVariables);
   requireValue(config.FRONTEND_URLS, 'FRONTEND_URLS', missingVariables);
