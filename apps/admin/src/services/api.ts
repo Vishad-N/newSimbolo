@@ -108,6 +108,8 @@ export const api = {
   // Content & Showcase Modules
   blogs: {
     getAll: async () => fetchFromApi('/blogs', { method: 'GET' }),
+    getCategories: async () => fetchFromApi('/blogs/categories', { method: 'GET' }),
+    getAuthors: async () => fetchFromApi('/blogs/authors', { method: 'GET' }),
     create: async (data: any) => fetchFromApi('/blogs', { method: 'POST', body: JSON.stringify(data) }),
     update: async (id: string, data: any) => fetchFromApi(`/blogs/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
     delete: async (id: string) => fetchFromApi(`/blogs/${id}`, { method: 'DELETE' }),

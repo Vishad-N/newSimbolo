@@ -69,13 +69,23 @@ function getDataArray<T>(response: T[] | PaginatedResponse<T>): T[] {
   return Array.isArray(response) ? response : response.data;
 }
 
+function getRequestMessage(error: unknown, fallback: string): string {
+  if (!(error instanceof Error)) return fallback;
+  if (error.message.includes("401")) {
+    return "You are not authorized to view or manage client accounts. Please sign in with an admin API account or ask the technical team to configure admin API access.";
+  }
+  return error.message || fallback;
+}
+
 export default function UsersPage() {
   const [packages, setPackages] = useState<PackageRecord[]>([]);
   const [clients, setClients] = useState<ClientRecord[]>([]);
   const [form, setForm] = useState<ManualClientPayload>(defaultForm);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [packageError, setPackageError] = useState<string | null>(null);
+  const [clientAccessMessage, setClientAccessMessage] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const selectedPackage = useMemo(
@@ -85,18 +95,24 @@ export default function UsersPage() {
 
   const fetchData = async () => {
     setIsLoading(true);
-    setError(null);
-    try {
-      const [packageResponse, clientResponse] = await Promise.all([
-        api.packages.getAll() as Promise<PackageRecord[] | PaginatedResponse<PackageRecord>>,
-        api.clients.getAll() as Promise<ClientRecord[] | PaginatedResponse<ClientRecord>>,
-      ]);
+    setPackageError(null);
+    setClientAccessMessage(null);
+    setSubmitError(null);
 
+    try {
+      const packageResponse = await api.packages.getAll() as PackageRecord[] | PaginatedResponse<PackageRecord>;
       setPackages(getDataArray(packageResponse));
+    } catch (requestError) {
+      setPackages([]);
+      setPackageError(getRequestMessage(requestError, "Failed to load packages"));
+    }
+
+    try {
+      const clientResponse = await api.clients.getAll() as ClientRecord[] | PaginatedResponse<ClientRecord>;
       setClients(getDataArray(clientResponse));
     } catch (requestError) {
-      const message = requestError instanceof Error ? requestError.message : "Failed to load users";
-      setError(message);
+      setClients([]);
+      setClientAccessMessage(getRequestMessage(requestError, "Failed to load clients"));
     } finally {
       setIsLoading(false);
     }
@@ -122,7 +138,7 @@ export default function UsersPage() {
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsSubmitting(true);
-    setError(null);
+    setSubmitError(null);
     setSuccessMessage(null);
 
     const payload: ManualClientPayload = {
@@ -145,8 +161,7 @@ export default function UsersPage() {
       setForm(defaultForm);
       await fetchData();
     } catch (requestError) {
-      const message = requestError instanceof Error ? requestError.message : "Failed to create client";
-      setError(message);
+      setSubmitError(getRequestMessage(requestError, "Failed to create client"));
     } finally {
       setIsSubmitting(false);
     }
@@ -179,9 +194,21 @@ export default function UsersPage() {
         </div>
       </div>
 
-      {error && (
+      {packageError && (
         <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-300">
-          {error}
+          {packageError}
+        </div>
+      )}
+
+      {clientAccessMessage && (
+        <div className="rounded-lg border border-yellow-500/20 bg-yellow-500/10 p-4 text-sm text-yellow-200">
+          {clientAccessMessage}
+        </div>
+      )}
+
+      {submitError && (
+        <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-300">
+          {submitError}
         </div>
       )}
 

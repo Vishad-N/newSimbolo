@@ -12,6 +12,14 @@ interface TeamMemberData {
   isActive: boolean;
 }
 
+function getRequestMessage(error: unknown, fallback: string): string {
+  if (!(error instanceof Error)) return fallback;
+  if (error.message.includes("401")) {
+    return "Team members could not be loaded because the API requires authorization. Please redeploy the backend with the public team-member read fix.";
+  }
+  return error.message || fallback;
+}
+
 export default function TeamMembersManager() {
   const [data, setData] = useState<TeamMemberData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -38,9 +46,9 @@ export default function TeamMembersManager() {
         isActive: member.isActive ?? true
       }));
       setData(mappedData);
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
-      setError(err.message || "Failed to fetch team members");
+      setError(getRequestMessage(err, "Failed to fetch team members"));
     } finally {
       setIsLoading(false);
     }
@@ -55,8 +63,8 @@ export default function TeamMembersManager() {
     try {
       await api.websiteTeam.delete(id);
       fetchData();
-    } catch (err: any) {
-      alert("Failed to delete team member: " + err.message);
+    } catch (err) {
+      alert(getRequestMessage(err, "Failed to delete team member"));
     }
   };
 
@@ -67,8 +75,8 @@ export default function TeamMembersManager() {
       setIsModalOpen(false);
       setNewMember({ name: "", designation: "", bio: "", isActive: true, displayOrder: 0 });
       fetchData();
-    } catch (err: any) {
-      alert("Failed to create team member: " + err.message);
+    } catch (err) {
+      alert(getRequestMessage(err, "Failed to create team member"));
     }
   };
 

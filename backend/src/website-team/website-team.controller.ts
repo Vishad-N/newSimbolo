@@ -4,6 +4,7 @@ import { CreateWebsiteTeamMemberDto } from './dto/create-website-team-member.dto
 import { UpdateWebsiteTeamMemberDto } from './dto/update-website-team-member.dto';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { Permissions } from '../common/decorators/permissions.decorator';
+import { Public } from '../common/decorators/public.decorator';
 
 @ApiTags('Website Team')
 @Controller('website-team')
@@ -20,12 +21,14 @@ export class WebsiteTeamController {
   }
 
   @Get()
+  @Public()
   @ApiOperation({ summary: 'Get all website team members' })
   findAll(@Query('activeOnly') activeOnly?: string) {
     return this.websiteTeamService.findAll(activeOnly === 'true');
   }
 
   @Get(':id')
+  @Public()
   @ApiOperation({ summary: 'Get a specific website team member by id' })
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.websiteTeamService.findOne(id);
