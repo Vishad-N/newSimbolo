@@ -42,7 +42,7 @@ export function TopNavbar() {
 
   const displayName = apiUser
     ? [apiUser.firstName, apiUser.lastName].filter(Boolean).join(" ").trim() || apiUser.email
-    : "API Login";
+    : "Admin Sign In";
 
   const handleLogin = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -75,12 +75,13 @@ export function TopNavbar() {
   };
 
   return (
-    <header 
-      className={cn(
-        "fixed top-0 right-0 z-40 h-16 bg-background/80 backdrop-blur-md border-b border-white/5 transition-all duration-300 flex items-center justify-between px-4 sm:px-6",
-        isSidebarOpen ? "left-64" : "left-20"
-      )}
-    >
+    <>
+      <header
+        className={cn(
+          "fixed top-0 right-0 z-40 h-16 bg-background/80 backdrop-blur-md border-b border-white/5 transition-all duration-300 flex items-center justify-between px-4 sm:px-6",
+          isSidebarOpen ? "left-64" : "left-20"
+        )}
+      >
       <div className="flex items-center gap-4">
         <button
           onClick={toggleSidebar}
@@ -128,7 +129,7 @@ export function TopNavbar() {
             "flex items-center gap-2 p-1 pl-2 pr-3 rounded-full hover:bg-white/5 transition-colors border",
             apiUser ? "border-primary/30 text-white" : "border-yellow-500/30 text-yellow-100"
           )}
-          title={apiUser ? `Signed in to API as ${displayName}` : "Sign in to backend API"}
+          title={apiUser ? `Signed in as ${displayName}` : "Sign in to the admin portal"}
         >
           <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center text-primary">
             <User className="w-4 h-4" />
@@ -136,22 +137,23 @@ export function TopNavbar() {
           <span className="text-sm font-medium hidden sm:block">{displayName}</span>
         </button>
       </div>
+      </header>
 
       {isApiLoginOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-xl border border-white/10 bg-[#0B0F19] p-6 shadow-2xl">
-            <div className="mb-6 flex items-center justify-between">
+        <div onMouseDown={() => setIsApiLoginOpen(false)} className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/60 p-4 backdrop-blur-sm">
+          <div onMouseDown={(event) => event.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="admin-sign-in-title" className="flex max-h-[calc(100dvh-2rem)] w-full max-w-md flex-col overflow-hidden rounded-2xl border border-white/10 bg-surface shadow-2xl">
+            <div className="flex shrink-0 items-start justify-between gap-4 border-b border-white/10 p-6">
               <div>
-                <h2 className="text-xl font-bold text-white">Backend API Login</h2>
-                <p className="mt-1 text-sm text-gray-400">Required for protected admin actions like managing clients.</p>
+                <h2 id="admin-sign-in-title" className="text-xl font-bold text-white">Sign in to Admin</h2>
+                <p className="mt-1 text-sm leading-6 text-gray-400">Authenticate your admin account to manage protected content and client data.</p>
               </div>
-              <button onClick={() => setIsApiLoginOpen(false)} className="text-gray-400 hover:text-white">
+              <button type="button" aria-label="Close admin sign in" onClick={() => setIsApiLoginOpen(false)} className="shrink-0 rounded-lg p-2 text-gray-400 transition-colors hover:bg-white/5 hover:text-white">
                 <X className="h-5 w-5" />
               </button>
             </div>
 
             {apiUser ? (
-              <div className="space-y-5">
+              <div className="space-y-5 overflow-y-auto p-6">
                 <div className="rounded-lg border border-white/10 bg-white/5 p-4">
                   <p className="text-sm text-gray-400">Signed in as</p>
                   <p className="mt-1 font-medium text-white">{displayName}</p>
@@ -166,38 +168,47 @@ export function TopNavbar() {
                 </div>
               </div>
             ) : (
-              <form onSubmit={handleLogin} className="space-y-4">
+              <form onSubmit={handleLogin} className="min-h-0 overflow-y-auto p-6">
+                <div className="space-y-4">
                 {error && (
                   <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-300">
                     {error}
                   </div>
                 )}
                 <div>
-                  <label className="mb-1 block text-sm text-gray-400">API Email</label>
+                  <label htmlFor="admin-email" className="mb-2 block text-sm font-medium text-gray-300">Email address</label>
                   <input
+                    id="admin-email"
+                    name="email"
                     required
                     type="email"
+                    autoFocus
+                    autoComplete="username"
                     value={form.email}
                     onChange={(event) => setForm({ ...form, email: event.target.value })}
-                    className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-white"
+                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none transition placeholder:text-gray-600 focus:border-primary/60 focus:ring-2 focus:ring-primary/20"
                     placeholder="admin@simbolo.ai"
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-sm text-gray-400">API Password</label>
+                  <label htmlFor="admin-password" className="mb-2 block text-sm font-medium text-gray-300">Password</label>
                   <input
+                    id="admin-password"
+                    name="password"
                     required
                     type="password"
+                    autoComplete="current-password"
                     value={form.password}
                     onChange={(event) => setForm({ ...form, password: event.target.value })}
-                    className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-white"
+                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none transition focus:border-primary/60 focus:ring-2 focus:ring-primary/20"
                   />
                 </div>
-                <div className="flex justify-end gap-3 pt-2">
-                  <button type="button" onClick={() => setIsApiLoginOpen(false)} className="px-4 py-2 text-sm text-gray-400 hover:text-white">Cancel</button>
-                  <button disabled={isSubmitting} type="submit" className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60">
+                </div>
+                <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                  <button type="button" onClick={() => setIsApiLoginOpen(false)} className="rounded-xl px-4 py-3 text-sm font-medium text-gray-400 transition-colors hover:bg-white/5 hover:text-white">Cancel</button>
+                  <button disabled={isSubmitting} type="submit" className="flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60">
                     {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
-                    Sign In
+                    {isSubmitting ? "Signing in…" : "Sign In"}
                   </button>
                 </div>
               </form>
@@ -205,6 +216,6 @@ export function TopNavbar() {
           </div>
         </div>
       )}
-    </header>
+    </>
   );
 }

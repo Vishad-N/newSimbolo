@@ -73,10 +73,19 @@ export interface AdminLoginResponse {
   };
 }
 
+interface ApiEnvelope<T> {
+  data: T;
+}
+
 export const api = {
   auth: {
-    login: async (data: AdminLoginPayload) =>
-      fetchFromApi<AdminLoginResponse>('/auth/login', { method: 'POST', body: JSON.stringify(data) }),
+    login: async (data: AdminLoginPayload) => {
+      const response = await fetchFromApi<AdminLoginResponse | ApiEnvelope<AdminLoginResponse>>(
+        '/auth/login',
+        { method: 'POST', body: JSON.stringify(data) },
+      );
+      return 'data' in response ? response.data : response;
+    },
   },
   // CMS Modules
   homepage: {

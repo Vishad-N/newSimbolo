@@ -9,7 +9,7 @@ export class LoginDto {
   @Transform(({ value }) => value?.toLowerCase().trim())
   email!: string;
 
-  @ApiProperty({ example: 'Admin@123456', description: 'User password' })
+  @ApiProperty({ example: 'StrongPassword@123', description: 'User password' })
   @IsString()
   @IsNotEmpty()
   password!: string;

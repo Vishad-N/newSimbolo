@@ -1,6 +1,8 @@
 import { execFileSync } from 'node:child_process';
 
 const API = 'http://localhost:3001/api/v1';
+const adminEmail = process.env.SEED_ADMIN_EMAIL;
+const adminPassword = process.env.SEED_ADMIN_PASSWORD;
 const pages = [
   'http://localhost:3003/',
   'http://localhost:3003/services',
@@ -79,6 +81,10 @@ async function page(url) {
 }
 
 async function main() {
+  if (!adminEmail || !adminPassword) {
+    throw new Error('SEED_ADMIN_EMAIL and SEED_ADMIN_PASSWORD are required for the authenticated runtime smoke checks.');
+  }
+
   await req('Health', 'GET', `${API}/health/ready`);
   for (const url of pages) await page(url);
 
@@ -87,7 +93,7 @@ async function main() {
   await req('Invalid login validation', 'POST', `${API}/auth/login`, { body: { email: 'bad', password: '' }, expected: [400] });
 
   const adminLogin = await req('Admin login', 'POST', `${API}/auth/login`, {
-    body: { email: 'admin@simbolo.ai', password: 'Admin@123456' },
+    body: { email: adminEmail, password: adminPassword },
   });
   const adminToken = data(adminLogin).accessToken;
   state.adminUserId = data(adminLogin).user.id;

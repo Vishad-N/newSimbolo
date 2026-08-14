@@ -46,7 +46,16 @@ Run existing DDL migrations against your PostgreSQL instance:
 npm run prisma:migrate
 ```
 
-### 5. Running the Application
+### 5. Seed the Initial Administrator
+Set `SEED_ADMIN_EMAIL` and a unique `SEED_ADMIN_PASSWORD` in the environment before running the seed. The password must contain at least 12 characters with uppercase, lowercase, number, and special character.
+
+```bash
+npm run prisma:seed
+```
+
+These variables are needed only by the seed command. Do not commit their real values.
+
+### 6. Running the Application
 ```bash
 # Development mode with hot-reload
 npm run start:dev

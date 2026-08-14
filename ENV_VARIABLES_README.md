@@ -23,6 +23,8 @@ The backend requires the most configuration. Below are the variables you must se
 | `JWT_REFRESH_SECRET` | Secret key for refresh tokens | `another-secure-random-string` |
 | `JWT_REFRESH_EXPIRES_IN` | Refresh token lifespan | `7d` |
 | `BCRYPT_ROUNDS` | Salt rounds for password hashing | `12` |
+| `SEED_ADMIN_EMAIL` | Super Admin email used only by the database seed | `admin@example.com` |
+| `SEED_ADMIN_PASSWORD` | Super Admin seed password. Must be 12+ characters with uppercase, lowercase, number, and special character | Store a unique secret in Railway; never commit it |
 | `GOOGLE_OAUTH_ENABLED` | Enable Google Login | `true` |
 | `GOOGLE_CLIENT_ID` | OAuth Client ID from Google Cloud | `your-google-client-id` |
 | `GOOGLE_CLIENT_SECRET` | OAuth Client Secret from Google Cloud | `your-google-client-secret` |
