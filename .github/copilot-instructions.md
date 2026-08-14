@@ -23,7 +23,7 @@ AGENTS.md / CLAUDE.md). Treat them as established project history.
 - `sg stats` — vault health
 
 <!-- SKILLGOD:START v1.1 -->
-# SkillGod Project Memory (auto-generated — do not edit; updated 2026-08-14 16:52)
+# SkillGod Project Memory (auto-generated — do not edit; updated 2026-08-14 17:00)
 
 # SkillGod Active
 

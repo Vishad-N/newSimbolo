@@ -53,7 +53,7 @@ export function PackageIllustrationSelect({ value, onChange }: PackageIllustrati
         <div
           role="listbox"
           aria-label="Package illustration"
-          className="custom-scrollbar absolute bottom-full left-0 right-0 z-30 mb-2 max-h-56 overflow-y-auto rounded-lg border border-white/10 bg-background p-1.5 shadow-2xl shadow-black/50"
+          className="custom-scrollbar absolute bottom-full left-0 right-0 z-30 mb-2 max-h-56 isolate overflow-y-auto rounded-lg border border-white/10 bg-[var(--card)] p-1.5 opacity-100 shadow-2xl shadow-black/50"
         >
           {PACKAGE_ILLUSTRATION_OPTIONS.map((illustration) => {
             const isSelected = illustration.path === value;
