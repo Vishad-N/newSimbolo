@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, Min } from 'class-validator';
+import { IsBoolean, IsEnum, IsIn, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, Min } from 'class-validator';
 import { PackageTypeEnum } from '@prisma/client';
+import { PACKAGE_ILLUSTRATION_PATHS } from '../package-illustrations';
 
 export class CreatePackageDto {
   @ApiProperty({ example: 'Growth Pro', description: 'Name of the pricing package' })
@@ -15,6 +16,16 @@ export class CreatePackageDto {
   @IsOptional()
   @IsString()
   description?: string;
+
+  @ApiPropertyOptional({
+    enum: PACKAGE_ILLUSTRATION_PATHS,
+    example: '/images/services/seo.png',
+    description: 'Illustration bundled with the landing website',
+  })
+  @IsOptional()
+  @IsString()
+  @IsIn(PACKAGE_ILLUSTRATION_PATHS)
+  illustration?: string;
 
   @ApiPropertyOptional({ enum: PackageTypeEnum, default: PackageTypeEnum.STARTER })
   @IsOptional()

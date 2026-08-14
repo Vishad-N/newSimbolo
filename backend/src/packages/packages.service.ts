@@ -69,6 +69,7 @@ export class PackagesService extends BaseService {
         name: dto.name,
         slug,
         description: dto.description || null,
+        illustration: dto.illustration || null,
         type: dto.type || 'STARTER',
         serviceId: dto.serviceId,
         basePrice: dto.basePrice !== undefined ? dto.basePrice : 0.0,
@@ -108,6 +109,7 @@ export class PackagesService extends BaseService {
       data: {
         ...(dto.name !== undefined && { name: dto.name, slug }),
         ...(dto.description !== undefined && { description: dto.description }),
+        ...(dto.illustration !== undefined && { illustration: dto.illustration }),
         ...(dto.type !== undefined && { type: dto.type }),
         ...(dto.serviceId !== undefined && { serviceId: dto.serviceId }),
         ...(dto.basePrice !== undefined && { basePrice: dto.basePrice }),

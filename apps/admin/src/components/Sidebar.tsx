@@ -45,7 +45,7 @@ const navigation = [
           { name: "SEO", href: "/services/seo", icon: Search },
           { name: "Google Ads", href: "/services/google-ads", icon: BarChart },
           { name: "Meta Ads", href: "/services/meta-ads", icon: Megaphone },
-          { name: "Website Development", href: "/services/web-dev", icon: Code },
+          { name: "Website Design", href: "/services/website-design", icon: Code },
           { name: "Video Editing", href: "/services/video-editing", icon: Video },
           { name: "Graphic Design", href: "/services/graphic-design", icon: PenTool },
           { name: "E-Commerce", href: "/services/ecommerce", icon: ShoppingCart },

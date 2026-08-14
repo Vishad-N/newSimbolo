@@ -795,6 +795,7 @@ model Package {
   slug            String                      @unique
   embedding       Unsupported("vector(768)")?
   description     String?
+  illustration    String?
   type            PackageTypeEnum             @default(STARTER)
   serviceId       String                      @db.Uuid
   basePrice       Float                       @default(0.0)

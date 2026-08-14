@@ -1,5 +1,4 @@
 "use client";
-// Force hot reload
 
 import { useEffect, useState } from "react";
 import { X, Check, ArrowRight, Zap, Target, Briefcase } from "lucide-react";
@@ -33,6 +32,7 @@ export function ExpandedPackageModal({ pkg, isOpen, onClose, defaultBilling = "m
 
   const isYearly = billing === "yearly";
   const currentPrice = isYearly ? pkg.priceYearly : pkg.priceMonthly;
+  const features = Array.isArray(pkg.features) ? pkg.features : [];
   
   const displayPrice = currentPrice 
     ? new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(currentPrice) 
@@ -59,6 +59,9 @@ export function ExpandedPackageModal({ pkg, isOpen, onClose, defaultBilling = "m
           />
 
           <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="expanded-package-title"
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -87,7 +90,7 @@ export function ExpandedPackageModal({ pkg, isOpen, onClose, defaultBilling = "m
                     {pkg.badge}
                   </span>
                 )}
-                <h2 className="font-heading text-[2.5rem] font-black leading-tight text-white">{pkg.name}</h2>
+                <h2 id="expanded-package-title" className="font-heading text-[2.5rem] font-black leading-tight text-white">{pkg.name}</h2>
                 <p className="mt-2 text-[1rem] font-medium text-[var(--accent)]">{pkg.subtitle}</p>
                 <p className="mt-4 text-[0.95rem] text-white/60 leading-relaxed">{pkg.shortDescription}</p>
               </div>
@@ -174,7 +177,7 @@ export function ExpandedPackageModal({ pkg, isOpen, onClose, defaultBilling = "m
             </div>
 
             {/* Right/Bottom Panel - Features & Deliverables */}
-            <div className="flex-1 overflow-hidden p-6 lg:p-8 bg-[var(--background)]">
+            <div className="custom-scrollbar flex-1 overflow-y-auto bg-[var(--background)] p-6 lg:p-8">
               
               <div className="grid gap-12 lg:grid-cols-2">
                 {/* Features List */}
@@ -186,7 +189,7 @@ export function ExpandedPackageModal({ pkg, isOpen, onClose, defaultBilling = "m
                     <h3 className="font-heading text-[1.4rem] font-bold text-white">Everything Included</h3>
                   </div>
                   <ul className="flex flex-col gap-2">
-                    {pkg.features.map((feature, i) => (
+                    {features.map((feature, i) => (
                       <li key={i} className="group flex items-start gap-3 rounded-[8px] p-2 transition-all hover:bg-white/5 hover:shadow-[0_0_15px_var(--accent-glow)] -ml-2">
                         <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--accent)]/20 mt-0.5 group-hover:bg-[var(--accent)]/40 transition-colors">
                           <Check className="h-3.5 w-3.5 text-[var(--accent)]" />

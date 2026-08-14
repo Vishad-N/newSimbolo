@@ -1,57 +1,119 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import type { MarketingPackage } from "@/types/packages";
+import { useEffect, useState } from "react";
+import { resolvePackageIllustration } from "@/data/package-illustrations";
+import type { MarketingPackage, PackageTheme } from "@/types/packages";
+
+interface BackendPackageFeature {
+  name?: string;
+  isIncluded?: boolean;
+}
+
+interface BackendPackagePricing {
+  billingPeriod?: string;
+  price?: number;
+}
+
+interface BackendPackage {
+  id?: string;
+  name?: string;
+  slug?: string;
+  description?: string | null;
+  illustration?: string | null;
+  type?: string;
+  basePrice?: number;
+  isPopular?: boolean;
+  isAddon?: boolean;
+  service?: {
+    name?: string;
+    slug?: string;
+  } | null;
+  features?: BackendPackageFeature[];
+  pricings?: BackendPackagePricing[];
+}
+
+interface PackageApiEnvelope {
+  data?: unknown;
+}
+
+const DEFAULT_FEATURES = ["Strategy and planning", "Campaign execution", "Performance reporting"];
+
+function normalizePackageResponse(response: unknown): BackendPackage[] {
+  if (Array.isArray(response)) return response as BackendPackage[];
+  if (!response || typeof response !== "object") return [];
+
+  const data = (response as PackageApiEnvelope).data;
+  if (Array.isArray(data)) return data as BackendPackage[];
+  if (data && typeof data === "object" && Array.isArray((data as PackageApiEnvelope).data)) {
+    return (data as PackageApiEnvelope).data as BackendPackage[];
+  }
+
+  return [];
+}
+
+function getTheme(type: string | undefined): PackageTheme {
+  if (type === "ENTERPRISE") return "purple";
+  if (type === "PROFESSIONAL") return "teal";
+  if (type === "CUSTOM") return "orange";
+  return "blue";
+}
+
+export function mapBackendPackage(pkg: BackendPackage, index: number): MarketingPackage {
+  const name = pkg.name?.trim() || "Marketing Package";
+  const serviceName = pkg.service?.name?.trim() || "Digital Marketing";
+  const slug = pkg.slug?.trim() || pkg.id || "package";
+  const basePrice = Number(pkg.basePrice) || 0;
+  const monthlyPricing = pkg.pricings?.find((pricing) => pricing.billingPeriod?.toLowerCase() === "monthly");
+  const yearlyPricing = pkg.pricings?.find((pricing) => pricing.billingPeriod?.toLowerCase() === "yearly");
+  const includedFeatures = (pkg.features ?? [])
+    .filter((feature) => feature.isIncluded !== false && Boolean(feature.name?.trim()))
+    .map((feature) => feature.name!.trim());
+  const features = includedFeatures.length > 0 ? includedFeatures : DEFAULT_FEATURES;
+  const description = pkg.description?.trim() || `${serviceName} support designed for your business goals.`;
+
+  return {
+    id: pkg.id || slug,
+    name,
+    subtitle: serviceName,
+    shortDescription: description,
+    compactHighlights: features.slice(0, 3),
+    priceMonthly: Number(monthlyPricing?.price) || basePrice || null,
+    priceYearly: Number(yearlyPricing?.price) || (basePrice ? basePrice * 10 : null),
+    currency: "INR",
+    badge: pkg.isPopular ? "Most Popular" : undefined,
+    rating: 5,
+    icon: pkg.type === "ENTERPRISE" ? "crown" : "rocket",
+    illustration: resolvePackageIllustration(pkg.illustration, `${serviceName} ${pkg.service?.slug ?? ""}`),
+    features,
+    deliverables: features,
+    idealFor: [pkg.type ? `${pkg.type.toLowerCase().replaceAll("_", " ")} businesses` : "Growing businesses"],
+    featured: Boolean(pkg.isPopular),
+    status: "published",
+    displayOrder: index,
+    buttonText: "Choose Package",
+    buttonLink: `?auth=register&checkout=${encodeURIComponent(slug)}`,
+    themeColor: getTheme(pkg.type),
+  };
+}
 
 export function usePackages() {
   const [packages, setPackages] = useState<MarketingPackage[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch packages from the real backend API
   useEffect(() => {
     const fetchPackages = async () => {
       try {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api/v1";
         const response = await fetch(`${apiUrl}/packages`);
-        
+
         if (!response.ok) {
           throw new Error("Failed to fetch packages from API");
         }
-        
-        const json = await response.json();
-        
-        // Map backend package data to frontend MarketingPackage type
-        // Map backend package data to frontend MarketingPackage type
-        const backendPackages = (json.data || json).filter((pkg: any) => !pkg.isAddon);
-        const mappedPackages: MarketingPackage[] = backendPackages.map((pkg: any, index: number) => {
-          // Find monthly and yearly pricings if available, else fallback to basePrice
-          const monthlyPricing = pkg.pricings?.find((p: any) => p.billingPeriod === "monthly");
-          const yearlyPricing = pkg.pricings?.find((p: any) => p.billingPeriod === "yearly");
-          
-          return {
-            id: pkg.id,
-            name: pkg.name,
-            slug: pkg.slug,
-            description: pkg.description || pkg.name,
-            illustration: pkg.service?.name.includes("SEO") ? "/assets/seo-icon.svg" : "/assets/ads-icon.svg",
-            priceMonthly: monthlyPricing ? monthlyPricing.price : pkg.basePrice,
-            priceYearly: yearlyPricing ? yearlyPricing.price : pkg.basePrice * 10,
-            rating: 5.0, // Default for now
-            status: "published",
-            displayOrder: index,
-            themeColor: pkg.type === "ENTERPRISE" ? "accent" : (pkg.type === "STARTER" ? "blue" : "primary"),
-            targetAudience: pkg.type,
-            compactHighlights: pkg.features?.slice(0, 3).map((f: any) => f.name) || ["Strategy", "Execution", "Reporting"],
-            detailedFeatures: pkg.features?.map((f: any) => ({
-              category: "General",
-              items: [{ name: f.name, included: true, tooltip: f.description }]
-            })) || [],
-            timeline: "Monthly Retainer",
-            deliverables: [],
-            requirements: [],
-            faqs: []
-          };
-        });
+
+        const responseBody: unknown = await response.json();
+        const mappedPackages = normalizePackageResponse(responseBody)
+          .filter((pkg) => !pkg.isAddon)
+          .map(mapBackendPackage);
 
         setPackages(mappedPackages);
       } catch (error) {
@@ -61,7 +123,7 @@ export function usePackages() {
       }
     };
 
-    fetchPackages();
+    void fetchPackages();
   }, []);
 
   return {

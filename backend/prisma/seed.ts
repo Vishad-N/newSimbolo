@@ -339,31 +339,80 @@ async function main() {
   // 5. Seed Services and Packages for Razorpay Checkout Flow
   console.log('Seeding Services and Packages...');
 
-  // Seed SEO Service
-  const seoService = await prisma.service.upsert({
-    where: { slug: 'seo' },
-    update: {},
-    create: {
-      name: 'Search Engine Optimization',
+  const serviceSeeds = [
+    {
+      name: 'SEO',
       slug: 'seo',
-      shortDescription: 'Boost your organic rankings and drive high-quality traffic to your website.',
+      shortDescription: 'Rank higher and drive high-quality organic traffic with data-driven SEO.',
       type: 'RETAINER',
       basePrice: 5000,
     },
-  });
-
-  // Seed Ads Service
-  const adsService = await prisma.service.upsert({
-    where: { slug: 'google-ads' },
-    update: {},
-    create: {
-      name: 'Google Ads Management',
+    {
+      name: 'Google Ads',
       slug: 'google-ads',
-      shortDescription: 'Maximize your ROI with data-driven Google Ads campaigns.',
+      shortDescription: 'Generate qualified leads with high-converting Google Ads campaigns.',
       type: 'RETAINER',
       basePrice: 8000,
     },
-  });
+    {
+      name: 'Meta Ads',
+      slug: 'meta-ads',
+      shortDescription: 'Scale with targeted Facebook and Instagram advertising campaigns.',
+      type: 'RETAINER',
+      basePrice: 4999,
+    },
+    {
+      name: 'Website Design',
+      slug: 'website-design',
+      shortDescription: 'Build a fast, responsive, and conversion-focused business website.',
+      type: 'ONE_TIME',
+      basePrice: 14999,
+    },
+    {
+      name: 'E-Commerce',
+      slug: 'ecommerce',
+      shortDescription: 'Launch and grow a high-performing online store built for conversions.',
+      type: 'ONE_TIME',
+      basePrice: 19999,
+    },
+    {
+      name: 'Video Editing',
+      slug: 'video-editing',
+      shortDescription: 'Create polished videos, reels, and motion graphics that hold attention.',
+      type: 'RETAINER',
+      basePrice: 5999,
+    },
+    {
+      name: 'Graphic Design',
+      slug: 'graphic-design',
+      shortDescription: 'Create distinctive digital and print visuals for every marketing channel.',
+      type: 'RETAINER',
+      basePrice: 5999,
+    },
+  ] as const;
+
+  const seededServices = await Promise.all(
+    serviceSeeds.map((service) =>
+      prisma.service.upsert({
+        where: { slug: service.slug },
+        update: {
+          name: service.name,
+          shortDescription: service.shortDescription,
+          type: service.type,
+          basePrice: service.basePrice,
+          deletedAt: null,
+        },
+        create: service,
+      }),
+    ),
+  );
+
+  const seoService = seededServices.find((service) => service.slug === 'seo');
+  const adsService = seededServices.find((service) => service.slug === 'google-ads');
+
+  if (!seoService || !adsService) {
+    throw new Error('Required package services were not seeded.');
+  }
 
   // Seed SEO Packages
   const seoPackages = [

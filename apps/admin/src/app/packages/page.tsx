@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { DataTable } from "@/components/DataTable";
 import { Plus, Package as PackageIcon, RefreshCw, Trash, X } from "lucide-react";
 import { api } from "@/services/api";
+import { PACKAGE_ILLUSTRATION_OPTIONS } from "./packageIllustrations";
 
 interface ServiceOption {
   id: string;
@@ -14,6 +15,8 @@ interface ServiceOption {
 interface PackageApiRecord {
   id: string;
   name: string;
+  description?: string | null;
+  illustration?: string | null;
   type?: PackageTier;
   basePrice?: number;
   isPopular?: boolean;
@@ -31,6 +34,8 @@ type ServiceType = "RETAINER" | "ONE_TIME" | "HOURLY" | "CONSULTING" | "CUSTOM";
 interface PackageData {
   id: string;
   name: string;
+  description: string;
+  illustration: string;
   type: string;
   price: string;
   serviceName: string;
@@ -42,6 +47,8 @@ interface PackageData {
 
 interface PackageFormData {
   name: string;
+  description: string;
+  illustration: string;
   serviceId: string;
   basePrice: number;
   type: PackageTier;
@@ -56,7 +63,16 @@ interface ServiceFormData {
   basePrice: number;
 }
 
-const emptyPackageForm: PackageFormData = { name: "", serviceId: "", basePrice: 0, type: "STARTER", isPopular: false, isAddon: false };
+const emptyPackageForm: PackageFormData = {
+  name: "",
+  description: "",
+  illustration: "",
+  serviceId: "",
+  basePrice: 0,
+  type: "STARTER",
+  isPopular: false,
+  isAddon: false,
+};
 const emptyServiceForm: ServiceFormData = { name: "", shortDescription: "", type: "RETAINER", basePrice: 0 };
 
 const normalizeApiList = <T,>(response: unknown): T[] => {
@@ -109,6 +125,8 @@ export default function PackagesPage() {
       const mappedData: PackageData[] = normalizeApiList<PackageApiRecord>(pkgRes).map((pkg) => ({
         id: pkg.id,
         name: pkg.name,
+        description: pkg.description || "",
+        illustration: pkg.illustration || "",
         type: pkg.type || "N/A",
         price: `INR ${pkg.basePrice?.toLocaleString() || 0}`,
         serviceName: pkg.service?.name || "Unknown Service",
@@ -151,7 +169,16 @@ export default function PackagesPage() {
 
   const openEditModal = (item: PackageData) => {
     setEditingPackageId(item.id);
-    setNewPkg({ name: item.name, serviceId: item.serviceId, basePrice: item.basePrice, type: item.type as PackageTier, isPopular: item.featured, isAddon: item.isAddon });
+    setNewPkg({
+      name: item.name,
+      description: item.description,
+      illustration: item.illustration,
+      serviceId: item.serviceId,
+      basePrice: item.basePrice,
+      type: item.type as PackageTier,
+      isPopular: item.featured,
+      isAddon: item.isAddon,
+    });
     setNewService(emptyServiceForm);
     setIsServiceFormOpen(false);
     setModalError(null);
@@ -191,11 +218,17 @@ export default function PackagesPage() {
       setModalError("Create or select a linked service before saving the package.");
       return;
     }
+    if (!newPkg.illustration) {
+      setModalError("Select one of the available package illustrations before saving.");
+      return;
+    }
 
     setModalError(null);
     try {
       const payload = {
         name: newPkg.name,
+        description: newPkg.description.trim(),
+        illustration: newPkg.illustration,
         serviceId: newPkg.serviceId,
         basePrice: Number(newPkg.basePrice),
         type: newPkg.type,
@@ -331,6 +364,10 @@ export default function PackagesPage() {
                 <input required type="text" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white" value={newPkg.name} onChange={e => setNewPkg({...newPkg, name: e.target.value})} placeholder="e.g. Growth Pro" />
               </div>
               <div>
+                <label className="block text-sm text-gray-400 mb-1">Package Description</label>
+                <textarea rows={3} className="w-full resize-none rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-white" value={newPkg.description} onChange={e => setNewPkg({...newPkg, description: e.target.value})} placeholder="This appears in the expanded package details." />
+              </div>
+              <div>
                 <div className="flex items-center justify-between mb-1">
                   <label className="block text-sm text-gray-400">Linked Service</label>
                   <button type="button" onClick={() => setIsServiceFormOpen((isOpen) => !isOpen)} className="text-xs font-medium text-primary hover:text-primary-hover">
@@ -375,6 +412,16 @@ export default function PackagesPage() {
                   </button>
                 </div>
               )}
+              <div>
+                <label className="block text-sm text-gray-400 mb-1">Package Illustration</label>
+                <select required className="w-full appearance-none rounded-lg border border-white/10 bg-background px-4 py-2 text-white" value={newPkg.illustration} onChange={e => setNewPkg({...newPkg, illustration: e.target.value})}>
+                  <option value="">-- Select Existing Illustration --</option>
+                  {PACKAGE_ILLUSTRATION_OPTIONS.map((illustration) => (
+                    <option key={illustration.path} value={illustration.path}>{illustration.label}</option>
+                  ))}
+                </select>
+                <p className="mt-1 text-xs text-gray-500">Choose from the illustrations already included with the landing website.</p>
+              </div>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <label className="block text-sm text-gray-400 mb-1">Base Price (INR)</label>
