@@ -1,3 +1,53 @@
+const DEFAULT_LANDING_URL = process.env.NODE_ENV === 'production' ? 'https://simbolo.ai' : 'http://localhost:3000';
+
+export class AuthenticationRedirectError extends Error {
+  constructor(public readonly redirectUrl: string) {
+    super('Authentication is required');
+    this.name = 'AuthenticationRedirectError';
+  }
+}
+
+export interface ClientSubscription {
+  packageId?: string;
+  currentPlan: string;
+  daysRemaining: number;
+  billingStatus: string;
+}
+
+export const isSubscriptionExpired = (subscription: ClientSubscription) => (
+  subscription.daysRemaining <= 0 ||
+  ['PAST_DUE', 'CANCELED', 'UNPAID'].includes(subscription.billingStatus)
+);
+
+export const getLandingPageUrl = (
+  pathname = '/',
+  searchParams?: Record<string, string>,
+) => {
+  const configuredLandingUrl = process.env.NEXT_PUBLIC_LANDING_URL?.trim() || DEFAULT_LANDING_URL;
+  let landingBaseUrl: URL;
+
+  try {
+    landingBaseUrl = new URL(configuredLandingUrl);
+  } catch (error) {
+    console.error('Invalid NEXT_PUBLIC_LANDING_URL; using the default landing URL.', error);
+    landingBaseUrl = new URL(DEFAULT_LANDING_URL);
+  }
+
+  const landingUrl = new URL(pathname, landingBaseUrl);
+
+  Object.entries(searchParams || {}).forEach(([key, value]) => {
+    landingUrl.searchParams.set(key, value);
+  });
+
+  return landingUrl.toString();
+};
+
+export const redirectToLanding = (pathname = '/', searchParams?: Record<string, string>) => {
+  const redirectUrl = getLandingPageUrl(pathname, searchParams);
+  window.location.replace(redirectUrl);
+  return redirectUrl;
+};
+
 const fetchProxy = async (path: string, options: RequestInit = {}) => {
   const res = await fetch(`/api/proxy/${path}`, {
     ...options,
@@ -8,10 +58,11 @@ const fetchProxy = async (path: string, options: RequestInit = {}) => {
   });
   if (res.status === 401) {
     if (typeof window !== 'undefined' && !window.location.pathname.includes('/checkout')) {
-      const landingUrl = process.env.NEXT_PUBLIC_LANDING_URL || 'https://simbolo.co';
-      window.location.href = `${landingUrl}?auth=login`;
-      // return a never resolving promise to prevent further execution during redirect
-      return new Promise(() => {});
+      const redirectUrl = redirectToLanding('/', {
+        auth: 'login',
+        returnUrl: window.location.href,
+      });
+      throw new AuthenticationRedirectError(redirectUrl);
     }
   }
   if (!res.ok) {
@@ -91,9 +142,10 @@ export const mockApi = {
     get: async (clientId?: string) => {
       if (!clientId) return null;
       const res = await fetchProxy(`dashboard/client/${clientId}/billing`);
-      if (!res.activeSubscription) return null;
+      const billingDashboard = res.data || res;
+      if (!billingDashboard.activeSubscription) return null;
       
-      const sub = res.activeSubscription;
+      const sub = billingDashboard.activeSubscription;
       const end = new Date(sub.currentPeriodEnd);
       const now = new Date();
       const diffTime = end.getTime() - now.getTime();

@@ -75,7 +75,8 @@ async function handleProxy(request: Request, pathArray: string[]) {
         });
 
         if (refreshRes.ok) {
-          const refreshData = await refreshRes.json();
+          const refreshPayload = await refreshRes.json();
+          const refreshData = refreshPayload.data || refreshPayload;
           if (refreshData.accessToken && refreshData.refreshToken) {
             newTokens = { accessToken: refreshData.accessToken, refreshToken: refreshData.refreshToken };
             token = newTokens.accessToken;
@@ -106,8 +107,21 @@ async function handleProxy(request: Request, pathArray: string[]) {
     const response = NextResponse.json(parsedData, { status: res.status });
 
     if (newTokens) {
-      response.cookies.set('accessToken', newTokens.accessToken, { path: '/', maxAge: 86400 });
-      response.cookies.set('refreshToken', newTokens.refreshToken, { path: '/', maxAge: 604800 });
+      const secure = process.env.NODE_ENV === 'production';
+      response.cookies.set('accessToken', newTokens.accessToken, {
+        httpOnly: true,
+        sameSite: 'lax',
+        secure,
+        path: '/',
+        maxAge: 86400,
+      });
+      response.cookies.set('refreshToken', newTokens.refreshToken, {
+        httpOnly: true,
+        sameSite: 'lax',
+        secure,
+        path: '/',
+        maxAge: 604800,
+      });
     }
 
     return response;

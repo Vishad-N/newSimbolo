@@ -23,7 +23,7 @@ AGENTS.md / CLAUDE.md). Treat them as established project history.
 - `sg stats` — vault health
 
 <!-- SKILLGOD:START v1.1 -->
-# SkillGod Project Memory (auto-generated — do not edit; updated 2026-08-14 12:49)
+# SkillGod Project Memory (auto-generated — do not edit; updated 2026-08-14 13:42)
 
 # SkillGod Active
 
@@ -47,6 +47,9 @@ After completing **meaningful** work (decisions, architecture, non-obvious fixes
 - markers: SKILLGOD:START v1.1
 
 ## Project memory
+
+## Decisions
+- Replaced the never-resolving 401 Promise with an explicit landing login redirect plus typed AuthenticationRedirectError and fallback link state. Added centralized landing URL const
 
 _Authoritative project history captured by SkillGod. Treat the decisions above as established context for this project._
 <!-- SKILLGOD:END -->

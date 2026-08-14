@@ -5,8 +5,21 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowRight, Mail, Lock, User, Phone, Building2, Loader2, CheckCircle2, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api/v1";
-const DASHBOARD_URL = process.env.NEXT_PUBLIC_DASHBOARD_URL || "http://localhost:3001";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api/v1";
+const DASHBOARD_URL = process.env.NEXT_PUBLIC_DASHBOARD_URL || "http://localhost:3002";
+
+interface AuthenticationTokens {
+  accessToken: string;
+  refreshToken: string;
+}
+
+const redirectToDashboard = ({ accessToken, refreshToken }: AuthenticationTokens, next = "/dashboard") => {
+  const callbackUrl = new URL("/auth/callback", DASHBOARD_URL);
+  callbackUrl.searchParams.set("accessToken", accessToken);
+  callbackUrl.searchParams.set("refreshToken", refreshToken);
+  callbackUrl.searchParams.set("next", next);
+  window.location.replace(callbackUrl.toString());
+};
 export function AuthModals() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -23,27 +36,17 @@ export function AuthModals() {
 
   const accessToken = searchParams.get("accessToken");
   const refreshToken = searchParams.get("refreshToken");
-  const hasActivePlan = searchParams.get("hasActivePlan") === "true";
-
-
-
   useEffect(() => {
     if (accessToken && refreshToken) {
-      document.cookie = `accessToken=${accessToken}; path=/; max-age=86400`;
-      document.cookie = `refreshToken=${refreshToken}; path=/; max-age=604800`;
-      
       const checkoutPackage = localStorage.getItem("redirectAfterLogin");
       localStorage.removeItem("redirectAfterLogin");
-      
-      if (checkoutPackage) {
-        window.location.href = `${DASHBOARD_URL}/checkout?package=${checkoutPackage}`;
-      } else if (!hasActivePlan) {
-        window.location.href = `/packages`;
-      } else {
-        window.location.href = `${DASHBOARD_URL}/dashboard`;
-      }
+
+      const next = checkoutPackage
+        ? `/checkout?package=${encodeURIComponent(checkoutPackage)}`
+        : "/dashboard";
+      redirectToDashboard({ accessToken, refreshToken }, next);
     }
-  }, [accessToken, refreshToken, hasActivePlan]);
+  }, [accessToken, refreshToken]);
 
   useEffect(() => {
     // If the modal is triggered but they are already logged in
@@ -97,17 +100,33 @@ function LoginModal({ onClose }: { onClose: () => void }) {
     setIsLoading(true);
     setError("");
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
-      const checkoutPackage = searchParams.get("checkout");
-      if (checkoutPackage) {
-        window.location.href = `${DASHBOARD_URL}/checkout?package=${checkoutPackage}`;
-      } else {
-        // Since it's a simulated normal login, we'll assume they don't have an active plan yet
-        window.location.href = `/packages`;
+    const formData = new FormData(e.currentTarget);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: String(formData.get("email") || "").trim(),
+          password: String(formData.get("password") || ""),
+        }),
+      });
+      const payload = await response.json();
+      const authentication = payload.data || payload;
+
+      if (!response.ok || !authentication.accessToken || !authentication.refreshToken) {
+        throw new Error(Array.isArray(payload.message) ? payload.message.join(" ") : payload.message || "Unable to sign in.");
       }
-    }, 1500);
+
+      const checkoutPackage = searchParams.get("checkout");
+      const next = checkoutPackage
+        ? `/checkout?package=${encodeURIComponent(checkoutPackage)}`
+        : "/dashboard";
+      redirectToDashboard(authentication, next);
+    } catch (loginError) {
+      setError(loginError instanceof Error ? loginError.message : "Unable to sign in.");
+      setIsLoading(false);
+    }
   };
 
   const switchToRegister = () => {
@@ -145,6 +164,7 @@ function LoginModal({ onClose }: { onClose: () => void }) {
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#64748B]" />
               <input
+                name="email"
                 type="email"
                 required
                 className="w-full rounded-[12px] border border-white/[0.08] bg-white/[0.035] p-3 pl-10 text-sm text-white placeholder:text-[#64748B] transition-colors focus:border-[var(--primary)] focus:bg-white/[0.05] focus:outline-none"
@@ -163,6 +183,7 @@ function LoginModal({ onClose }: { onClose: () => void }) {
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#64748B]" />
               <input
+                name="password"
                 type="password"
                 required
                 className="w-full rounded-[12px] border border-white/[0.08] bg-white/[0.035] p-3 pl-10 text-sm text-white placeholder:text-[#64748B] transition-colors focus:border-[var(--primary)] focus:bg-white/[0.05] focus:outline-none"

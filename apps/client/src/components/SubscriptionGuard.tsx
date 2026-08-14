@@ -2,7 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { mockApi } from "@/services/api";
+import {
+  AuthenticationRedirectError,
+  getLandingPageUrl,
+  isSubscriptionExpired,
+  mockApi,
+  redirectToLanding,
+} from "@/services/api";
+import type { ClientSubscription } from "@/services/api";
 import { Lock, CreditCard, ArrowRight, PackageOpen } from "lucide-react";
 
 export function SubscriptionGuard({ children }: { children: React.ReactNode }) {
@@ -10,7 +17,8 @@ export function SubscriptionGuard({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [isLoading, setIsLoading] = useState(true);
   const [isLocked, setIsLocked] = useState(false);
-  const [subscription, setSubscription] = useState<any>(null);
+  const [subscription, setSubscription] = useState<ClientSubscription | null>(null);
+  const [redirectUrl, setRedirectUrl] = useState<string | null>(null);
   
   // Don't enforce lockdown on the checkout page itself
   const isCheckout = pathname?.includes("/checkout");
@@ -26,8 +34,18 @@ export function SubscriptionGuard({ children }: { children: React.ReactNode }) {
         const profile = await mockApi.profile.get();
         if (profile?.clientId) {
           const sub = await mockApi.subscription.get(profile.clientId);
-          
-          if (!sub || sub.daysRemaining <= 0 || sub.billingStatus === 'PAST_DUE' || sub.billingStatus === 'CANCELED') {
+
+          const hasExpired = sub ? isSubscriptionExpired(sub) : false;
+
+          if (hasExpired) {
+            const packagesUrl = getLandingPageUrl('/packages', { reason: 'plan-expired' });
+            setSubscription(sub);
+            setRedirectUrl(packagesUrl);
+            redirectToLanding('/packages', { reason: 'plan-expired' });
+            return;
+          }
+
+          if (!sub || !['ACTIVE', 'TRIALING'].includes(sub.billingStatus)) {
             setIsLocked(true);
             setSubscription(sub);
           } else {
@@ -38,7 +56,12 @@ export function SubscriptionGuard({ children }: { children: React.ReactNode }) {
           setIsLocked(true);
         }
       } catch (err) {
+        if (err instanceof AuthenticationRedirectError) {
+          setRedirectUrl(err.redirectUrl);
+          return;
+        }
         console.error("Failed to check subscription state", err);
+        setIsLocked(true);
       } finally {
         setIsLoading(false);
       }
@@ -51,6 +74,18 @@ export function SubscriptionGuard({ children }: { children: React.ReactNode }) {
     return (
       <div className="flex h-[80vh] items-center justify-center">
         <div className="h-10 w-10 animate-spin rounded-full border-4 border-[var(--primary)] border-t-transparent"></div>
+      </div>
+    );
+  }
+
+  if (redirectUrl) {
+    return (
+      <div className="flex h-[80vh] flex-col items-center justify-center gap-4 text-center">
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-[var(--primary)] border-t-transparent" />
+        <p className="text-sm text-gray-400">Redirecting you securely…</p>
+        <a href={redirectUrl} className="text-sm font-semibold text-[var(--primary)] hover:underline">
+          Continue if you are not redirected
+        </a>
       </div>
     );
   }
@@ -87,10 +122,7 @@ export function SubscriptionGuard({ children }: { children: React.ReactNode }) {
               )}
               
               <button
-                onClick={() => {
-                  const landingUrl = process.env.NEXT_PUBLIC_LANDING_URL || 'https://simbolo.co';
-                  window.location.href = `${landingUrl}/packages`;
-                }}
+                onClick={() => redirectToLanding('/packages')}
                 className={`flex items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/5 px-6 py-4 font-bold text-white transition-all hover:bg-white/10 ${!subscription?.packageId ? 'bg-[var(--primary)] border-transparent hover:bg-[var(--primary-hover)] shadow-[0_0_20px_var(--primary-glow)] hover:scale-[1.02] active:scale-95' : ''}`}
               >
                 <PackageOpen className="h-5 w-5" />
