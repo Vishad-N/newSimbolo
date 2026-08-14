@@ -47,13 +47,15 @@ npm run prisma:migrate
 ```
 
 ### 5. Seed the Initial Administrator
-Set `SEED_ADMIN_EMAIL` and a unique `SEED_ADMIN_PASSWORD` in the environment before running the seed. The password must contain at least 12 characters with uppercase, lowercase, number, and special character.
+For a normal seed, `SEED_ADMIN_EMAIL` and `SEED_ADMIN_PASSWORD` may both be omitted. The seed will skip the Super Admin and continue with all other data.
+
+To create or rotate the seeded Super Admin, set both variables before running the seed. The password must contain at least 12 characters with uppercase, lowercase, number, and special character. Supplying only one variable is treated as a configuration error.
 
 ```bash
 npm run prisma:seed
 ```
 
-These variables are needed only by the seed command. Do not commit their real values.
+These variables are used only by the seed command. Do not commit their real values.
 
 ### 6. Running the Application
 ```bash

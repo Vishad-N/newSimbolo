@@ -9,15 +9,16 @@ interface SeedAdminCredentials {
   password: string;
 }
 
-export const getSeedAdminCredentials = (environment: NodeJS.ProcessEnv): SeedAdminCredentials => {
+export const getSeedAdminCredentials = (environment: NodeJS.ProcessEnv): SeedAdminCredentials | null => {
   const email = environment.SEED_ADMIN_EMAIL?.trim().toLowerCase();
   const password = environment.SEED_ADMIN_PASSWORD;
-  const missingVariables = [!email ? 'SEED_ADMIN_EMAIL' : null, !password ? 'SEED_ADMIN_PASSWORD' : null].filter(
-    (variable): variable is string => Boolean(variable),
-  );
+
+  if (!email && !password) {
+    return null;
+  }
 
   if (!email || !password) {
-    throw new Error(`Missing required admin seed variables: ${missingVariables.join(', ')}`);
+    throw new Error('SEED_ADMIN_EMAIL and SEED_ADMIN_PASSWORD must be provided together.');
   }
 
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -311,25 +312,29 @@ async function main() {
   });
 
   // 4. Seed Default Super Admin User
-  console.log('Seeding configured Super Admin user...');
-  const hashedPassword = await bcrypt.hash(superAdminCredentials.password, 12);
+  if (superAdminCredentials) {
+    console.log('Seeding configured Super Admin user...');
+    const hashedPassword = await bcrypt.hash(superAdminCredentials.password, 12);
 
-  await prisma.user.upsert({
-    where: { email: superAdminCredentials.email },
-    update: {
-      passwordHash: hashedPassword,
-      status: UserStatusEnum.ACTIVE,
-      roleId: createdRoles['SUPER_ADMIN'],
-    },
-    create: {
-      email: superAdminCredentials.email,
-      passwordHash: hashedPassword,
-      firstName: 'Super',
-      lastName: 'Admin',
-      status: UserStatusEnum.ACTIVE,
-      roleId: createdRoles['SUPER_ADMIN'],
-    },
-  });
+    await prisma.user.upsert({
+      where: { email: superAdminCredentials.email },
+      update: {
+        passwordHash: hashedPassword,
+        status: UserStatusEnum.ACTIVE,
+        roleId: createdRoles['SUPER_ADMIN'],
+      },
+      create: {
+        email: superAdminCredentials.email,
+        passwordHash: hashedPassword,
+        firstName: 'Super',
+        lastName: 'Admin',
+        status: UserStatusEnum.ACTIVE,
+        roleId: createdRoles['SUPER_ADMIN'],
+      },
+    });
+  } else {
+    console.log('Skipping Super Admin seed because seed credentials are not configured.');
+  }
 
   // 5. Seed Services and Packages for Razorpay Checkout Flow
   console.log('Seeding Services and Packages...');
