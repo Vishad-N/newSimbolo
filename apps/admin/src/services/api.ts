@@ -56,7 +56,28 @@ export interface ManualClientPayload {
   notes?: string;
 }
 
+export interface AdminLoginPayload {
+  email: string;
+  password: string;
+}
+
+export interface AdminLoginResponse {
+  accessToken: string;
+  refreshToken: string;
+  user: {
+    email: string;
+    firstName?: string;
+    lastName?: string;
+    role?: string;
+    permissions?: string[];
+  };
+}
+
 export const api = {
+  auth: {
+    login: async (data: AdminLoginPayload) =>
+      fetchFromApi<AdminLoginResponse>('/auth/login', { method: 'POST', body: JSON.stringify(data) }),
+  },
   // CMS Modules
   homepage: {
     get: async () => fetchFromApi('/cms/homepage', { method: 'GET' }),

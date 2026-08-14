@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useParams } from "next/navigation";
-import { FileText, Folder, File, FileImage, FileVideo, Download, Upload, FolderPlus, MoreVertical } from "lucide-react";
+import { FileText, Folder, File, FileImage, FileVideo, Download, Upload, FolderPlus, Trash2 } from "lucide-react";
 import { UploadModal } from "@/components/documents/UploadModal";
 import { CreateFolderModal } from "@/components/documents/CreateFolderModal";
 import { Card } from "@/components/ui/Card";
@@ -20,11 +20,11 @@ export default function ClientAssetsPage() {
     { name: "Brand Assets", count: 45 },
   ]);
 
-  const recentFiles = [
-    { name: "Q3_SEO_Strategy.pdf", type: "pdf", date: "Oct 12, 2026", size: "2.4 MB" },
-    { name: "Website_Wireframes.fig", type: "design", date: "Oct 10, 2026", size: "14 MB" },
-    { name: "Promo_Video_v2.mp4", type: "video", date: "Oct 05, 2026", size: "128 MB" },
-  ];
+  const [recentFiles, setRecentFiles] = useState([
+    { name: "Q3_SEO_Strategy.pdf", type: "pdf", date: "Oct 12, 2026", size: "2.4 MB", url: "data:text/plain,Preview%20file%20metadata" },
+    { name: "Website_Wireframes.fig", type: "design", date: "Oct 10, 2026", size: "14 MB", url: "data:text/plain,Preview%20file%20metadata" },
+    { name: "Promo_Video_v2.mp4", type: "video", date: "Oct 05, 2026", size: "128 MB", url: "data:text/plain,Preview%20file%20metadata" },
+  ]);
 
   return (
     <div className="space-y-8">
@@ -104,11 +104,11 @@ export default function ClientAssetsPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button className="p-2 text-gray-400 hover:text-white bg-white/5 rounded-lg opacity-0 group-hover:opacity-100 transition-all">
+                  <a href={file.url} download={file.name} aria-label={`Download ${file.name}`} className="p-2 text-gray-400 hover:text-white bg-white/5 rounded-lg opacity-0 group-hover:opacity-100 transition-all">
                     <Download className="w-4 h-4" />
-                  </button>
-                  <button className="p-2 text-gray-400 hover:text-white bg-white/5 rounded-lg opacity-0 group-hover:opacity-100 transition-all">
-                    <MoreVertical className="w-4 h-4" />
+                  </a>
+                  <button onClick={() => setRecentFiles((files) => files.filter((_, fileIndex) => fileIndex !== i))} aria-label={`Remove ${file.name}`} className="p-2 text-gray-400 hover:text-red-400 bg-white/5 rounded-lg opacity-0 group-hover:opacity-100 transition-all">
+                    <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
               </div>
@@ -123,8 +123,16 @@ export default function ClientAssetsPage() {
           isOpen={isUploadModalOpen} 
           onClose={() => setUploadModalOpen(false)} 
           onUpload={async (files) => {
-            await new Promise(r => setTimeout(r, 2000));
-            console.log("Admin uploaded files:", files);
+            setRecentFiles((currentFiles) => [
+              ...files.map((file) => ({
+                name: file.name,
+                type: file.type.startsWith("video/") ? "video" : file.type.startsWith("image/") ? "design" : "pdf",
+                date: new Date().toLocaleDateString(),
+                size: `${(file.size / 1024 / 1024).toFixed(2)} MB`,
+                url: URL.createObjectURL(file),
+              })),
+              ...currentFiles,
+            ]);
           }} 
         />
       )}

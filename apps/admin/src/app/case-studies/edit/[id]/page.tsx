@@ -4,6 +4,7 @@ import { useState, use } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Save, Plus, Trash2, GripVertical, Image as ImageIcon } from "lucide-react";
 import { RichTextEditor } from "@/components/forms/RichTextEditor";
+import { api } from "@/services/api";
 
 export default function EditCaseStudyPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -16,6 +17,11 @@ export default function EditCaseStudyPage({ params }: { params: Promise<{ id: st
   const [clientName, setClientName] = useState(isNew ? "" : "Aura Apparel");
   const [industry, setIndustry] = useState(isNew ? "" : "E-Commerce");
   const [summary, setSummary] = useState(isNew ? "" : "How we leveraged full-funnel Meta Ads...");
+  const [challenge, setChallenge] = useState(isNew ? "" : "The brand needed a scalable acquisition strategy.");
+  const [solution, setSolution] = useState(isNew ? "" : "We deployed a full-funnel paid media strategy.");
+  const [results, setResults] = useState(isNew ? "" : "Revenue increased by 300%.");
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState<string | null>(null);
 
   // Arrays State
   const [metrics, setMetrics] = useState(
@@ -29,6 +35,30 @@ export default function EditCaseStudyPage({ params }: { params: Promise<{ id: st
       { id: "1", title: "Discovery & Audit", description: "Deep dive into accounts." }
     ]
   );
+
+  const handleSave = async (status: "DRAFT" | "PUBLISHED") => {
+    if (![title, summary, challenge, solution, results, clientName].every((field) => field.trim())) {
+      setSaveMessage("Complete the title, client, summary, challenge, solution, and results before saving.");
+      return;
+    }
+
+    setIsSaving(true);
+    setSaveMessage(null);
+    const payload = { title, summary, challenge, solution, results, clientName, industry: industry || undefined, status };
+    try {
+      if (isNew) {
+        await api.caseStudies.create(payload);
+      } else {
+        await api.caseStudies.update(resolvedParams.id, payload);
+      }
+      setSaveMessage(status === "PUBLISHED" ? "Case study published." : "Draft saved.");
+      router.push("/case-studies");
+    } catch (error) {
+      setSaveMessage(error instanceof Error ? error.message : "Failed to save case study");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <div className="p-6 md:p-8 max-w-5xl mx-auto space-y-8 pb-32">
@@ -47,15 +77,17 @@ export default function EditCaseStudyPage({ params }: { params: Promise<{ id: st
         </div>
         
         <div className="flex items-center gap-3">
-          <button className="px-4 py-2 text-sm font-medium text-white hover:bg-white/5 rounded-lg transition-colors border border-white/10">
-            Save Draft
+          <button onClick={() => handleSave("DRAFT")} disabled={isSaving} className="px-4 py-2 text-sm font-medium text-white hover:bg-white/5 rounded-lg transition-colors border border-white/10 disabled:opacity-50">
+            {isSaving ? "Saving..." : "Save Draft"}
           </button>
-          <button className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 shadow-[0_0_15px_rgba(var(--primary-rgb),0.3)]">
+          <button onClick={() => handleSave("PUBLISHED")} disabled={isSaving} className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 shadow-[0_0_15px_rgba(var(--primary-rgb),0.3)] disabled:opacity-50">
             <Save className="w-4 h-4" />
             Publish
           </button>
         </div>
       </div>
+
+      {saveMessage && <p role="status" className="rounded-lg border border-white/10 bg-white/5 p-3 text-sm text-gray-300">{saveMessage}</p>}
 
       {/* Basic Info Section */}
       <section className="bg-surface border border-white/5 rounded-xl p-6 space-y-6">
@@ -121,16 +153,17 @@ export default function EditCaseStudyPage({ params }: { params: Promise<{ id: st
         
         <div className="space-y-4">
           <label className="text-sm font-medium text-gray-400">The Challenge</label>
-          <div className="h-48 border border-white/10 rounded-lg bg-background p-4 flex items-center justify-center text-muted-foreground italic">
-            [Rich Text Editor Component Placeholder]
-          </div>
+          <RichTextEditor value={challenge} onChange={setChallenge} placeholder="Describe the client's challenge..." />
         </div>
         
         <div className="space-y-4 pt-4">
           <label className="text-sm font-medium text-gray-400">Our Strategy</label>
-          <div className="h-48 border border-white/10 rounded-lg bg-background p-4 flex items-center justify-center text-muted-foreground italic">
-            [Rich Text Editor Component Placeholder]
-          </div>
+          <RichTextEditor value={solution} onChange={setSolution} placeholder="Describe the strategy and solution..." />
+        </div>
+
+        <div className="space-y-4 pt-4">
+          <label className="text-sm font-medium text-gray-400">Results</label>
+          <RichTextEditor value={results} onChange={setResults} placeholder="Describe the measurable outcomes..." />
         </div>
       </section>
 

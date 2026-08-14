@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { X, UploadCloud, File, AlertCircle, CheckCircle2 } from "lucide-react";
+import { X, UploadCloud, File, CheckCircle2 } from "lucide-react";
 import { cn } from "@/utils/utils";
 
 interface UploadModalProps {
@@ -112,7 +112,7 @@ export function UploadModal({ isOpen, onClose, onUpload }: UploadModalProps) {
                 </div>
                 <h3 className="text-lg font-bold text-white mb-2">Drag & Drop files here</h3>
                 <p className="text-sm text-gray-400 mb-6">Support for images, videos, PDFs, and archives.</p>
-                <button className="px-6 py-2 rounded-lg bg-white/10 text-white font-medium hover:bg-white/20 transition-colors">
+                <button type="button" onClick={(event) => { event.stopPropagation(); inputRef.current?.click(); }} className="px-6 py-2 rounded-lg bg-white/10 text-white font-medium hover:bg-white/20 transition-colors">
                   Browse Files
                 </button>
               </div>

@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Plus, Trash2, GripVertical } from "lucide-react";
-import { cn } from "@/utils/utils";
 
 interface StatItem {
   id: string;
@@ -59,9 +58,9 @@ export function StatsEditor({ initialData = [], onChange }: StatsEditorProps) {
       <div className="space-y-3">
         {items.map((item) => (
           <div key={item.id} className="flex items-start gap-3 p-4 bg-black/40 border border-white/10 rounded-xl group">
-            <button type="button" className="mt-2 text-gray-500 cursor-move hover:text-white transition-colors">
+            <div aria-hidden="true" className="mt-2 text-gray-500">
               <GripVertical className="w-5 h-5" />
-            </button>
+            </div>
             
             <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="space-y-1">

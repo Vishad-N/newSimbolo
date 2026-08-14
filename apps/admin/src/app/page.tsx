@@ -1,7 +1,8 @@
 "use client";
 
-import { Activity, Users, FileText, Briefcase, Eye, Clock, ArrowUpRight } from "lucide-react";
-import { cn } from "@/utils/utils";
+import { Users, FileText, Briefcase, Eye, Clock, ArrowUpRight } from "lucide-react";
+import { getWebsiteUrl } from "@/utils/utils";
+import Link from "next/link";
 
 const stats = [
   { name: "Total Services", value: "8", icon: Briefcase, change: "+2 from last month" },
@@ -17,6 +18,13 @@ const recentActivity = [
   { id: 4, action: "Updated Global SEO Settings", user: "Admin", time: "2 days ago" },
 ];
 
+const quickActions = [
+  { label: "Edit Homepage Hero", href: "/homepage" },
+  { label: "Add New Package", href: "/packages" },
+  { label: "Upload to Media Library", href: "/media" },
+  { label: "Update SEO Meta Tags", href: "/seo" },
+];
+
 export default function DashboardPage() {
   return (
     <div className="space-y-6">
@@ -26,12 +34,12 @@ export default function DashboardPage() {
           <p className="text-sm text-gray-400">Welcome back! Here's what's happening with your website today.</p>
         </div>
         <div className="flex gap-3">
-          <button className="px-4 py-2 bg-white/5 hover:bg-white/10 text-white text-sm font-medium rounded-lg transition-colors border border-white/10">
+          <a href={getWebsiteUrl()} target="_blank" rel="noreferrer" className="px-4 py-2 bg-white/5 hover:bg-white/10 text-white text-sm font-medium rounded-lg transition-colors border border-white/10">
             View Website
-          </button>
-          <button className="px-4 py-2 bg-primary hover:bg-primary-hover text-white text-sm font-medium rounded-lg transition-colors shadow-[0_0_15px_var(--primary-glow)]">
+          </a>
+          <Link href="/homepage" className="px-4 py-2 bg-primary hover:bg-primary-hover text-white text-sm font-medium rounded-lg transition-colors shadow-[0_0_15px_var(--primary-glow)]">
             Create New Page
-          </button>
+          </Link>
         </div>
       </div>
 
@@ -89,19 +97,15 @@ export default function DashboardPage() {
         <div className="glass-card rounded-xl p-6">
           <h2 className="text-lg font-heading font-bold text-white mb-6">Quick Actions</h2>
           <div className="flex flex-col gap-3">
-            {[
-              "Edit Homepage Hero",
-              "Add New Package",
-              "Upload to Media Library",
-              "Update SEO Meta Tags"
-            ].map((action, idx) => (
-              <button 
-                key={idx}
+            {quickActions.map((action) => (
+              <Link
+                key={action.href}
+                href={action.href}
                 className="w-full flex items-center justify-between p-3 rounded-lg border border-white/5 bg-white/[0.02] hover:bg-white/[0.05] hover:border-white/10 transition-all group text-left"
               >
-                <span className="text-sm font-medium text-gray-300 group-hover:text-white">{action}</span>
+                <span className="text-sm font-medium text-gray-300 group-hover:text-white">{action.label}</span>
                 <ArrowUpRight className="w-4 h-4 text-gray-500 group-hover:text-primary transition-colors" />
-              </button>
+              </Link>
             ))}
           </div>
         </div>

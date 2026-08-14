@@ -55,9 +55,9 @@ export function TimelineEditor({ initialData = [], onChange }: TimelineEditorPro
         {steps.map((step, index) => (
           <div key={step.id} className="flex items-start gap-4 p-4 bg-black/40 border border-white/10 rounded-xl relative group">
             <div className="flex flex-col items-center mt-1">
-              <button type="button" className="text-gray-500 cursor-move hover:text-white transition-colors mb-2">
+              <div aria-hidden="true" className="text-gray-500 mb-2">
                 <GripVertical className="w-4 h-4" />
-              </button>
+              </div>
               <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-sm font-bold text-gray-400">
                 {index + 1}
               </div>

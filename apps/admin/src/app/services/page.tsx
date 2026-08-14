@@ -7,6 +7,7 @@ import { TimelineEditor } from "@/components/editors/TimelineEditor";
 import { StatsEditor } from "@/components/editors/StatsEditor";
 import { GallerySelector } from "@/components/editors/GallerySelector";
 import { Layers, Eye } from "lucide-react";
+import { getWebsiteUrl } from "@/utils/utils";
 
 export default function ServicesOverviewEditor() {
   return (
@@ -19,9 +20,9 @@ export default function ServicesOverviewEditor() {
           </h1>
           <p className="text-sm text-gray-400">Configure the main services index page.</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 text-white text-sm font-medium rounded-lg transition-colors border border-white/10">
+        <a href={getWebsiteUrl("/services")} target="_blank" rel="noreferrer" className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 text-white text-sm font-medium rounded-lg transition-colors border border-white/10">
           <Eye className="w-4 h-4" /> Preview Live
-        </button>
+        </a>
       </div>
 
       <SectionEditor title="Hero Section" defaultExpanded={true}>

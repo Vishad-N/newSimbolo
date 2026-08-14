@@ -3,6 +3,7 @@
 import { use } from "react";
 import { LayoutTemplate, Eye } from "lucide-react";
 import { ServicePageConfigEditor } from "@/components/editors/ServicePageConfigEditor";
+import { getWebsiteUrl } from "@/utils/utils";
 import Link from "next/link";
 
 export default function IndividualServiceEditor({ params }: { params: Promise<{ slug: string }> }) {
@@ -21,7 +22,7 @@ export default function IndividualServiceEditor({ params }: { params: Promise<{ 
           <p className="text-sm text-gray-400">Configure marketing content for the {title} landing page.</p>
         </div>
         <Link 
-          href={`http://localhost:3000/services/${resolvedParams.slug}`}
+          href={getWebsiteUrl(`/services/${resolvedParams.slug}`)}
           target="_blank"
           className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 text-white text-sm font-medium rounded-lg transition-colors border border-white/10"
         >

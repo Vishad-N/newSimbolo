@@ -6,6 +6,7 @@ import { SEOEditor } from "@/components/editors/SEOEditor";
 import { StatsEditor } from "@/components/editors/StatsEditor";
 import { GallerySelector } from "@/components/editors/GallerySelector";
 import { Home, Eye } from "lucide-react";
+import { getWebsiteUrl } from "@/utils/utils";
 
 export default function HomepageEditor() {
   return (
@@ -18,9 +19,9 @@ export default function HomepageEditor() {
           </h1>
           <p className="text-sm text-gray-400">Configure the landing page of the website.</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 text-white text-sm font-medium rounded-lg transition-colors border border-white/10">
+        <a href={getWebsiteUrl()} target="_blank" rel="noreferrer" className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 text-white text-sm font-medium rounded-lg transition-colors border border-white/10">
           <Eye className="w-4 h-4" /> Preview Live
-        </button>
+        </a>
       </div>
 
       <SectionEditor 

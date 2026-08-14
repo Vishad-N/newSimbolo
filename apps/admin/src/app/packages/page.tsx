@@ -5,6 +5,29 @@ import { DataTable } from "@/components/DataTable";
 import { Plus, Package as PackageIcon, RefreshCw, Trash, X } from "lucide-react";
 import { api } from "@/services/api";
 
+interface ServiceOption {
+  id: string;
+  name: string;
+  shortDescription?: string;
+}
+
+interface PackageApiRecord {
+  id: string;
+  name: string;
+  type?: PackageTier;
+  basePrice?: number;
+  isPopular?: boolean;
+  isAddon?: boolean;
+  serviceId?: string;
+  service?: {
+    id?: string;
+    name?: string;
+  };
+}
+
+type PackageTier = "STARTER" | "PROFESSIONAL" | "ENTERPRISE" | "CUSTOM";
+type ServiceType = "RETAINER" | "ONE_TIME" | "HOURLY" | "CONSULTING" | "CUSTOM";
+
 interface PackageData {
   id: string;
   name: string;
@@ -12,17 +35,65 @@ interface PackageData {
   price: string;
   serviceName: string;
   featured: boolean;
+  serviceId: string;
+  basePrice: number;
+  isAddon: boolean;
 }
+
+interface PackageFormData {
+  name: string;
+  serviceId: string;
+  basePrice: number;
+  type: PackageTier;
+  isPopular: boolean;
+  isAddon: boolean;
+}
+
+interface ServiceFormData {
+  name: string;
+  shortDescription: string;
+  type: ServiceType;
+  basePrice: number;
+}
+
+const emptyPackageForm: PackageFormData = { name: "", serviceId: "", basePrice: 0, type: "STARTER", isPopular: false, isAddon: false };
+const emptyServiceForm: ServiceFormData = { name: "", shortDescription: "", type: "RETAINER", basePrice: 0 };
+
+const normalizeApiList = <T,>(response: unknown): T[] => {
+  if (Array.isArray(response)) return response as T[];
+  if (!response || typeof response !== "object") return [];
+
+  const responseRecord = response as { data?: unknown; items?: unknown };
+  if (Array.isArray(responseRecord.data)) return responseRecord.data as T[];
+  if (Array.isArray(responseRecord.items)) return responseRecord.items as T[];
+
+  if (responseRecord.data && typeof responseRecord.data === "object") {
+    const dataRecord = responseRecord.data as { data?: unknown; items?: unknown };
+    if (Array.isArray(dataRecord.data)) return dataRecord.data as T[];
+    if (Array.isArray(dataRecord.items)) return dataRecord.items as T[];
+  }
+
+  return [];
+};
+
+const getErrorMessage = (error: unknown, fallback: string) => {
+  return error instanceof Error ? error.message : fallback;
+};
 
 export default function PackagesPage() {
   const [data, setData] = useState<PackageData[]>([]);
-  const [services, setServices] = useState<any[]>([]);
+  const [services, setServices] = useState<ServiceOption[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newPkg, setNewPkg] = useState({ name: "", serviceId: "", basePrice: 0, type: "STARTER", isPopular: false, isAddon: false });
+  const [editingPackageId, setEditingPackageId] = useState<string | null>(null);
+  const [newPkg, setNewPkg] = useState<PackageFormData>(emptyPackageForm);
+  const [isServiceFormOpen, setIsServiceFormOpen] = useState(false);
+  const [newService, setNewService] = useState<ServiceFormData>(emptyServiceForm);
+  const [isCreatingService, setIsCreatingService] = useState(false);
+  const [modalError, setModalError] = useState<string | null>(null);
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -31,23 +102,25 @@ export default function PackagesPage() {
       const [pkgRes, srvRes] = await Promise.all([
         api.packages.getAll(),
         api.services.getAll()
-      ]) as [any, any];
+      ]);
       
-      setServices(srvRes.data || srvRes);
+      setServices(normalizeApiList<ServiceOption>(srvRes));
 
-      const mappedData: PackageData[] = (pkgRes.data || pkgRes).map((pkg: any) => ({
+      const mappedData: PackageData[] = normalizeApiList<PackageApiRecord>(pkgRes).map((pkg) => ({
         id: pkg.id,
         name: pkg.name,
         type: pkg.type || "N/A",
-        price: `₹${pkg.basePrice?.toLocaleString() || 0}`,
+        price: `INR ${pkg.basePrice?.toLocaleString() || 0}`,
         serviceName: pkg.service?.name || "Unknown Service",
         featured: pkg.isPopular || false,
+        serviceId: pkg.serviceId || pkg.service?.id || "",
+        basePrice: Number(pkg.basePrice) || 0,
         isAddon: pkg.isAddon || false,
       }));
       setData(mappedData);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      setError(err.message || "Failed to fetch data");
+      setError(getErrorMessage(err, "Failed to fetch data"));
     } finally {
       setIsLoading(false);
     }
@@ -62,15 +135,66 @@ export default function PackagesPage() {
     try {
       await api.packages.delete(id);
       fetchData();
-    } catch (err: any) {
-      alert("Failed to delete package: " + err.message);
+    } catch (err: unknown) {
+      alert("Failed to delete package: " + getErrorMessage(err, "Unknown error"));
     }
   };
 
-  const handleCreate = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const openCreateModal = () => {
+    setEditingPackageId(null);
+    setNewPkg(emptyPackageForm);
+    setNewService(emptyServiceForm);
+    setIsServiceFormOpen(services.length === 0);
+    setModalError(null);
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (item: PackageData) => {
+    setEditingPackageId(item.id);
+    setNewPkg({ name: item.name, serviceId: item.serviceId, basePrice: item.basePrice, type: item.type as PackageTier, isPopular: item.featured, isAddon: item.isAddon });
+    setNewService(emptyServiceForm);
+    setIsServiceFormOpen(false);
+    setModalError(null);
+    setIsModalOpen(true);
+  };
+
+  const handleCreateService = async () => {
+    if (!newService.name.trim() || !newService.shortDescription.trim()) {
+      setModalError("Service name and short description are required.");
+      return;
+    }
+
+    setIsCreatingService(true);
+    setModalError(null);
     try {
-      await api.packages.create({
+      const createdService = await api.services.create({
+        name: newService.name.trim(),
+        shortDescription: newService.shortDescription.trim(),
+        type: newService.type,
+        basePrice: Number(newService.basePrice),
+      }) as ServiceOption;
+
+      setServices((currentServices) => [...currentServices, createdService].sort((a, b) => a.name.localeCompare(b.name)));
+      setNewPkg((currentPackage) => ({ ...currentPackage, serviceId: createdService.id }));
+      setNewService(emptyServiceForm);
+      setIsServiceFormOpen(false);
+    } catch (err: unknown) {
+      setModalError(getErrorMessage(err, "Failed to create service"));
+    } finally {
+      setIsCreatingService(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newPkg.serviceId) {
+      setModalError("Create or select a linked service before saving the package.");
+      return;
+    }
+
+    setModalError(null);
+    try {
+      const payload = {
         name: newPkg.name,
         serviceId: newPkg.serviceId,
         basePrice: Number(newPkg.basePrice),
@@ -78,12 +202,20 @@ export default function PackagesPage() {
         isPopular: newPkg.isPopular,
         isAddon: newPkg.isAddon,
         billingInterval: "monthly"
-      });
+      };
+      if (editingPackageId) {
+        await api.packages.update(editingPackageId, payload);
+      } else {
+        await api.packages.create(payload);
+      }
       setIsModalOpen(false);
-      setNewPkg({ name: "", serviceId: "", basePrice: 0, type: "STARTER", isPopular: false, isAddon: false });
+      setEditingPackageId(null);
+      setNewPkg(emptyPackageForm);
+      setNewService(emptyServiceForm);
+      setIsServiceFormOpen(false);
       fetchData();
-    } catch (err: any) {
-      alert("Failed to create package: " + err.message);
+    } catch (err: unknown) {
+      setModalError(`Failed to ${editingPackageId ? "update" : "create"} package: ${getErrorMessage(err, "Unknown error")}`);
     }
   };
 
@@ -106,7 +238,7 @@ export default function PackagesPage() {
     {
       key: "isAddon",
       header: "Type",
-      render: (item: any) => (
+      render: (item: PackageData) => (
         <span className={`px-2 py-1 text-xs font-medium rounded-full ${
           item.isAddon ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
         }`}>
@@ -150,7 +282,7 @@ export default function PackagesPage() {
             <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
             Refresh
           </button>
-          <button onClick={() => setIsModalOpen(true)} className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-hover text-white text-sm font-medium rounded-lg transition-colors shadow-[0_0_15px_var(--primary-glow)]">
+          <button onClick={openCreateModal} className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-hover text-white text-sm font-medium rounded-lg transition-colors shadow-[0_0_15px_var(--primary-glow)]">
             <Plus className="w-4 h-4" />
             New Package
           </button>
@@ -180,49 +312,85 @@ export default function PackagesPage() {
         <DataTable 
           columns={columns} 
           data={data}
-          onEdit={(item) => alert("Edit package functionality coming soon")}
+          onEdit={openEditModal}
         />
       )}
 
       {/* CREATE MODAL */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="bg-[#0B0F19] border border-white/10 p-6 rounded-xl w-full max-w-md shadow-2xl">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-white">Create New Package</h2>
-              <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-white"><X className="w-5 h-5"/></button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/60 p-4 backdrop-blur-sm">
+          <div role="dialog" aria-modal="true" aria-labelledby="package-modal-title" className="flex max-h-[calc(100dvh-2rem)] w-full max-w-md flex-col overflow-hidden rounded-xl border border-white/10 bg-background shadow-2xl">
+            <div className="flex shrink-0 items-center justify-between border-b border-white/10 p-6">
+              <h2 id="package-modal-title" className="text-xl font-bold text-white">{editingPackageId ? "Edit Package" : "Create New Package"}</h2>
+              <button type="button" aria-label="Close package form" onClick={() => setIsModalOpen(false)} className="rounded-lg p-2 text-gray-400 transition-colors hover:bg-white/5 hover:text-white"><X className="w-5 h-5"/></button>
             </div>
-            <form onSubmit={handleCreate} className="space-y-4">
+            <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+              <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-6">
               <div>
                 <label className="block text-sm text-gray-400 mb-1">Package Name</label>
                 <input required type="text" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white" value={newPkg.name} onChange={e => setNewPkg({...newPkg, name: e.target.value})} placeholder="e.g. Growth Pro" />
               </div>
               <div>
-                <label className="block text-sm text-gray-400 mb-1">Linked Service</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-sm text-gray-400">Linked Service</label>
+                  <button type="button" onClick={() => setIsServiceFormOpen((isOpen) => !isOpen)} className="text-xs font-medium text-primary hover:text-primary-hover">
+                    {isServiceFormOpen ? "Hide service form" : "Add Service"}
+                  </button>
+                </div>
                 <select required className="w-full bg-[#1A1F2E] border border-white/10 rounded-lg px-4 py-2 text-white appearance-none" value={newPkg.serviceId} onChange={e => setNewPkg({...newPkg, serviceId: e.target.value})}>
-                  <option value="">-- Select Service --</option>
+                  <option value="">{services.length > 0 ? "-- Select Service --" : "No services yet - add one below"}</option>
                   {services.map(s => (
                     <option key={s.id} value={s.id}>{s.name}</option>
                   ))}
                 </select>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              {isServiceFormOpen && (
+                <div className="space-y-3 rounded-lg border border-white/10 bg-white/5 p-4">
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-1">Service Name</label>
+                    <input type="text" className="w-full bg-background border border-white/10 rounded-lg px-4 py-2 text-white" value={newService.name} onChange={e => setNewService({...newService, name: e.target.value})} placeholder="e.g. SEO" />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-1">Short Description</label>
+                    <textarea rows={2} className="w-full bg-background border border-white/10 rounded-lg px-4 py-2 text-white resize-none" value={newService.shortDescription} onChange={e => setNewService({...newService, shortDescription: e.target.value})} placeholder="Briefly describe this service" />
+                  </div>
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-1">Service Type</label>
+                      <select className="w-full bg-[#1A1F2E] border border-white/10 rounded-lg px-4 py-2 text-white appearance-none" value={newService.type} onChange={e => setNewService({...newService, type: e.target.value as ServiceType})}>
+                        <option value="RETAINER">Retainer</option>
+                        <option value="ONE_TIME">One-time</option>
+                        <option value="HOURLY">Hourly</option>
+                        <option value="CONSULTING">Consulting</option>
+                        <option value="CUSTOM">Custom</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-1">Starting Price</label>
+                      <input type="number" min="0" className="w-full bg-background border border-white/10 rounded-lg px-4 py-2 text-white" value={newService.basePrice} onChange={e => setNewService({...newService, basePrice: parseInt(e.target.value) || 0})} />
+                    </div>
+                  </div>
+                  <button type="button" onClick={handleCreateService} disabled={isCreatingService} className="w-full px-4 py-2 bg-white/10 hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors">
+                    {isCreatingService ? "Creating Service..." : "Create Service and Select"}
+                  </button>
+                </div>
+              )}
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
-                  <label className="block text-sm text-gray-400 mb-1">Base Price (₹)</label>
+                  <label className="block text-sm text-gray-400 mb-1">Base Price (INR)</label>
                   <input required type="number" min="0" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white" value={newPkg.basePrice} onChange={e => setNewPkg({...newPkg, basePrice: parseInt(e.target.value) || 0})} />
                 </div>
                 <div>
                   <label className="block text-sm text-gray-400 mb-1">Tier</label>
-                  <select className="w-full bg-[#1A1F2E] border border-white/10 rounded-lg px-4 py-2 text-white appearance-none" value={newPkg.type} onChange={e => setNewPkg({...newPkg, type: e.target.value})}>
+                  <select className="w-full bg-[#1A1F2E] border border-white/10 rounded-lg px-4 py-2 text-white appearance-none" value={newPkg.type} onChange={e => setNewPkg({...newPkg, type: e.target.value as PackageTier})}>
                     <option value="STARTER">Starter</option>
-                    <option value="GROWTH">Growth</option>
-                    <option value="PREMIUM">Premium</option>
+                    <option value="PROFESSIONAL">Professional</option>
                     <option value="ENTERPRISE">Enterprise</option>
                     <option value="CUSTOM">Custom</option>
                   </select>
                 </div>
               </div>
-              <div className="flex items-center gap-6 pt-2">
+              <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:flex-wrap sm:gap-6">
                 <div className="flex items-center gap-2">
                   <input type="checkbox" id="popular" checked={newPkg.isPopular} onChange={e => setNewPkg({...newPkg, isPopular: e.target.checked})} className="w-4 h-4 rounded bg-white/5 border-white/10 text-primary focus:ring-primary/20" />
                   <label htmlFor="popular" className="text-sm text-gray-400">Mark as Popular</label>
@@ -232,9 +400,15 @@ export default function PackagesPage() {
                   <label htmlFor="addon" className="text-sm text-gray-400 font-medium">Is this a Service Add-on?</label>
                 </div>
               </div>
-              <div className="flex justify-end gap-3 mt-6">
+              {modalError && (
+                <div className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-2 text-sm text-red-400">
+                  {modalError}
+                </div>
+              )}
+              </div>
+              <div className="flex shrink-0 justify-end gap-3 border-t border-white/10 p-6">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors">Cancel</button>
-                <button type="submit" className="px-4 py-2 bg-primary hover:bg-primary-hover text-white text-sm font-medium rounded-lg transition-colors">Create Package</button>
+                <button type="submit" className="px-4 py-2 bg-primary hover:bg-primary-hover text-white text-sm font-medium rounded-lg transition-colors">{editingPackageId ? "Save Package" : "Create Package"}</button>
               </div>
             </form>
           </div>

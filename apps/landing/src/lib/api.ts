@@ -41,7 +41,7 @@ export const landingApi = {
 
   getPackages: async (fallbackData: any, serviceId?: string) => {
     const endpoint = serviceId ? `/packages?serviceId=${encodeURIComponent(serviceId)}` : '/packages';
-    return fetchPublicApi(endpoint, fallbackData, 60);
+    return fetchPublicApi(endpoint, fallbackData, 0);
   },
   
   getBlogs: async (fallbackData: any, categoryId?: string, isFeatured?: boolean) => {

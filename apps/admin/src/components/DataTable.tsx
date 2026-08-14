@@ -1,7 +1,6 @@
 "use client";
 
 import { ReactNode } from "react";
-import { cn } from "@/utils/utils";
 import { ChevronLeft, ChevronRight, MoreVertical, Edit2, Trash2, Copy } from "lucide-react";
 import { useState } from "react";
 
@@ -158,10 +157,10 @@ export function DataTable<T extends { id: string | number }>({
       <div className="px-6 py-4 border-t border-white/5 flex items-center justify-between text-sm text-gray-400 bg-white/[0.01]">
         <span>Showing {data.length > 0 ? 1 : 0} to {data.length} of {data.length} entries</span>
         <div className="flex gap-2">
-          <button className="p-1 rounded hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed">
+          <button type="button" disabled aria-label="Previous page" title="All results are shown on one page" className="p-1 rounded hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed">
             <ChevronLeft className="w-4 h-4" />
           </button>
-          <button className="p-1 rounded hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed">
+          <button type="button" disabled aria-label="Next page" title="All results are shown on one page" className="p-1 rounded hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed">
             <ChevronRight className="w-4 h-4" />
           </button>
         </div>
