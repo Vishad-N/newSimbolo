@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { DataTable } from "@/components/DataTable";
+import { PackageIllustrationSelect } from "@/components/packages/PackageIllustrationSelect";
 import { Plus, Package as PackageIcon, RefreshCw, Trash, X } from "lucide-react";
 import { api } from "@/services/api";
-import { PACKAGE_ILLUSTRATION_OPTIONS } from "./packageIllustrations";
 
 interface ServiceOption {
   id: string;
@@ -172,7 +172,7 @@ export default function PackagesPage() {
     setNewPkg({
       name: item.name,
       description: item.description,
-      illustration: item.illustration,
+      illustration: item.isAddon ? "" : item.illustration,
       serviceId: item.serviceId,
       basePrice: item.basePrice,
       type: item.type as PackageTier,
@@ -218,7 +218,7 @@ export default function PackagesPage() {
       setModalError("Create or select a linked service before saving the package.");
       return;
     }
-    if (!newPkg.illustration) {
+    if (!newPkg.isAddon && !newPkg.illustration) {
       setModalError("Select one of the available package illustrations before saving.");
       return;
     }
@@ -228,7 +228,7 @@ export default function PackagesPage() {
       const payload = {
         name: newPkg.name,
         description: newPkg.description.trim(),
-        illustration: newPkg.illustration,
+        illustration: newPkg.isAddon ? null : newPkg.illustration,
         serviceId: newPkg.serviceId,
         basePrice: Number(newPkg.basePrice),
         type: newPkg.type,
@@ -412,16 +412,13 @@ export default function PackagesPage() {
                   </button>
                 </div>
               )}
-              <div>
-                <label className="block text-sm text-gray-400 mb-1">Package Illustration</label>
-                <select required className="w-full appearance-none rounded-lg border border-white/10 bg-background px-4 py-2 text-white" value={newPkg.illustration} onChange={e => setNewPkg({...newPkg, illustration: e.target.value})}>
-                  <option value="">-- Select Existing Illustration --</option>
-                  {PACKAGE_ILLUSTRATION_OPTIONS.map((illustration) => (
-                    <option key={illustration.path} value={illustration.path}>{illustration.label}</option>
-                  ))}
-                </select>
-                <p className="mt-1 text-xs text-gray-500">Choose from the illustrations already included with the landing website.</p>
-              </div>
+              {!newPkg.isAddon && (
+                <div>
+                  <label className="block text-sm text-gray-400 mb-1">Package Illustration</label>
+                  <PackageIllustrationSelect value={newPkg.illustration} onChange={(illustration) => setNewPkg({...newPkg, illustration})} />
+                  <p className="mt-1 text-xs text-gray-500">Choose from the illustrations already included with the landing website.</p>
+                </div>
+              )}
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <label className="block text-sm text-gray-400 mb-1">Base Price (INR)</label>
@@ -443,7 +440,14 @@ export default function PackagesPage() {
                   <label htmlFor="popular" className="text-sm text-gray-400">Mark as Popular</label>
                 </div>
                 <div className="flex items-center gap-2">
-                  <input type="checkbox" id="addon" checked={newPkg.isAddon} onChange={e => setNewPkg({...newPkg, isAddon: e.target.checked})} className="w-4 h-4 rounded bg-white/5 border-white/10 text-purple-500 focus:ring-purple-500/20" />
+                  <input type="checkbox" id="addon" checked={newPkg.isAddon} onChange={e => {
+                    const isAddon = e.target.checked;
+                    setNewPkg((currentPackage) => ({
+                      ...currentPackage,
+                      isAddon,
+                      illustration: isAddon ? "" : currentPackage.illustration,
+                    }));
+                  }} className="w-4 h-4 rounded bg-white/5 border-white/10 text-purple-500 focus:ring-purple-500/20" />
                   <label htmlFor="addon" className="text-sm text-gray-400 font-medium">Is this a Service Add-on?</label>
                 </div>
               </div>

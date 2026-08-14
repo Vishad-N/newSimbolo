@@ -19,13 +19,14 @@ export class CreatePackageDto {
 
   @ApiPropertyOptional({
     enum: PACKAGE_ILLUSTRATION_PATHS,
+    nullable: true,
     example: '/images/services/seo.png',
     description: 'Illustration bundled with the landing website',
   })
   @IsOptional()
   @IsString()
   @IsIn(PACKAGE_ILLUSTRATION_PATHS)
-  illustration?: string;
+  illustration?: string | null;
 
   @ApiPropertyOptional({ enum: PackageTypeEnum, default: PackageTypeEnum.STARTER })
   @IsOptional()

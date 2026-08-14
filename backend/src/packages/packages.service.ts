@@ -69,7 +69,7 @@ export class PackagesService extends BaseService {
         name: dto.name,
         slug,
         description: dto.description || null,
-        illustration: dto.illustration || null,
+        illustration: dto.isAddon ? null : dto.illustration || null,
         type: dto.type || 'STARTER',
         serviceId: dto.serviceId,
         basePrice: dto.basePrice !== undefined ? dto.basePrice : 0.0,
@@ -104,12 +104,16 @@ export class PackagesService extends BaseService {
       }
     }
 
+    const willBeAddon = dto.isAddon ?? pkg.isAddon;
+
     return this.prisma.package.update({
       where: { id },
       data: {
         ...(dto.name !== undefined && { name: dto.name, slug }),
         ...(dto.description !== undefined && { description: dto.description }),
-        ...(dto.illustration !== undefined && { illustration: dto.illustration }),
+        ...(willBeAddon
+          ? { illustration: null }
+          : dto.illustration !== undefined && { illustration: dto.illustration }),
         ...(dto.type !== undefined && { type: dto.type }),
         ...(dto.serviceId !== undefined && { serviceId: dto.serviceId }),
         ...(dto.basePrice !== undefined && { basePrice: dto.basePrice }),
