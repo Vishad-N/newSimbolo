@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowRight, Mail, Lock, User, Phone, Building2, Loader2, CheckCircle2, X } from "lucide-react";
+import { ArrowRight, Mail, Lock, User, Building2, Loader2, CheckCircle2, X } from "lucide-react";
+import { PhoneNumberFields } from "@/components/ui/PhoneNumberFields";
+import { normalizeEmail, sanitizeNameInput, validatePersonName, validatePhone } from "@/lib/validation";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api/v1";
@@ -107,7 +109,7 @@ function LoginModal({ onClose }: { onClose: () => void }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          email: String(formData.get("email") || "").trim(),
+          email: normalizeEmail(String(formData.get("email") || "")),
           password: String(formData.get("password") || ""),
         }),
       });
@@ -267,6 +269,7 @@ function RegisterModal({ onClose }: { onClose: () => void }) {
     firstName: "",
     lastName: "",
     email: "",
+    countryCode: "+91",
     phone: "",
     companyName: "",
     password: "",
@@ -287,9 +290,10 @@ function RegisterModal({ onClose }: { onClose: () => void }) {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
+    const nextValue = name === "firstName" || name === "lastName" ? sanitizeNameInput(value) : value;
     setFormData((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : value,
+      [name]: type === "checkbox" ? checked : nextValue,
     }));
   };
 
@@ -299,6 +303,15 @@ function RegisterModal({ onClose }: { onClose: () => void }) {
 
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords do not match.");
+      return;
+    }
+
+    const firstNameError = validatePersonName(formData.firstName, "First name");
+    const lastNameError = validatePersonName(formData.lastName, "Last name");
+    const phoneError = validatePhone(formData.countryCode, formData.phone, false);
+    const validationError = firstNameError || lastNameError || phoneError;
+    if (validationError) {
+      setError(validationError);
       return;
     }
 
@@ -437,20 +450,12 @@ function RegisterModal({ onClose }: { onClose: () => void }) {
             </div>
           </div>
 
-          <div className="space-y-1">
-            <label className="block text-xs font-medium text-[var(--text-primary)]">Phone Number (Optional)</label>
-            <div className="relative">
-              <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#64748B]" />
-              <input
-                name="phone"
-                value={formData.phone}
-                onChange={handleChange}
-                type="tel"
-                className="w-full rounded-[12px] border border-white/[0.08] bg-white/[0.035] p-3 pl-10 text-sm text-white placeholder:text-[#64748B] transition-colors focus:border-[var(--primary)] focus:bg-white/[0.05] focus:outline-none"
-                placeholder="+1 (555) 000-0000"
-              />
-            </div>
-          </div>
+          <PhoneNumberFields
+            countryCode={formData.countryCode}
+            phone={formData.phone}
+            onCountryCodeChange={(countryCode) => setFormData((previous) => ({ ...previous, countryCode }))}
+            onPhoneChange={(phone) => setFormData((previous) => ({ ...previous, phone }))}
+          />
 
           <div className="space-y-1">
             <label className="block text-xs font-medium text-[var(--text-primary)]">Company Name</label>

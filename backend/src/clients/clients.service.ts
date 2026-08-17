@@ -15,7 +15,7 @@ export class ClientsService extends BaseService {
 
   private readonly clientInclude = {
     user: {
-      select: { id: true, firstName: true, lastName: true, email: true, phone: true, avatarUrl: true, status: true },
+      select: { id: true, firstName: true, lastName: true, email: true, countryCode: true, phone: true, avatarUrl: true, status: true },
     },
     company: {
       select: { id: true, name: true, slug: true, industry: true, logoUrl: true },
@@ -184,6 +184,7 @@ export class ClientsService extends BaseService {
           passwordHash,
           firstName: dto.firstName,
           lastName: dto.lastName,
+          countryCode: dto.countryCode,
           phone: dto.phone,
           status: UserStatusEnum.ACTIVE,
           roleId: clientRole.id,
@@ -194,6 +195,7 @@ export class ClientsService extends BaseService {
           email: true,
           firstName: true,
           lastName: true,
+          countryCode: true,
           phone: true,
           status: true,
           role: { select: { id: true, name: true, slug: true } },

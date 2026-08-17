@@ -293,6 +293,7 @@ model User {
   firstName      String
   lastName       String
   embedding      Unsupported("vector(768)")?
+  countryCode    String?
   phone          String?
   avatarUrl      String? // @deprecated - transitioning to Media
   avatarMediaId  String?                     @db.Uuid
@@ -962,6 +963,7 @@ model Lead {
   firstName String
   lastName  String
   email     String
+  countryCode String?
   phone     String?
   company   String?
   service   String?

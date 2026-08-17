@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Send, CheckCircle2, Loader2 } from "lucide-react";
 import { landingApi } from "@/lib/api";
+import { PhoneNumberFields } from "@/components/ui/PhoneNumberFields";
+import { normalizeEmail, sanitizeNameInput, validatePersonName, validatePhone } from "@/lib/validation";
 
 export function ContactForm() {
   const searchParams = useSearchParams();
@@ -11,27 +13,48 @@ export function ContactForm() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [error, setError] = useState("");
   
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     email: "",
+    countryCode: "+91",
     phone: "",
     company: "",
-    service: defaultService.replace(/-/g, " ").replace(/\b\w/g, l => l.toUpperCase()),
+    service: defaultService.replace(/-/g, " ").replace(/\b\w/g, (letter: string) => letter.toUpperCase()),
     message: "",
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    const { name, value } = e.target;
+    const nextValue = name === "firstName" || name === "lastName" ? sanitizeNameInput(value) : value;
+    setFormData(prev => ({ ...prev, [name]: nextValue }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
+
+    const firstNameError = validatePersonName(formData.firstName, "First name");
+    const lastNameError = validatePersonName(formData.lastName, "Last name");
+    const phoneError = validatePhone(formData.countryCode, formData.phone, true);
+    const validationError = firstNameError || lastNameError || phoneError;
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
     setIsSubmitting(true);
     
     try {
-      await landingApi.submitContactForm(formData);
+      await landingApi.submitContactForm({
+        ...formData,
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
+        email: normalizeEmail(formData.email),
+        message: formData.message.trim(),
+      });
       setIsSuccess(true);
     } catch (error) {
       console.error("Submission error:", error);
@@ -65,6 +88,11 @@ export function ContactForm() {
     <div className="rounded-3xl border border-white/10 bg-white/[0.02] p-8 md:p-10 backdrop-blur-xl shadow-2xl relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-b from-white/[0.04] to-transparent pointer-events-none" />
       <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
+        {error && (
+          <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-300">
+            {error}
+          </div>
+        )}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <div className="space-y-2">
             <label htmlFor="firstName" className="text-sm font-medium text-white/80">First Name *</label>
@@ -108,18 +136,13 @@ export function ContactForm() {
               placeholder="john@company.com"
             />
           </div>
-          <div className="space-y-2">
-            <label htmlFor="phone" className="text-sm font-medium text-white/80">Phone Number</label>
-            <input 
-              type="tel" 
-              id="phone" 
-              name="phone"
-              value={formData.phone}
-              onChange={handleChange}
-              className="w-full rounded-xl bg-black/40 border border-white/10 px-4 py-3.5 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50 focus:border-[var(--primary)] transition-all"
-              placeholder="+1 (555) 000-0000"
-            />
-          </div>
+          <PhoneNumberFields
+            countryCode={formData.countryCode}
+            phone={formData.phone}
+            onCountryCodeChange={(countryCode) => setFormData((previous) => ({ ...previous, countryCode }))}
+            onPhoneChange={(phone) => setFormData((previous) => ({ ...previous, phone }))}
+            required
+          />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">

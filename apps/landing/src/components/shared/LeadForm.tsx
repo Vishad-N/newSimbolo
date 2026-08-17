@@ -3,6 +3,7 @@
 import { ArrowRight } from "lucide-react";
 import { SectionCard } from "@/components/seo/SectionCard";
 import type { ReactNode } from "react";
+import { PhoneNumberFields } from "@/components/ui/PhoneNumberFields";
 
 type LeadFormProps = {
   title?: string;
@@ -10,8 +11,6 @@ type LeadFormProps = {
   buttonText?: string;
   children?: ReactNode;
 };
-
-const defaultFields = ["Your Name", "Email Address", "Phone Number", "Website / Business (Optional)"];
 
 export function LeadForm({ title = "Get Your Free Audit", description = "Submit your details and our expert will analyze your account & share a custom growth plan.", buttonText = "Get Free Audit", children }: LeadFormProps) {
   return (
@@ -22,14 +21,22 @@ export function LeadForm({ title = "Get Your Free Audit", description = "Submit 
         {children ? (
           children
         ) : (
-          defaultFields.map((field) => (
+          <>
+            {["Your Name", "Email Address"].map((field) => (
             <input
               key={field}
               aria-label={field}
               placeholder={field}
               className="h-10 w-full rounded-[8px] border border-white/10 bg-[var(--background)]/44 px-3 text-[0.78rem] text-white outline-none transition placeholder:text-white/42 focus:border-[var(--accent)]/60"
             />
-          ))
+            ))}
+            <PhoneNumberFields compact />
+            <input
+              aria-label="Website or business"
+              placeholder="Website / Business (Optional)"
+              className="h-10 w-full rounded-[8px] border border-white/10 bg-[var(--background)]/44 px-3 text-[0.78rem] text-white outline-none transition placeholder:text-white/42 focus:border-[var(--accent)]/60"
+            />
+          </>
         )}
  <button type="button" className="mt-3 inline-flex h-11 w-full items-center justify-center gap-3 rounded-[8px] bg-[var(--primary)] text-[0.86rem] font-heading font-semibold tracking-[0.2px] normal-case text-[#ffffff] transition hover:bg-[var(--primary-hover)] hover:-translate-y-[2px] hover:shadow-[0_12px_28px_var(--primary-glow)] active:bg-[var(--primary-active)]">
           {buttonText}

@@ -8,7 +8,7 @@ interface RazorpayCheckoutProps {
   amount: number;
   packageName: string;
   packageId: string;
-  profile?: { firstName: string; lastName: string; email: string; phone?: string; companyName?: string; billingAddress?: string; gstNumber?: string; stateCode?: string } | null;
+  profile?: { firstName: string; lastName: string; email: string; countryCode?: string; phone?: string; companyName?: string; billingAddress?: string; gstNumber?: string; stateCode?: string } | null;
   validateBeforePayment?: () => string | null;
   onBeforePayment?: () => Promise<void>;
   onSuccess: () => void;
@@ -126,7 +126,7 @@ export function RazorpayCheckout({ amount, packageName, packageId, profile, vali
         prefill: {
           name: profile ? `${profile.firstName} ${profile.lastName}`.trim() : "",
           email: profile?.email || "",
-          contact: profile?.phone || "",
+          contact: profile?.phone ? `${profile.countryCode || ""}${profile.phone}` : "",
         },
         theme: {
           color: "#2DD4BF", // var(--primary)

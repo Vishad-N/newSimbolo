@@ -12,8 +12,17 @@ import {
   IsUUID,
   Matches,
   MinLength,
+  ValidateIf,
 } from 'class-validator';
 import { SubscriptionIntervalEnum } from '@prisma/client';
+import {
+  COUNTRY_CODE_MESSAGE,
+  COUNTRY_CODE_PATTERN,
+  LOCAL_PHONE_MESSAGE,
+  LOCAL_PHONE_PATTERN,
+} from '../../common/constants/phone.constant';
+import { GST_NUMBER_MESSAGE, GST_NUMBER_PATTERN } from '../../common/constants/gst.constant';
+import { PERSON_NAME_MESSAGE, PERSON_NAME_PATTERN } from '../../common/constants/name.constant';
 
 export class CreateClientWithPlanDto {
   @ApiProperty({ example: 'client@example.com' })
@@ -34,18 +43,29 @@ export class CreateClientWithPlanDto {
   @ApiProperty({ example: 'Client' })
   @IsString()
   @IsNotEmpty()
+  @Matches(PERSON_NAME_PATTERN, { message: `First ${PERSON_NAME_MESSAGE.toLowerCase()}` })
   @Transform(({ value }) => value?.trim())
   firstName!: string;
 
   @ApiProperty({ example: 'Name' })
   @IsString()
   @IsNotEmpty()
+  @Matches(PERSON_NAME_PATTERN, { message: `Last ${PERSON_NAME_MESSAGE.toLowerCase()}` })
   @Transform(({ value }) => value?.trim())
   lastName!: string;
 
-  @ApiPropertyOptional({ example: '+919999999999' })
-  @IsOptional()
+  @ApiPropertyOptional({ example: '+91', description: 'International dialing code' })
+  @ValidateIf((dto: CreateClientWithPlanDto) => dto.phone !== undefined || dto.countryCode !== undefined)
   @IsString()
+  @IsNotEmpty()
+  @Matches(COUNTRY_CODE_PATTERN, { message: COUNTRY_CODE_MESSAGE })
+  countryCode?: string;
+
+  @ApiPropertyOptional({ example: '9999999999', description: '10-digit phone number, without country code' })
+  @ValidateIf((dto: CreateClientWithPlanDto) => dto.phone !== undefined || dto.countryCode !== undefined)
+  @IsString()
+  @IsNotEmpty()
+  @Matches(LOCAL_PHONE_PATTERN, { message: LOCAL_PHONE_MESSAGE })
   phone?: string;
 
   @ApiPropertyOptional({ description: 'Company UUID' })
@@ -61,6 +81,8 @@ export class CreateClientWithPlanDto {
   @ApiPropertyOptional({ example: '29ABCDE1234F1Z5' })
   @IsOptional()
   @IsString()
+  @Transform(({ value }) => value?.trim().toUpperCase())
+  @Matches(GST_NUMBER_PATTERN, { message: GST_NUMBER_MESSAGE })
   gstNumber?: string;
 
   @ApiPropertyOptional({ example: '123 MG Road, Mumbai, Maharashtra 400001' })

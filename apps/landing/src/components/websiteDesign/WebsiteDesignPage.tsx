@@ -22,6 +22,7 @@ import {
   websiteDesignFaqs,
 } from "@/data/services/websiteDesign";
 import { SharedPackage } from "@/types/shared";
+import { PhoneNumberFields } from "@/components/ui/PhoneNumberFields";
 
 interface WebsiteDesignPageProps {
   livePackages?: SharedPackage[];
@@ -82,11 +83,7 @@ export function WebsiteDesignPage({ livePackages, liveProjects, liveConfig }: We
                     placeholder="Email Address"
                     className="h-10 w-full rounded-[8px] border border-white/10 bg-[var(--background)]/44 px-3 text-[0.78rem] text-white outline-none transition placeholder:text-white/42 focus:border-[var(--accent)]/60"
                   />
-                  <input
-                    aria-label="Phone Number"
-                    placeholder="Phone Number"
-                    className="h-10 w-full rounded-[8px] border border-white/10 bg-[var(--background)]/44 px-3 text-[0.78rem] text-white outline-none transition placeholder:text-white/42 focus:border-[var(--accent)]/60"
-                  />
+                  <PhoneNumberFields compact />
                   <select
                     aria-label="Business Type"
                     className="h-10 w-full rounded-[8px] border border-white/10 bg-[var(--background)]/44 px-3 text-[0.78rem] text-white outline-none transition placeholder:text-white/42 focus:border-[var(--accent)]/60 appearance-none"

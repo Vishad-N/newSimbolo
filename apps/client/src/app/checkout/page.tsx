@@ -4,10 +4,50 @@ import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { CreditCard, CheckCircle2, AlertCircle, ShieldCheck, FileText, ArrowRight } from "lucide-react";
 import { RazorpayCheckout } from "@/components/checkout/RazorpayCheckout";
-import { mockApi } from "@/services/api";
+import { mockApi, splitStoredPhone } from "@/services/api";
+import {
+  sanitizeNameInput,
+  sanitizeStateCodeInput,
+  validateOptionalGstNumber,
+  validatePersonName,
+  validateStateCode,
+} from "@/utils/validation";
+
+interface CheckoutPackage {
+  id?: string;
+  name: string;
+  price: number;
+  description: string;
+}
+
+interface BackendPackagePricing {
+  billingPeriod?: string;
+  price?: number;
+}
+
+interface BackendPackage {
+  id?: string;
+  name?: string;
+  basePrice?: number;
+  description?: string;
+  pricings?: BackendPackagePricing[];
+}
+
+interface CheckoutProfile {
+  firstName: string;
+  lastName: string;
+  email: string;
+  countryCode?: string;
+  phone?: string;
+  companyName?: string;
+  billingAddress?: string;
+  gstNumber?: string;
+  stateCode?: string;
+}
 
 // This is mock data for the packages. In a real app, this would come from a backend GET /packages API.
-const packageData: Record<string, any> = {
+const packageData: Record<string, CheckoutPackage> = {
+  "custom": { name: "Custom Package", price: 0, description: "Custom package selected with the Simbolo team." },
   "seo-monthly": { name: "SEO Monthly Growth", price: 7999, description: "Ongoing monthly SEO strategy and execution." },
   "seo-basic": { name: "SEO Basic Plan", price: 5000, description: "Basic SEO package." },
   "seo-standard": { name: "SEO Standard Plan", price: 10000, description: "Standard SEO package." },
@@ -30,8 +70,8 @@ function CheckoutContent() {
   const router = useRouter();
   const packageId = searchParams.get("package") || "custom";
   
-  const [selectedPackage, setSelectedPackage] = useState<any>(null);
-  const [userProfile, setUserProfile] = useState<{ firstName: string; lastName: string; email: string; phone?: string; companyName?: string; billingAddress?: string; gstNumber?: string; stateCode?: string } | null>(null);
+  const [selectedPackage, setSelectedPackage] = useState<CheckoutPackage | null>(null);
+  const [userProfile, setUserProfile] = useState<CheckoutProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSuccess, setIsSuccess] = useState(false);
   const [gstError, setGstError] = useState("");
@@ -46,16 +86,16 @@ function CheckoutContent() {
         if (packageId && packageId !== "custom") {
           const pkgRes = await fetch(`${apiUrl}/packages/${packageId}`);
           if (pkgRes.ok) {
-            const pkgData = await pkgRes.json();
-            const pkg = pkgData.data || pkgData;
+            const pkgData = await pkgRes.json() as BackendPackage & { data?: BackendPackage };
+            const pkg: BackendPackage = pkgData.data ?? pkgData;
             
             // Map backend pricing to frontend expectation
-            const monthlyPricing = pkg.pricings?.find((p: any) => p.billingPeriod === "monthly");
+            const monthlyPricing = pkg.pricings?.find((pricing) => pricing.billingPeriod === "monthly");
             setSelectedPackage({
               id: pkg.id, // We need the UUID for the checkout API
-              name: pkg.name,
-              price: monthlyPricing ? monthlyPricing.price : pkg.basePrice,
-              description: pkg.description,
+              name: pkg.name || "Selected Package",
+              price: monthlyPricing?.price ?? pkg.basePrice ?? 0,
+              description: pkg.description || "",
             });
           } else {
             // Fallback to mock if API fails
@@ -70,11 +110,13 @@ function CheckoutContent() {
         if (profileRes.ok) {
           const json = await profileRes.json();
           const data = json.data || json;
+          const normalizedPhone = splitStoredPhone(data.countryCode, data.phone);
           setUserProfile({
             firstName: data.firstName || "",
             lastName: data.lastName || "",
             email: data.email || "",
-            phone: data.phone || "",
+            countryCode: normalizedPhone.countryCode,
+            phone: normalizedPhone.phone,
             companyName: data.clientProfile?.companyName || "",
             billingAddress: data.clientProfile?.address || "",
             gstNumber: data.clientProfile?.gstNumber || "",
@@ -83,6 +125,7 @@ function CheckoutContent() {
         }
       } catch (err) {
         console.error("Failed to fetch checkout data", err);
+        setSelectedPackage(packageData[packageId] || packageData["custom"]);
       } finally {
         setIsLoading(false);
       }
@@ -94,6 +137,14 @@ function CheckoutContent() {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
         <div className="h-10 w-10 animate-spin rounded-full border-4 border-[var(--primary)] border-t-transparent" />
+      </div>
+    );
+  }
+
+  if (!selectedPackage) {
+    return (
+      <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-300">
+        Package details could not be loaded. Please go back and select a package again.
       </div>
     );
   }
@@ -129,14 +180,14 @@ function CheckoutContent() {
     try {
       if (userProfile) {
         await mockApi.profile.update({
-          legalName: userProfile.companyName,
           gstNumber: userProfile.gstNumber,
           billingAddress: userProfile.billingAddress,
           stateCode: userProfile.stateCode
         });
       }
-    } catch (err: any) {
-      if (err?.message?.includes("401")) {
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "";
+      if (message.includes("401")) {
         console.warn("Guest user: Cannot update backend profile.");
       } else {
         console.error("Failed to update profile before checkout", err);
@@ -170,7 +221,7 @@ function CheckoutContent() {
                   <input 
                     type="text" 
                     value={userProfile?.firstName || ""} 
-                    onChange={(e) => setUserProfile(prev => prev ? { ...prev, firstName: e.target.value } : { firstName: e.target.value, lastName: "", email: "" })}
+                    onChange={(e) => setUserProfile(prev => prev ? { ...prev, firstName: sanitizeNameInput(e.target.value) } : { firstName: sanitizeNameInput(e.target.value), lastName: "", email: "" })}
                     className="w-full rounded-xl border border-white/10 bg-black/20 p-3 text-sm text-white focus:border-[var(--primary)] focus:outline-none" 
                   />
                 </div>
@@ -179,7 +230,7 @@ function CheckoutContent() {
                   <input 
                     type="text" 
                     value={userProfile?.lastName || ""} 
-                    onChange={(e) => setUserProfile(prev => prev ? { ...prev, lastName: e.target.value } : { firstName: "", lastName: e.target.value, email: "" })}
+                    onChange={(e) => setUserProfile(prev => prev ? { ...prev, lastName: sanitizeNameInput(e.target.value) } : { firstName: "", lastName: sanitizeNameInput(e.target.value), email: "" })}
                     className="w-full rounded-xl border border-white/10 bg-black/20 p-3 text-sm text-white focus:border-[var(--primary)] focus:outline-none" 
                   />
                 </div>
@@ -202,7 +253,7 @@ function CheckoutContent() {
                     placeholder="23XXXXX0000X1Z5" 
                     value={userProfile?.gstNumber || ""}
                     onChange={(e) => {
-                      const val = e.target.value.toUpperCase();
+                      const val = e.target.value.toUpperCase().slice(0, 15);
                       setUserProfile(prev => {
                         const newProfile = prev ? { ...prev, gstNumber: val } : { firstName: "", lastName: "", email: "", gstNumber: val };
                         if (val.length >= 2) {
@@ -244,7 +295,12 @@ function CheckoutContent() {
                     type="text" 
                     placeholder="e.g. 23" 
                     value={userProfile?.stateCode || ""}
-                    onChange={(e) => setUserProfile(prev => prev ? { ...prev, stateCode: e.target.value } : { firstName: "", lastName: "", email: "", stateCode: e.target.value })}
+                    onChange={(e) => {
+                      const stateCode = sanitizeStateCodeInput(e.target.value);
+                      setUserProfile(prev => prev ? { ...prev, stateCode } : { firstName: "", lastName: "", email: "", stateCode });
+                    }}
+                    inputMode="numeric"
+                    maxLength={2}
                     className="w-full h-[62px] rounded-xl border border-white/10 bg-black/20 p-3 text-center text-sm text-white focus:border-[var(--primary)] focus:outline-none" 
                   />
                 </div>
@@ -264,13 +320,18 @@ function CheckoutContent() {
             <RazorpayCheckout 
               amount={total} 
               packageName={selectedPackage.name} 
-              packageId={selectedPackage.id}
+              packageId={selectedPackage.id || packageId}
               profile={userProfile}
               validateBeforePayment={() => {
-                if (!userProfile?.firstName?.trim()) return "First Name is required.";
-                if (!userProfile?.lastName?.trim()) return "Last Name is required.";
+                const firstNameError = validatePersonName(userProfile?.firstName || "", "First Name");
+                const lastNameError = validatePersonName(userProfile?.lastName || "", "Last Name");
+                const gstValidationError = validateOptionalGstNumber(userProfile?.gstNumber);
+                const stateCodeError = validateStateCode(userProfile?.stateCode);
+                if (firstNameError) return firstNameError;
+                if (lastNameError) return lastNameError;
+                if (gstValidationError) return gstValidationError;
                 if (!userProfile?.billingAddress?.trim()) return "Billing Address is required.";
-                if (!userProfile?.stateCode?.trim()) return "State Code is required.";
+                if (stateCodeError) return stateCodeError;
                 return null;
               }}
               onBeforePayment={handleSaveProfileBeforeCheckout}

@@ -3,6 +3,13 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { api, ManualClientPayload } from "@/services/api";
 import { RefreshCw, UserPlus, Users } from "lucide-react";
+import {
+  normalizeEmail,
+  sanitizeNameInput,
+  validateOptionalGstNumber,
+  validateOptionalPhone,
+  validatePersonName,
+} from "@/utils/validation";
 
 interface PackageRecord {
   id: string;
@@ -54,6 +61,7 @@ const defaultForm: ManualClientPayload = {
   password: "",
   firstName: "",
   lastName: "",
+  countryCode: "+91",
   phone: "",
   packageId: "",
   interval: "MONTHLY",
@@ -141,8 +149,24 @@ export default function UsersPage() {
     setSubmitError(null);
     setSuccessMessage(null);
 
+    const validationError =
+      validatePersonName(form.firstName, "First name") ||
+      validatePersonName(form.lastName, "Last name") ||
+      validateOptionalPhone(form.countryCode, form.phone) ||
+      validateOptionalGstNumber(form.gstNumber);
+
+    if (validationError) {
+      setSubmitError(validationError);
+      setIsSubmitting(false);
+      return;
+    }
+
     const payload: ManualClientPayload = {
       ...form,
+      email: normalizeEmail(form.email),
+      firstName: form.firstName.trim(),
+      lastName: form.lastName.trim(),
+      countryCode: form.phone ? form.countryCode : undefined,
       phone: form.phone || undefined,
       packageId: form.packageId || undefined,
       price: form.packageId ? Number(form.price) : undefined,
@@ -236,7 +260,7 @@ export default function UsersPage() {
               <input
                 required
                 value={form.firstName}
-                onChange={(event) => updateForm("firstName", event.target.value)}
+                onChange={(event) => updateForm("firstName", sanitizeNameInput(event.target.value))}
                 className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-white"
               />
             </div>
@@ -245,7 +269,7 @@ export default function UsersPage() {
               <input
                 required
                 value={form.lastName}
-                onChange={(event) => updateForm("lastName", event.target.value)}
+                onChange={(event) => updateForm("lastName", sanitizeNameInput(event.target.value))}
                 className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-white"
               />
             </div>
@@ -255,17 +279,40 @@ export default function UsersPage() {
                 required
                 type="email"
                 value={form.email}
-                onChange={(event) => updateForm("email", event.target.value)}
+                onChange={(event) => updateForm("email", event.target.value.trim())}
                 className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-white"
               />
             </div>
             <div>
               <label className="mb-1 block text-sm text-gray-400">Phone</label>
-              <input
-                value={form.phone}
-                onChange={(event) => updateForm("phone", event.target.value)}
-                className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-white"
-              />
+              <div className="grid grid-cols-[5.25rem_minmax(0,1fr)] gap-2">
+                <input
+                  aria-label="Country code"
+                  type="tel"
+                  inputMode="tel"
+                  pattern="\+[1-9][0-9]{0,2}"
+                  maxLength={4}
+                  value={form.countryCode}
+                  onChange={(event) => {
+                    const digits = event.target.value.replace(/\D/g, "").slice(0, 3);
+                    updateForm("countryCode", digits ? `+${digits}` : "");
+                  }}
+                  className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white"
+                  placeholder="+91"
+                />
+                <input
+                  aria-label="10-digit phone number"
+                  type="tel"
+                  inputMode="numeric"
+                  pattern="[0-9]{10}"
+                  minLength={10}
+                  maxLength={10}
+                  value={form.phone}
+                  onChange={(event) => updateForm("phone", event.target.value.replace(/\D/g, "").slice(0, 10))}
+                  className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-white"
+                  placeholder="9876543210"
+                />
+              </div>
             </div>
             <div>
               <label className="mb-1 block text-sm text-gray-400">Temporary Password</label>
@@ -342,7 +389,7 @@ export default function UsersPage() {
               <label className="mb-1 block text-sm text-gray-400">GST Number</label>
               <input
                 value={form.gstNumber}
-                onChange={(event) => updateForm("gstNumber", event.target.value)}
+                onChange={(event) => updateForm("gstNumber", event.target.value.toUpperCase().slice(0, 15))}
                 className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-white"
               />
             </div>

@@ -23,7 +23,6 @@ import {
   Sparkles,
   Target,
   TrendingUp,
-  Users,
   Video,
   Workflow,
   Zap,
@@ -48,9 +47,7 @@ export const marketingNav: NavItem[] = [
 ];
 
 export const growNav: NavItem[] = [
-  { label: "Agency Dashboard", icon: Users, href: "/#agency-dashboard" },
   { label: "Affiliate Program", icon: BadgePercent, href: "/affiliate-program" },
-  { label: "Pricing", icon: ShieldCheck, href: "/#pricing" },
   { label: "Help Center", icon: HelpCircle, href: "/help-center" },
 ];
 

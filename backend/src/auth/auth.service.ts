@@ -66,6 +66,7 @@ export class AuthService extends BaseService {
         passwordHash,
         firstName: dto.firstName,
         lastName: dto.lastName,
+        countryCode: dto.countryCode,
         phone: dto.phone,
         status: UserStatusEnum.PENDING_VERIFICATION,
         roleId: clientRole.id,

@@ -45,6 +45,7 @@ export interface ManualClientPayload {
   password: string;
   firstName: string;
   lastName: string;
+  countryCode?: string;
   phone?: string;
   packageId?: string;
   interval?: "MONTHLY" | "QUARTERLY" | "YEARLY";

@@ -14,6 +14,27 @@ export interface ClientSubscription {
   billingStatus: string;
 }
 
+export interface ClientProfileUpdate {
+  countryCode?: string;
+  phone?: string;
+  gstNumber?: string;
+  billingAddress?: string;
+  stateCode?: string;
+  timezone?: string;
+  companyId?: string;
+}
+
+export function splitStoredPhone(countryCode?: string, phone?: string) {
+  const phoneDigits = (phone || "").replace(/\D/g, "");
+  if (phoneDigits.length > 10) {
+    return {
+      countryCode: countryCode || `+${phoneDigits.slice(0, -10)}`,
+      phone: phoneDigits.slice(-10),
+    };
+  }
+  return { countryCode: countryCode || "+91", phone: phoneDigits };
+}
+
 export const isSubscriptionExpired = (subscription: ClientSubscription) => (
   subscription.daysRemaining <= 0 ||
   ['PAST_DUE', 'CANCELED', 'UNPAID'].includes(subscription.billingStatus)
@@ -220,6 +241,7 @@ export const mockApi = {
       const response = await fetchProxy(`users/me`);
       const res = response.data || response;
       const profile = res.clientProfile || {};
+      const normalizedPhone = splitStoredPhone(res.countryCode, res.phone);
       return {
         id: res.id,
         clientId: profile.id,
@@ -229,7 +251,8 @@ export const mockApi = {
         legalName: profile.company?.legalName || profile.legalName || "",
         gst: profile.company?.gstNumber || profile.gstNumber || "",
         email: res.email,
-        phone: profile.phone || "",
+        countryCode: normalizedPhone.countryCode,
+        phone: normalizedPhone.phone,
         address: profile.company?.address || profile.billingAddress || "",
         state: profile.state || profile.company?.state || "",
         stateCode: profile.stateCode || profile.company?.stateCode || "",
@@ -238,12 +261,27 @@ export const mockApi = {
         notifications: { email: true, inApp: true, sms: false }
       };
     },
-    update: async (data: any) => {
-      const res = await fetchProxy(`profiles/client`, {
+    update: async (data: ClientProfileUpdate) => {
+      const profileData = {
+        gstNumber: data.gstNumber || undefined,
+        billingAddress: data.billingAddress || undefined,
+        stateCode: data.stateCode || undefined,
+        timezone: data.timezone,
+        companyId: data.companyId,
+      };
+      const requests: Promise<unknown>[] = [fetchProxy(`profiles/client`, {
         method: 'PUT',
-        body: JSON.stringify(data)
-      });
-      return res;
+        body: JSON.stringify(profileData),
+      })];
+
+      if (data.phone !== undefined || data.countryCode !== undefined) {
+        requests.push(fetchProxy(`users/me`, {
+          method: 'PUT',
+          body: JSON.stringify({ countryCode: data.countryCode, phone: data.phone }),
+        }));
+      }
+
+      return Promise.all(requests);
     }
   }
 };

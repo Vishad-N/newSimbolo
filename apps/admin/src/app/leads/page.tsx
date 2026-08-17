@@ -2,17 +2,47 @@
 
 import { useState, useEffect } from "react";
 import { DataTable } from "@/components/DataTable";
-import { Mail, RefreshCw, Trash, Eye, CheckCircle2, MessageSquare } from "lucide-react";
+import { Mail, Phone, RefreshCw, Trash, Eye, CheckCircle2, MessageSquare } from "lucide-react";
 import { api } from "@/services/api";
 
 interface LeadData {
   id: string;
   name: string;
   email: string;
+  phone: string;
+  phoneHref: string;
+  company: string;
   service: string;
   status: string;
   createdAt: string;
   message: string;
+}
+
+interface LeadApiRecord {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  countryCode?: string | null;
+  phone?: string | null;
+  company?: string | null;
+  service?: string | null;
+  status: string;
+  message: string;
+  createdAt: string;
+}
+
+interface LeadApiResponse {
+  data?: LeadApiRecord[];
+}
+
+function getErrorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error ? error.message : fallback;
+}
+
+function formatPhone(countryCode?: string | null, phone?: string | null): string {
+  if (!phone) return "Not provided";
+  return countryCode ? `${countryCode} ${phone}` : phone;
 }
 
 export default function LeadsPage() {
@@ -27,22 +57,25 @@ export default function LeadsPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await api.leads.getAll() as any;
-      const leads = res.data || res;
+      const response = await api.leads.getAll() as LeadApiRecord[] | LeadApiResponse;
+      const leads = Array.isArray(response) ? response : response.data || [];
       
-      const mappedData: LeadData[] = leads.map((lead: any) => ({
+      const mappedData: LeadData[] = leads.map((lead) => ({
         id: lead.id,
         name: `${lead.firstName} ${lead.lastName}`,
         email: lead.email,
+        phone: formatPhone(lead.countryCode, lead.phone),
+        phoneHref: lead.phone ? `${lead.countryCode || ""}${lead.phone}` : "",
+        company: lead.company || "Not provided",
         service: lead.service || "General Inquiry",
         status: lead.status,
         message: lead.message,
         createdAt: new Date(lead.createdAt).toLocaleDateString(),
       }));
       setData(mappedData);
-    } catch (err: any) {
-      console.error(err);
-      setError(err.message || "Failed to fetch leads");
+    } catch (requestError) {
+      console.error(requestError);
+      setError(getErrorMessage(requestError, "Failed to fetch leads"));
     } finally {
       setIsLoading(false);
     }
@@ -57,8 +90,8 @@ export default function LeadsPage() {
     try {
       await api.leads.delete(id);
       fetchData();
-    } catch (err: any) {
-      alert("Failed to delete lead: " + err.message);
+    } catch (requestError) {
+      alert("Failed to delete lead: " + getErrorMessage(requestError, "Unknown error"));
     }
   };
 
@@ -69,8 +102,8 @@ export default function LeadsPage() {
         setSelectedLead({ ...selectedLead, status });
       }
       fetchData();
-    } catch (err: any) {
-      alert("Failed to update status: " + err.message);
+    } catch (requestError) {
+      alert("Failed to update status: " + getErrorMessage(requestError, "Unknown error"));
     }
   };
 
@@ -86,6 +119,7 @@ export default function LeadsPage() {
           <div>
             <span className="font-medium text-white block">{item.name}</span>
             <span className="text-xs text-gray-400 block">{item.email}</span>
+            <span className="text-xs text-gray-400 block">{item.phone}</span>
           </div>
         </div>
       )
@@ -177,13 +211,30 @@ export default function LeadsPage() {
                 </div>
                 <div>
                   <h2 className="text-xl font-bold text-white">{selectedLead.name}</h2>
-                  <a href={`mailto:${selectedLead.email}`} className="text-sm text-blue-400 hover:underline">{selectedLead.email}</a>
+                  <p className="text-sm text-gray-400">Full contact details</p>
                 </div>
               </div>
               <button onClick={() => setSelectedLead(null)} className="text-gray-400 hover:text-white">✕</button>
             </div>
             
             <div className="space-y-4 mb-6">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <a href={`mailto:${selectedLead.email}`} className="rounded-lg border border-white/10 bg-white/5 p-4 transition-colors hover:bg-white/10">
+                  <p className="mb-1 flex items-center gap-2 text-xs uppercase tracking-wider text-gray-400"><Mail className="h-3 w-3" /> Email</p>
+                  <p className="break-all text-sm font-medium text-blue-400">{selectedLead.email}</p>
+                </a>
+                {selectedLead.phoneHref ? (
+                  <a href={`tel:${selectedLead.phoneHref}`} className="rounded-lg border border-white/10 bg-white/5 p-4 transition-colors hover:bg-white/10">
+                    <p className="mb-1 flex items-center gap-2 text-xs uppercase tracking-wider text-gray-400"><Phone className="h-3 w-3" /> Phone</p>
+                    <p className="text-sm font-medium text-blue-400">{selectedLead.phone}</p>
+                  </a>
+                ) : (
+                  <div className="rounded-lg border border-white/10 bg-white/5 p-4">
+                    <p className="mb-1 flex items-center gap-2 text-xs uppercase tracking-wider text-gray-400"><Phone className="h-3 w-3" /> Phone</p>
+                    <p className="text-sm text-gray-400">Not provided</p>
+                  </div>
+                )}
+              </div>
               <div className="bg-white/5 p-4 rounded-lg border border-white/10">
                 <p className="text-xs text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-2"><MessageSquare className="w-3 h-3"/> Message</p>
                 <p className="text-white whitespace-pre-wrap">{selectedLead.message}</p>
@@ -198,6 +249,10 @@ export default function LeadsPage() {
                   <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Received On</p>
                   <p className="text-white font-medium">{selectedLead.createdAt}</p>
                 </div>
+              </div>
+              <div className="bg-white/5 p-4 rounded-lg border border-white/10">
+                <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Company</p>
+                <p className="text-white font-medium">{selectedLead.company}</p>
               </div>
             </div>
             

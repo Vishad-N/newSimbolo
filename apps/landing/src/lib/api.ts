@@ -7,8 +7,15 @@
  */
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api/v1";
+const shouldSkipBuildApiFetch =
+  process.env.SKIP_BUILD_API_FETCH === "true" ||
+  process.env.NEXT_PHASE === "phase-production-build";
 
 async function fetchPublicApi<T>(endpoint: string, fallback: T, revalidateSeconds: number = 60): Promise<T> {
+  if (shouldSkipBuildApiFetch) {
+    return fallback;
+  }
+
   try {
     const res = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: 'GET',
@@ -41,7 +48,7 @@ export const landingApi = {
 
   getPackages: async (fallbackData: any, serviceId?: string) => {
     const endpoint = serviceId ? `/packages?serviceId=${encodeURIComponent(serviceId)}` : '/packages';
-    return fetchPublicApi(endpoint, fallbackData, 0);
+    return fetchPublicApi(endpoint, fallbackData, 300);
   },
   
   getBlogs: async (fallbackData: any, categoryId?: string, isFeatured?: boolean) => {
@@ -80,7 +87,16 @@ export const landingApi = {
   
   getSeoMetadata: async (path: string, fallbackData: any) => fetchPublicApi(`/seo/page?path=${encodeURIComponent(path)}`, fallbackData, 300),
   
-  submitContactForm: async (data: any) => {
+  submitContactForm: async (data: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    countryCode: string;
+    phone: string;
+    company?: string;
+    service?: string;
+    message: string;
+  }) => {
     const res = await fetch(`${API_BASE_URL}/leads`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

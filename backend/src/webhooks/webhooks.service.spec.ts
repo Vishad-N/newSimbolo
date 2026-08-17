@@ -2,6 +2,7 @@ import { BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { OrderStatusEnum, PaymentStatusEnum } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { InvoicesService } from '../invoices/invoices.service';
 import { RazorpayGateway } from '../payments/razorpay.provider';
 import { WebhooksService } from './webhooks.service';
 
@@ -26,6 +27,7 @@ type WebhookPrismaMock = {
 describe('WebhooksService', () => {
   let prisma: WebhookPrismaMock;
   let gateway: jest.Mocked<Pick<RazorpayGateway, 'verifyWebhookSignature'>>;
+  let invoicesService: jest.Mocked<Pick<InvoicesService, 'createFromOrder'>>;
   let service: WebhooksService;
 
   beforeEach(() => {
@@ -49,6 +51,9 @@ describe('WebhooksService', () => {
     gateway = {
       verifyWebhookSignature: jest.fn(),
     };
+    invoicesService = {
+      createFromOrder: jest.fn().mockResolvedValue({}),
+    };
     const configService = {
       get: jest.fn().mockReturnValue('webhook-secret'),
     };
@@ -56,6 +61,7 @@ describe('WebhooksService', () => {
       prisma as unknown as PrismaService,
       gateway as unknown as RazorpayGateway,
       configService as unknown as ConfigService,
+      invoicesService as unknown as InvoicesService,
     );
   });
 

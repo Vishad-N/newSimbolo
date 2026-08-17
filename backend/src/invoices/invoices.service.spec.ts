@@ -1,13 +1,16 @@
 import { InvoiceStatusEnum } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { EmailService } from '../shared/email/email.service';
+import { StorageService } from '../storage/storage.service';
 import { InvoicesService } from './invoices.service';
+import { TaxService } from './tax.service';
 
 type InvoicesPrismaMock = {
   clientProfile: {
     findFirst: jest.Mock;
   };
   invoice: {
+    findFirst: jest.Mock;
     create: jest.Mock;
   };
   timeline: {
@@ -26,6 +29,7 @@ describe('InvoicesService', () => {
         }),
       },
       invoice: {
+        findFirst: jest.fn().mockResolvedValue(null),
         create: jest.fn().mockImplementation(({ data }) => ({
           id: 'invoice-id',
           ...data,
@@ -36,7 +40,14 @@ describe('InvoicesService', () => {
       },
     };
 
-    const service = new InvoicesService(prisma as unknown as PrismaService, {} as unknown as EmailService);
+    const taxService = new TaxService();
+
+    const service = new InvoicesService(
+      prisma as unknown as PrismaService,
+      {} as unknown as EmailService,
+      taxService,
+      {} as unknown as StorageService,
+    );
 
     await service.create({
       clientId: 'client-id',

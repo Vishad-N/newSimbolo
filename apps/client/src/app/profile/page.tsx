@@ -5,10 +5,32 @@ import { mockApi } from "@/services/api";
 import { User, Save, Building, Mail, Phone, MapPin, Hash, Map } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import Image from "next/image";
+import { sanitizeStateCodeInput, validateOptionalGstNumber, validatePhone } from "@/utils/validation";
+
+interface ClientProfileForm {
+  id?: string;
+  clientId?: string;
+  firstName: string;
+  lastName: string;
+  companyName: string;
+  legalName: string;
+  gst: string;
+  email: string;
+  countryCode: string;
+  phone: string;
+  address: string;
+  state: string;
+  stateCode: string;
+  logo: string;
+}
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : "Unknown error";
+}
 
 export default function ProfilePage() {
-  const [profile, setProfile] = useState<any>(null);
-  const [formData, setFormData] = useState<any>({});
+  const [profile, setProfile] = useState<ClientProfileForm | null>(null);
+  const [formData, setFormData] = useState<ClientProfileForm | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
   const [gstError, setGstError] = useState("");
@@ -20,18 +42,29 @@ export default function ProfilePage() {
     });
   }, []);
 
-  if (!profile) return <div className="text-white animate-pulse p-4">Loading profile...</div>;
+  if (!profile || !formData) return <div className="text-white animate-pulse p-4">Loading profile...</div>;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     let newValue = value;
+    if (name === 'phone') {
+      newValue = value.replace(/\D/g, "").slice(0, 10);
+    }
+    if (name === 'countryCode') {
+      const digits = value.replace(/\D/g, "").slice(0, 3);
+      newValue = digits ? `+${digits}` : "";
+    }
     if (name === 'gst') {
-      newValue = value.toUpperCase();
+      newValue = value.toUpperCase().slice(0, 15);
       if (gstError) setGstError("");
     }
+    if (name === 'stateCode') {
+      newValue = sanitizeStateCodeInput(value);
+    }
     
-    setFormData((prev: any) => {
-      const nextData = { ...prev, [name]: newValue };
+    setFormData((previous) => {
+      if (!previous) return previous;
+      const nextData = { ...previous, [name]: newValue };
       if (name === 'gst' && newValue.length >= 2) {
         const statePrefix = newValue.substring(0, 2);
         if (!isNaN(Number(statePrefix))) {
@@ -43,6 +76,12 @@ export default function ProfilePage() {
   };
 
   const handleSave = async () => {
+    const phoneError = validatePhone(formData.countryCode, formData.phone);
+    const gstValidationError = validateOptionalGstNumber(formData.gst);
+    if (phoneError || gstValidationError) {
+      setSaveMessage(`Failed to update profile: ${phoneError || gstValidationError}`);
+      return;
+    }
     setIsSaving(true);
     setSaveMessage("");
     try {
@@ -50,16 +89,15 @@ export default function ProfilePage() {
       // Backend clientProfile DTO might need structured data, 
       // but for frontend we pass the updated properties.
       await mockApi.profile.update({
-        legalName: formData.legalName,
         gstNumber: formData.gst,
-        phone: formData.phone,
+        countryCode: formData.phone ? formData.countryCode : undefined,
+        phone: formData.phone || undefined,
         billingAddress: formData.address,
-        state: formData.state,
-        stateCode: formData.stateCode
+        stateCode: formData.stateCode || undefined,
       });
       setSaveMessage("Profile updated successfully");
-    } catch (error: any) {
-      setSaveMessage("Failed to update profile: " + error.message);
+    } catch (error) {
+      setSaveMessage("Failed to update profile: " + getErrorMessage(error));
     } finally {
       setIsSaving(false);
       setTimeout(() => setSaveMessage(""), 3000);
@@ -115,7 +153,11 @@ export default function ProfilePage() {
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-400 flex items-center gap-2"><Phone className="w-4 h-4" /> Phone Number</label>
-                <input name="phone" type="tel" value={formData.phone} onChange={handleChange} className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all outline-none" />
+                <div className="grid grid-cols-[5.25rem_minmax(0,1fr)] gap-2">
+                  <input name="countryCode" aria-label="Country code" type="tel" inputMode="tel" pattern="\+[1-9][0-9]{0,2}" maxLength={4} value={formData.countryCode || "+91"} onChange={handleChange} className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2.5 text-white focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all outline-none" />
+                  <input name="phone" aria-label="10-digit phone number" type="tel" inputMode="numeric" pattern="[0-9]{10}" minLength={10} maxLength={10} value={formData.phone} onChange={handleChange} placeholder="9876543210" className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all outline-none" />
+                </div>
+                <p className="text-xs text-gray-500">Enter exactly 10 digits; the country code is separate.</p>
               </div>
               <div className="space-y-2 md:col-span-2">
                 <label className="text-sm font-medium text-gray-400 flex items-center gap-2"><MapPin className="w-4 h-4" /> Billing Address</label>
@@ -154,7 +196,7 @@ export default function ProfilePage() {
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-400 flex items-center gap-2"><Hash className="w-4 h-4" /> State Code</label>
-                <input name="stateCode" type="text" value={formData.stateCode} onChange={handleChange} placeholder="e.g. 23" className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all outline-none" />
+                <input name="stateCode" type="text" inputMode="numeric" maxLength={2} value={formData.stateCode} onChange={handleChange} placeholder="e.g. 23" className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all outline-none" />
               </div>
             </div>
           </div>

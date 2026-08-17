@@ -1,0 +1,24 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.PACKAGE_ILLUSTRATION_PATHS = void 0;
+exports.PACKAGE_ILLUSTRATION_PATHS = [
+    '/images/services/ai_automation_1784887931272.png',
+    '/images/services/branding_1784887903218.png',
+    '/images/services/content_marketing_1784887968386.png',
+    '/images/services/crm_integration_1784887948999.png',
+    '/images/services/ecommerce-illustration.png',
+    '/images/services/ecommerce_1784887873510.png',
+    '/images/services/email_marketing_1784887958663.png',
+    '/images/services/google_ads_1784887852918.png',
+    '/images/services/graphic_design_1784887863706.png',
+    '/images/services/meta-ads.png',
+    '/images/services/mobile_app_development_1784887912184.png',
+    '/images/services/performance_marketing_1784887977444.png',
+    '/images/services/seo.png',
+    '/images/services/shopify_development_1784887883421.png',
+    '/images/services/social-media.png',
+    '/images/services/ui_ux_design_1784887921459.png',
+    '/images/services/video-editing.png',
+    '/images/services/website-design.png',
+];
+//# sourceMappingURL=package-illustrations.js.map
