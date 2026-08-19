@@ -1,11 +1,11 @@
 {
-  "ts": 1787144432.4749007,
-  "iso": "2026-08-19T18:30:32",
-  "event": "post_tool",
+  "ts": 1787146489.2885613,
+  "iso": "2026-08-19T19:04:49",
+  "event": "pre_tool",
   "channel": "hook",
   "ok": true,
-  "detail": "memory=29 imp=0.90",
+  "detail": "inject chars=7933",
   "project_id": "visha-90fc8883",
   "cwd": "C:\\Users\\visha\\simbolonew\\apps\\admin",
-  "pid": 10792
+  "pid": 20124
 }

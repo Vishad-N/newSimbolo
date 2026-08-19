@@ -444,6 +444,10 @@ export const api = {
       fetchFromApi(`/admin/affiliate/employees/${id}/activate`, { method: 'PATCH' }),
     deactivateEmployee: async (id: string) =>
       fetchFromApi(`/admin/affiliate/employees/${id}/deactivate`, { method: 'PATCH' }),
+    // Soft delete — backend refuses if the wallet has an outstanding balance or a
+    // withdrawal is still in flight, and returns that reason as the error message.
+    deleteEmployee: async (id: string) =>
+      fetchFromApi(`/admin/affiliate/employees/${id}`, { method: 'DELETE' }),
     // Existing users who could be turned into a sales employee. Reuses the core
     // Users module's search (requires `users.view`, already granted to admin roles)
     // rather than duplicating a user list inside the affiliate module.

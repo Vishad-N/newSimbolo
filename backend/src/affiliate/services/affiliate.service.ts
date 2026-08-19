@@ -431,6 +431,63 @@ export class AffiliateService extends BaseService {
     return updated;
   }
 
+  /**
+   * Soft-deletes a sales employee profile (sets `deletedAt`, flips to INACTIVE, and
+   * stops future commission accrual). Never a hard delete — the Affiliate row stays
+   * in place as the immutable owner of its Commission/WalletTransaction history, it
+   * just disappears from active lists (all list/lookup queries already filter on
+   * `deletedAt: null`) and the underlying user can no longer earn or withdraw.
+   *
+   * Financial safety guard: refuses to delete while there is money outstanding —
+   * a non-zero wallet balance or a withdrawal still in flight — since deleting the
+   * Affiliate would orphan that liability with no owner to pay it out to or reclaim
+   * it from. The admin must resolve those first (pay out / cancel / write off).
+   */
+  async deleteEmployee(id: string, actorUserId?: string): Promise<{ deleted: true }> {
+    const affiliate = await this.prisma.affiliate.findFirst({
+      where: { id, deletedAt: null },
+      include: { wallet: true },
+    });
+    if (!affiliate) throw new NotFoundException(`Sales employee ${id} not found`);
+
+    if (affiliate.wallet && (affiliate.wallet.availableBalance !== 0 || affiliate.wallet.pendingBalance !== 0)) {
+      throw new BadRequestException(
+        `Cannot delete: wallet still has ₹${affiliate.wallet.availableBalance} available and ` +
+          `₹${affiliate.wallet.pendingBalance} pending. Settle or write off the balance first.`,
+      );
+    }
+
+    const inFlightWithdrawals = await this.prisma.withdrawal.count({
+      where: { affiliateId: id, status: { in: ['PENDING', 'SCHEDULED', 'PROCESSING'] } },
+    });
+    if (inFlightWithdrawals > 0) {
+      throw new BadRequestException(
+        `Cannot delete: ${inFlightWithdrawals} withdrawal(s) still in progress. Resolve them first.`,
+      );
+    }
+
+    await this.prisma.affiliate.update({
+      where: { id },
+      data: {
+        deletedAt: new Date(),
+        status: AffiliateStatusEnum.INACTIVE,
+        isEligibleForCommission: false,
+        updatedBy: actorUserId ?? null,
+      },
+    });
+
+    await this.auditService.logEvent({
+      action: 'affiliate.deleted',
+      entityType: 'Affiliate',
+      entityId: id,
+      oldValue: { affiliateCode: affiliate.affiliateCode, status: affiliate.status },
+      userId: actorUserId,
+    });
+
+    this.logger.log(`Soft-deleted sales employee ${affiliate.affiliateCode}`);
+    return { deleted: true };
+  }
+
   // ── Admin dashboard ───────────────────────────────────────────────────────
 
   /** Stat-card aggregates for the admin affiliate dashboard. */

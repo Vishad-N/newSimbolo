@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { BadgeIndianRupee, Eye, Power, PowerOff, RefreshCw, Settings2, UserPlus, Wallet, X } from "lucide-react";
+import { BadgeIndianRupee, Eye, Power, PowerOff, RefreshCw, Settings2, Trash2, UserPlus, Wallet, X } from "lucide-react";
 import { DataTable } from "@/components/DataTable";
 import { StatCard, StatusBadge, formatCurrency, getErrorMessage } from "@/components/affiliate/AffiliateShared";
 import {
@@ -180,6 +180,18 @@ export default function AffiliateOverviewPage() {
     },
   ];
 
+  const handleDeleteEmployee = async (employee: AffiliateEmployee) => {
+    if (!confirm(`Permanently remove ${employee.name} (${employee.affiliateCode}) as a sales employee?`)) return;
+    try {
+      await api.affiliate.deleteEmployee(employee.id);
+      fetchData();
+    } catch (requestError) {
+      // Most likely cause: outstanding wallet balance or an in-flight withdrawal —
+      // the backend's own message explains exactly what needs to be resolved first.
+      alert("Could not delete employee: " + getErrorMessage(requestError, "Unknown error"));
+    }
+  };
+
   const actions = [
     {
       label: "View Detail",
@@ -196,6 +208,12 @@ export default function AffiliateOverviewPage() {
       icon: PowerOff,
       variant: "destructive" as const,
       onClick: (item: AffiliateEmployee) => handleToggleStatus(item),
+    },
+    {
+      label: "Delete",
+      icon: Trash2,
+      variant: "destructive" as const,
+      onClick: (item: AffiliateEmployee) => handleDeleteEmployee(item),
     },
   ];
 

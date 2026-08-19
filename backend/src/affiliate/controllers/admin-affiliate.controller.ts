@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Patch, Post, Put, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Patch, Post, Put, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AffiliateStatusEnum } from '@prisma/client';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -65,6 +65,16 @@ export class AdminAffiliateController {
   @ApiOperation({ summary: 'Deactivate a sales employee (stops new commission accrual)' })
   deactivate(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: any) {
     return this.affiliateService.setEmployeeStatus(id, AffiliateStatusEnum.INACTIVE, user?.sub);
+  }
+
+  @Delete('employees/:id')
+  @ApiOperation({
+    summary: 'Soft-delete a sales employee',
+    description:
+      'Refuses to delete while the wallet has an outstanding balance or a withdrawal is in flight — settle those first.',
+  })
+  deleteEmployee(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: any) {
+    return this.affiliateService.deleteEmployee(id, user?.sub);
   }
 
   // ── Sales & commissions ───────────────────────────────────────────────────
