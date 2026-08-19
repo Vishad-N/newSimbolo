@@ -181,6 +181,20 @@ export interface AffiliateEmployeeDetail extends AffiliateEmployee {
   payoutMethods?: AdminPayoutMethod[];
 }
 
+export interface AdminUserSearchResult {
+  id: string;
+  email: string;
+  firstName?: string;
+  lastName?: string;
+  status?: string;
+  role?: { id: string; name: string; slug: string };
+}
+
+export interface CreateAffiliateEmployeePayload {
+  userId: string;
+  commissionRate?: number;
+}
+
 export interface AffiliateCommissionFilters {
   status?: string;
   employeeId?: string;
@@ -421,10 +435,27 @@ export const api = {
       ),
     getEmployee: async (id: string) =>
       fetchFromApi<AffiliateEmployeeDetail | null>(`/admin/affiliate/employees/${id}`, { method: 'GET' }, null),
+    createEmployee: async (payload: CreateAffiliateEmployeePayload) =>
+      fetchFromApi<AffiliateEmployee>('/admin/affiliate/employees', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      }),
     activateEmployee: async (id: string) =>
       fetchFromApi(`/admin/affiliate/employees/${id}/activate`, { method: 'PATCH' }),
     deactivateEmployee: async (id: string) =>
       fetchFromApi(`/admin/affiliate/employees/${id}/deactivate`, { method: 'PATCH' }),
+    // Existing users who could be turned into a sales employee. Reuses the core
+    // Users module's search (requires `users.view`, already granted to admin roles)
+    // rather than duplicating a user list inside the affiliate module.
+    searchUsers: async (query: string): Promise<AdminUserSearchResult[]> => {
+      if (!query || query.trim().length < 2) return [];
+      const res = await fetchFromApi<{ data?: AdminUserSearchResult[] } | AdminUserSearchResult[]>(
+        `/users?search=${encodeURIComponent(query.trim())}&limit=10`,
+        { method: 'GET' },
+        [],
+      );
+      return Array.isArray(res) ? res : res.data ?? [];
+    },
 
     getCommissions: async (filters: AffiliateCommissionFilters = {}) => {
       const page = filters.page ?? 1;
