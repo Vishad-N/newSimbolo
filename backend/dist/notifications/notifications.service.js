@@ -86,6 +86,49 @@ let NotificationsService = class NotificationsService extends base_service_1.Bas
             deepLink: '/dashboard/invoices',
         });
     }
+    // ── Affiliate / commission notifications ───────────────────────────────
+    /** Fired when a sale is attributed and the commission is frozen + payment confirmed. */
+    async notifyCommissionEarned(userId, amount, orderNumber, currency = 'INR') {
+        const symbol = currency === 'INR' ? '₹' : '$';
+        return this.sendNotification({
+            userId,
+            type: client_1.NotificationTypeEnum.ORDER,
+            title: 'Commission Earned',
+            message: `You earned ${symbol}${amount.toLocaleString('en-IN')} commission on order ${orderNumber}.`,
+            deepLink: '/dashboard/affiliate/commissions',
+        });
+    }
+    /** Fired when a held commission clears its hold period and lands in the wallet. */
+    async notifyCommissionCredited(userId, amount, currency = 'INR') {
+        const symbol = currency === 'INR' ? '₹' : '$';
+        return this.sendNotification({
+            userId,
+            type: client_1.NotificationTypeEnum.ORDER,
+            title: 'Commission Credited',
+            message: `${symbol}${amount.toLocaleString('en-IN')} has been credited to your wallet and is available to withdraw.`,
+            deepLink: '/dashboard/affiliate/wallet',
+        });
+    }
+    async notifyWithdrawalProcessed(userId, amount, currency = 'INR') {
+        const symbol = currency === 'INR' ? '₹' : '$';
+        return this.sendNotification({
+            userId,
+            type: client_1.NotificationTypeEnum.INVOICE,
+            title: 'Withdrawal Paid',
+            message: `Your withdrawal of ${symbol}${amount.toLocaleString('en-IN')} has been paid out successfully.`,
+            deepLink: '/dashboard/affiliate/withdrawals',
+        });
+    }
+    async notifyWithdrawalFailed(userId, amount, reason, currency = 'INR') {
+        const symbol = currency === 'INR' ? '₹' : '$';
+        return this.sendNotification({
+            userId,
+            type: client_1.NotificationTypeEnum.INVOICE,
+            title: 'Withdrawal Failed',
+            message: `Your withdrawal of ${symbol}${amount.toLocaleString('en-IN')} could not be processed (${reason}). The funds have been returned to your wallet balance.`,
+            deepLink: '/dashboard/affiliate/withdrawals',
+        });
+    }
     async notifyNewMessage(userId, conversationId, senderName) {
         return this.sendNotification({
             userId,

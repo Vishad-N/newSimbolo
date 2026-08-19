@@ -92,7 +92,234 @@ const fetchProxy = async (path: string, options: RequestInit = {}) => {
   return res.json();
 };
 
+/**
+ * Error carrying the backend HTTP status and its `{ statusCode, message, error }` message,
+ * so callers can distinguish a 404 (no affiliate profile) from a 400 (validation failure)
+ * and render the backend's own validation copy.
+ */
+export class ApiRequestError extends Error {
+  constructor(public readonly status: number, message: string) {
+    super(message);
+    this.name = 'ApiRequestError';
+  }
+}
+
+/** Like fetchProxy, but rejects with an ApiRequestError that preserves status + backend message. */
+const fetchProxyDetailed = async (path: string, options: RequestInit = {}) => {
+  const res = await fetch(`/api/proxy/${path}`, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+  let payload: unknown = null;
+  try {
+    payload = await res.json();
+  } catch {
+    payload = null;
+  }
+
+  if (!res.ok) {
+    const rawMessage = (payload as { message?: string | string[] } | null)?.message;
+    const message = Array.isArray(rawMessage) ? rawMessage[0] : rawMessage;
+    throw new ApiRequestError(res.status, message || `API error: ${res.status}`);
+  }
+
+  return (payload as { data?: unknown })?.data ?? payload;
+};
+
+export type AffiliateStatus = 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
+export type CommissionStatus = 'PENDING' | 'ELIGIBLE' | 'CREDITED' | 'REVERSED' | 'CANCELLED';
+export type WithdrawalStatus =
+  | 'PENDING'
+  | 'SCHEDULED'
+  | 'PROCESSING'
+  | 'PAID'
+  | 'FAILED'
+  | 'REVERSED'
+  | 'CANCELLED';
+export type PayoutMethodType = 'BANK_ACCOUNT' | 'UPI';
+export type PayoutMethodStatus = 'PENDING' | 'VERIFIED' | 'DISABLED';
+
+export interface Paginated<T> {
+  items: T[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface AffiliateProfile {
+  id: string;
+  affiliateCode: string;
+  status: AffiliateStatus;
+  commissionRate: number;
+  isEligibleForCommission: boolean;
+  createdAt: string;
+}
+
+export interface AffiliateSale {
+  orderId: string;
+  orderNumber: string;
+  amount: number;
+  status: string;
+  createdAt: string;
+}
+
+export interface AffiliateCommission {
+  id: string;
+  orderId: string;
+  commissionAmount: number;
+  commissionRate: number;
+  status: CommissionStatus;
+  eligibleAt: string | null;
+  creditedAt: string | null;
+  createdAt: string;
+}
+
+export interface AffiliateWallet {
+  availableBalance: number;
+  pendingBalance: number;
+  lifetimeEarned: number;
+  lifetimeWithdrawn: number;
+}
+
+export interface AffiliateWalletTransaction {
+  id: string;
+  type: string;
+  amount: number;
+  balanceBefore: number;
+  balanceAfter: number;
+  description: string;
+  createdAt: string;
+}
+
+export interface AffiliateWithdrawal {
+  id: string;
+  amount: number;
+  status: WithdrawalStatus;
+  requestedAt: string;
+  processedAt: string | null;
+  failureReason: string | null;
+}
+
+export interface AffiliatePayoutMethod {
+  id: string;
+  type: PayoutMethodType;
+  isDefault: boolean;
+  status: PayoutMethodStatus;
+  maskedDetails: string;
+  last4?: string;
+}
+
+export interface CreatePayoutMethodPayload {
+  type: PayoutMethodType;
+  accountNumber?: string;
+  ifsc?: string;
+  upiId?: string;
+  isDefault?: boolean;
+}
+
+const emptyPage = <T,>(pageSize: number): Paginated<T> => ({ items: [], total: 0, page: 1, pageSize });
+
+/**
+ * Backend list endpoints return `{ data, meta: { total, page, limit, totalPages } }`
+ * (this codebase's existing pagination convention) rather than a flat
+ * `{ items, total, page, pageSize }` shape — normalize both here.
+ */
+const toPage = <T,>(res: unknown, pageSize: number): Paginated<T> => {
+  const payload = res as
+    | (Partial<Paginated<T>> & { data?: T[]; meta?: { total?: number; page?: number; limit?: number } })
+    | T[]
+    | null;
+  if (Array.isArray(payload)) {
+    return { items: payload, total: payload.length, page: 1, pageSize };
+  }
+  if (!payload) return emptyPage<T>(pageSize);
+  if (payload.items) {
+    return {
+      items: payload.items,
+      total: payload.total ?? payload.items.length,
+      page: payload.page ?? 1,
+      pageSize: payload.pageSize ?? pageSize,
+    };
+  }
+  if (payload.data) {
+    return {
+      items: payload.data,
+      total: payload.meta?.total ?? payload.data.length,
+      page: payload.meta?.page ?? 1,
+      pageSize: payload.meta?.limit ?? pageSize,
+    };
+  }
+  return emptyPage<T>(pageSize);
+};
+
+const pageQuery = (page: number, pageSize: number) => `page=${page}&limit=${pageSize}`;
+
+export const affiliateApi = {
+  getProfile: async (): Promise<AffiliateProfile> =>
+    (await fetchProxyDetailed('affiliate/me')) as AffiliateProfile,
+
+  getSales: async (page = 1, pageSize = 10) =>
+    toPage<AffiliateSale>(await fetchProxyDetailed(`affiliate/me/sales?${pageQuery(page, pageSize)}`), pageSize),
+
+  getCommissions: async (page = 1, pageSize = 10) =>
+    toPage<AffiliateCommission>(
+      await fetchProxyDetailed(`affiliate/me/commissions?${pageQuery(page, pageSize)}`),
+      pageSize,
+    ),
+
+  getWallet: async (): Promise<AffiliateWallet> =>
+    (await fetchProxyDetailed('affiliate/me/wallet')) as AffiliateWallet,
+
+  getWalletTransactions: async (page = 1, pageSize = 10) =>
+    toPage<AffiliateWalletTransaction>(
+      await fetchProxyDetailed(`affiliate/me/wallet/transactions?${pageQuery(page, pageSize)}`),
+      pageSize,
+    ),
+
+  getWithdrawals: async (page = 1, pageSize = 10) =>
+    toPage<AffiliateWithdrawal>(
+      await fetchProxyDetailed(`affiliate/me/withdrawals?${pageQuery(page, pageSize)}`),
+      pageSize,
+    ),
+
+  requestWithdrawal: async (amount: number): Promise<AffiliateWithdrawal> =>
+    (await fetchProxyDetailed('affiliate/me/withdrawals', {
+      method: 'POST',
+      body: JSON.stringify({ amount }),
+    })) as AffiliateWithdrawal,
+
+  getPayoutMethods: async (): Promise<AffiliatePayoutMethod[]> => {
+    const res = (await fetchProxyDetailed('affiliate/me/payout-methods')) as
+      | { items?: AffiliatePayoutMethod[] }
+      | AffiliatePayoutMethod[]
+      | null;
+    if (Array.isArray(res)) return res;
+    return res?.items || [];
+  },
+
+  createPayoutMethod: async (payload: CreatePayoutMethodPayload) =>
+    fetchProxyDetailed('affiliate/me/payout-methods', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+
+  setDefaultPayoutMethod: async (id: string) =>
+    fetchProxyDetailed(`affiliate/me/payout-methods/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ isDefault: true }),
+    }),
+
+  deletePayoutMethod: async (id: string) =>
+    fetchProxyDetailed(`affiliate/me/payout-methods/${id}`, { method: 'DELETE' }),
+};
+
 export const mockApi = {
+  affiliate: affiliateApi,
+
   projects: {
     getAll: async (clientId?: string) => {
       if (!clientId) return [];

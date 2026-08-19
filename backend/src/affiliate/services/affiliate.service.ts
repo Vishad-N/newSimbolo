@@ -1,0 +1,506 @@
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
+import { Affiliate, AffiliateStatusEnum, CommissionStatusEnum, Prisma } from '@prisma/client';
+import { PrismaService } from '../../prisma/prisma.service';
+import { BaseService } from '../../shared/abstractions/base.service';
+import { AuditService } from '../../shared/audit/audit.service';
+import { AffiliateSettingsService } from './affiliate-settings.service';
+import { EMPLOYEE_CODE_REGEX, generateEmployeeCode, normalizeEmployeeCode } from '../utils/employee-code.util';
+import { AdminAffiliateListQueryDto } from '../dto/admin-list-query.dto';
+
+export type AffiliateWithUser = Affiliate & {
+  user: { id: string; firstName: string | null; lastName: string | null; email: string };
+};
+
+export interface ValidateEmployeeCodeResult {
+  valid: boolean;
+  affiliate?: AffiliateWithUser;
+  /** Display-safe name, e.g. "Rahul K." */
+  displayName?: string;
+  message?: string;
+}
+
+/** Deliberately generic — never leaks whether a code exists but is inactive vs. does not exist. */
+const GENERIC_INVALID_MESSAGE = 'Invalid or inactive employee code';
+
+@Injectable()
+export class AffiliateService extends BaseService {
+  private static readonly CODE_GENERATION_MAX_ATTEMPTS = 5;
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly auditService: AuditService,
+    private readonly settingsService: AffiliateSettingsService,
+  ) {
+    super('AffiliateService');
+  }
+
+  // ── Validation ────────────────────────────────────────────────────────────
+
+  /**
+   * Server-side source of truth for whether an employee code may be applied to a
+   * checkout. This is re-run independently at payment-order creation time — the
+   * frontend's earlier /checkout/affiliate/validate call is treated as UX only and
+   * is never trusted.
+   *
+   * @param code            raw user input (trimmed/uppercased internally)
+   * @param requestingUserId the user the purchase is FOR (used for self-referral checks)
+   */
+  async validateEmployeeCode(code: string, requestingUserId?: string): Promise<ValidateEmployeeCodeResult> {
+    const normalized = normalizeEmployeeCode(code);
+
+    if (!EMPLOYEE_CODE_REGEX.test(normalized)) {
+      return { valid: false, message: GENERIC_INVALID_MESSAGE };
+    }
+
+    // Codes are always stored uppercase, so an exact match is inherently case-insensitive
+    // from the caller's perspective once normalized above.
+    const affiliate = await this.prisma.affiliate.findFirst({
+      where: { affiliateCode: normalized, deletedAt: null },
+      include: { user: { select: { id: true, firstName: true, lastName: true, email: true } } },
+    });
+
+    if (!affiliate) return { valid: false, message: GENERIC_INVALID_MESSAGE };
+    if (affiliate.status !== AffiliateStatusEnum.ACTIVE) return { valid: false, message: GENERIC_INVALID_MESSAGE };
+    if (!affiliate.isEligibleForCommission) return { valid: false, message: GENERIC_INVALID_MESSAGE };
+
+    if (requestingUserId && affiliate.userId === requestingUserId) {
+      const settings = await this.settingsService.get();
+      if (!settings.selfReferralAllowed) {
+        return { valid: false, message: GENERIC_INVALID_MESSAGE };
+      }
+    }
+
+    return {
+      valid: true,
+      affiliate: affiliate as AffiliateWithUser,
+      displayName: this.toDisplayName(affiliate.user.firstName, affiliate.user.lastName),
+    };
+  }
+
+  /** "Rahul Kumar" -> "Rahul K." — enough for the customer to recognise, no data leak. */
+  private toDisplayName(firstName?: string | null, lastName?: string | null): string {
+    const first = (firstName ?? '').trim();
+    const initial = (lastName ?? '').trim().charAt(0);
+    if (!first) return initial ? `${initial}.` : 'Sales Employee';
+    return initial ? `${first} ${initial.toUpperCase()}.` : first;
+  }
+
+  // ── Self-service lookups ──────────────────────────────────────────────────
+
+  /** Resolves the Affiliate profile owned by the authenticated user. 404 if none. */
+  async getMyAffiliateOrThrow(userId: string): Promise<Affiliate & { wallet: { id: string } | null }> {
+    const affiliate = await this.prisma.affiliate.findFirst({
+      where: { userId, deletedAt: null },
+      include: { wallet: { select: { id: true } } },
+    });
+    if (!affiliate) throw new NotFoundException('No sales employee profile found for this account');
+    return affiliate;
+  }
+
+  async getMyProfile(userId: string) {
+    const affiliate = await this.prisma.affiliate.findFirst({
+      where: { userId, deletedAt: null },
+      include: {
+        user: { select: { id: true, firstName: true, lastName: true, email: true } },
+        wallet: true,
+      },
+    });
+    if (!affiliate) throw new NotFoundException('No sales employee profile found for this account');
+
+    const [totalSales, pendingCommission, creditedCommission] = await Promise.all([
+      this.prisma.commission.count({ where: { affiliateId: affiliate.id } }),
+      this.prisma.commission.aggregate({
+        where: { affiliateId: affiliate.id, status: { in: ['PENDING', 'ELIGIBLE'] } },
+        _sum: { commissionAmount: true },
+      }),
+      this.prisma.commission.aggregate({
+        where: { affiliateId: affiliate.id, status: 'CREDITED' },
+        _sum: { commissionAmount: true },
+      }),
+    ]);
+
+    return {
+      ...affiliate,
+      stats: {
+        totalSales,
+        pendingCommission: pendingCommission._sum.commissionAmount ?? 0,
+        creditedCommission: creditedCommission._sum.commissionAmount ?? 0,
+      },
+    };
+  }
+
+  /** Orders attributed to this affiliate (derived from Commission rows — the attribution record). */
+  async getMySales(userId: string, page = 1, limit = 20) {
+    const affiliate = await this.getMyAffiliateOrThrow(userId);
+    return this.listSales({ affiliateId: affiliate.id, page, limit });
+  }
+
+  async getMyCommissions(userId: string, page = 1, limit = 20, status?: string) {
+    const affiliate = await this.getMyAffiliateOrThrow(userId);
+    return this.listCommissions({ affiliateId: affiliate.id, page, limit, status: status as any });
+  }
+
+  // ── Shared list queries (used by both /me and /admin controllers) ──────────
+
+  async listSales(params: { affiliateId?: string; page?: number; limit?: number }) {
+    const page = params.page ?? 1;
+    const limit = params.limit ?? 20;
+    const where: Prisma.CommissionWhereInput = params.affiliateId ? { affiliateId: params.affiliateId } : {};
+
+    const [data, total] = await Promise.all([
+      this.prisma.commission.findMany({
+        where,
+        select: {
+          id: true,
+          employeeCodeSnapshot: true,
+          commissionAmount: true,
+          commissionRate: true,
+          status: true,
+          createdAt: true,
+          affiliate: { select: { id: true, affiliateCode: true } },
+          order: {
+            select: {
+              id: true,
+              orderNumber: true,
+              status: true,
+              totalAmount: true,
+              netAmount: true,
+              taxAmount: true,
+              discountAmount: true,
+              currency: true,
+              createdAt: true,
+              client: { select: { id: true, user: { select: { firstName: true, lastName: true, email: true } } } },
+              package: { select: { id: true, name: true } },
+            },
+          },
+        },
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.commission.count({ where }),
+    ]);
+
+    return { data, meta: { total, page, limit, totalPages: Math.ceil(total / limit) } };
+  }
+
+  async listCommissions(params: {
+    affiliateId?: string;
+    status?: Prisma.CommissionWhereInput['status'];
+    page?: number;
+    limit?: number;
+  }) {
+    const page = params.page ?? 1;
+    const limit = params.limit ?? 20;
+    const where: Prisma.CommissionWhereInput = {};
+    if (params.affiliateId) where.affiliateId = params.affiliateId;
+    if (params.status) where.status = params.status;
+
+    const [data, total] = await Promise.all([
+      this.prisma.commission.findMany({
+        where,
+        include: {
+          order: { select: { id: true, orderNumber: true, status: true, netAmount: true, currency: true } },
+          affiliate: {
+            select: {
+              id: true,
+              affiliateCode: true,
+              user: { select: { firstName: true, lastName: true, email: true } },
+            },
+          },
+        },
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.commission.count({ where }),
+    ]);
+
+    return { data, meta: { total, page, limit, totalPages: Math.ceil(total / limit) } };
+  }
+
+  // ── Admin employee CRUD ───────────────────────────────────────────────────
+
+  /**
+   * Flat row shape for the admin employee table/DataTable — deliberately NOT the raw
+   * nested Prisma shape, to match what the admin dashboard renders directly.
+   */
+  async listEmployees(query: AdminAffiliateListQueryDto) {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 20;
+    const where: Prisma.AffiliateWhereInput = { deletedAt: null };
+    if (query.status) where.status = query.status;
+    if (query.search) {
+      where.OR = [
+        { affiliateCode: { contains: query.search, mode: 'insensitive' } },
+        { user: { firstName: { contains: query.search, mode: 'insensitive' } } },
+        { user: { lastName: { contains: query.search, mode: 'insensitive' } } },
+        { user: { email: { contains: query.search, mode: 'insensitive' } } },
+      ];
+    }
+
+    const [affiliates, total] = await Promise.all([
+      this.prisma.affiliate.findMany({
+        where,
+        include: {
+          user: { select: { id: true, firstName: true, lastName: true, email: true } },
+          wallet: true,
+          _count: { select: { commissions: true } },
+        },
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.affiliate.count({ where }),
+    ]);
+
+    const affiliateIds = affiliates.map((a) => a.id);
+    const salesTotals = affiliateIds.length
+      ? await this.prisma.commission.groupBy({
+          by: ['affiliateId'],
+          where: { affiliateId: { in: affiliateIds }, status: { notIn: [CommissionStatusEnum.CANCELLED] } },
+          _sum: { commissionBaseAmount: true, commissionAmount: true },
+        })
+      : [];
+    const salesByAffiliate = new Map(salesTotals.map((s) => [s.affiliateId, s]));
+
+    const data = affiliates.map((a) => {
+      const totals = salesByAffiliate.get(a.id);
+      return {
+        id: a.id,
+        userId: a.userId,
+        name: [a.user.firstName, a.user.lastName].filter(Boolean).join(' ') || a.user.email,
+        email: a.user.email,
+        affiliateCode: a.affiliateCode,
+        status: a.status,
+        ordersCount: a._count.commissions,
+        salesTotal: totals?._sum.commissionBaseAmount ?? 0,
+        commissionTotal: totals?._sum.commissionAmount ?? 0,
+        walletAvailable: a.wallet?.availableBalance ?? 0,
+        walletPending: a.wallet?.pendingBalance ?? 0,
+        lifetimeWithdrawn: a.wallet?.lifetimeWithdrawn ?? 0,
+      };
+    });
+
+    return { data, meta: { total, page, limit, totalPages: Math.ceil(total / limit) } };
+  }
+
+  /**
+   * Full employee detail for the admin dashboard. Commission/wallet-ledger/withdrawal
+   * history are embedded directly on the response (most recent 100 each) rather than
+   * requiring separate paginated calls, since the admin detail page renders them as
+   * simple, non-paginated tables.
+   */
+  async getEmployee(id: string) {
+    const affiliate = await this.prisma.affiliate.findFirst({
+      where: { id, deletedAt: null },
+      include: {
+        user: { select: { id: true, firstName: true, lastName: true, email: true } },
+        wallet: true,
+        payoutMethods: true,
+      },
+    });
+    if (!affiliate) throw new NotFoundException(`Sales employee ${id} not found`);
+
+    const [commissions, withdrawals, walletTransactions] = await Promise.all([
+      this.prisma.commission.findMany({
+        where: { affiliateId: id },
+        include: { order: { select: { id: true, orderNumber: true, status: true } } },
+        orderBy: { createdAt: 'desc' },
+        take: 100,
+      }),
+      this.prisma.withdrawal.findMany({
+        where: { affiliateId: id },
+        orderBy: { createdAt: 'desc' },
+        take: 100,
+      }),
+      affiliate.wallet
+        ? this.prisma.walletTransaction.findMany({
+            where: { walletId: affiliate.wallet.id },
+            orderBy: { createdAt: 'desc' },
+            take: 100,
+          })
+        : Promise.resolve([]),
+    ]);
+
+    return { ...affiliate, commissions, withdrawals, walletTransactions };
+  }
+
+  /**
+   * Creates an Affiliate profile (with its Wallet) for an existing user.
+   * Affiliate and Wallet are created inside a single transaction — the invariant is
+   * that every Affiliate ALWAYS has exactly one Wallet.
+   */
+  async createEmployee(
+    userId: string,
+    options: { commissionRate?: number; actorUserId?: string } = {},
+  ): Promise<Affiliate> {
+    const user = await this.prisma.user.findUnique({ where: { id: userId }, select: { id: true } });
+    if (!user) throw new NotFoundException(`User ${userId} not found`);
+
+    const existing = await this.prisma.affiliate.findUnique({ where: { userId } });
+    if (existing) throw new ConflictException('This user already has a sales employee profile');
+
+    const settings = await this.settingsService.get();
+    const commissionRate = options.commissionRate ?? settings.defaultCommissionRate;
+
+    let lastError: unknown;
+    for (let attempt = 1; attempt <= AffiliateService.CODE_GENERATION_MAX_ATTEMPTS; attempt += 1) {
+      const affiliateCode = generateEmployeeCode();
+      try {
+        const affiliate = await this.prisma.$transaction(async (tx) => {
+          const created = await tx.affiliate.create({
+            data: {
+              affiliateCode,
+              commissionRate,
+              userId,
+              status: AffiliateStatusEnum.ACTIVE,
+              isEligibleForCommission: true,
+              createdBy: options.actorUserId ?? null,
+            },
+          });
+          await tx.wallet.create({ data: { affiliateId: created.id } });
+          return created;
+        });
+
+        await this.auditService.logEvent({
+          action: 'affiliate.created',
+          entityType: 'Affiliate',
+          entityId: affiliate.id,
+          newValue: { affiliateCode: affiliate.affiliateCode, userId, commissionRate },
+          userId: options.actorUserId,
+        });
+
+        this.logger.log(`Created sales employee ${affiliate.affiliateCode} for user ${userId}`);
+        return affiliate;
+      } catch (error) {
+        // P2002 = unique constraint violation. Only the affiliateCode can realistically
+        // collide here (userId uniqueness was checked above), so regenerate and retry.
+        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+          const target = (error.meta as any)?.target;
+          const targetStr = Array.isArray(target) ? target.join(',') : String(target ?? '');
+          if (targetStr.includes('userId')) {
+            throw new ConflictException('This user already has a sales employee profile');
+          }
+          lastError = error;
+          this.logger.warn(`Employee code collision on ${affiliateCode} (attempt ${attempt}) — regenerating`);
+          continue;
+        }
+        throw error;
+      }
+    }
+
+    this.logger.error('Exhausted employee code generation attempts', lastError as any);
+    throw new InternalServerErrorException('Could not generate a unique employee code, please retry');
+  }
+
+  async setEmployeeStatus(
+    id: string,
+    status: AffiliateStatusEnum,
+    actorUserId?: string,
+  ): Promise<Affiliate> {
+    const affiliate = await this.prisma.affiliate.findFirst({ where: { id, deletedAt: null } });
+    if (!affiliate) throw new NotFoundException(`Sales employee ${id} not found`);
+    if (affiliate.status === status) return affiliate;
+
+    const updated = await this.prisma.affiliate.update({
+      where: { id },
+      data: {
+        status,
+        // An inactive/suspended employee must not accrue new commission.
+        isEligibleForCommission: status === AffiliateStatusEnum.ACTIVE,
+        updatedBy: actorUserId ?? null,
+      },
+    });
+
+    await this.auditService.logEvent({
+      action: status === AffiliateStatusEnum.ACTIVE ? 'affiliate.activated' : 'affiliate.deactivated',
+      entityType: 'Affiliate',
+      entityId: id,
+      oldValue: { status: affiliate.status, isEligibleForCommission: affiliate.isEligibleForCommission },
+      newValue: { status: updated.status, isEligibleForCommission: updated.isEligibleForCommission },
+      userId: actorUserId,
+    });
+
+    return updated;
+  }
+
+  // ── Admin dashboard ───────────────────────────────────────────────────────
+
+  /** Stat-card aggregates for the admin affiliate dashboard. */
+  async getOverview() {
+    const [
+      totalSalesAgg,
+      affiliateSalesAgg,
+      activeEmployees,
+      totalCommissionAgg,
+      pendingCommissionAgg,
+      walletLiabilityAgg,
+      pendingWithdrawalsAgg,
+      paidWithdrawalsAgg,
+    ] = await Promise.all([
+      this.prisma.order.aggregate({
+        where: { deletedAt: null, status: { notIn: ['CANCELLED', 'PENDING_PAYMENT'] } },
+        _sum: { netAmount: true },
+        _count: true,
+      }),
+      this.prisma.commission.aggregate({
+        where: { status: { notIn: ['CANCELLED'] } },
+        _sum: { commissionBaseAmount: true },
+        _count: true,
+      }),
+      this.prisma.affiliate.count({ where: { status: AffiliateStatusEnum.ACTIVE, deletedAt: null } }),
+      this.prisma.commission.aggregate({
+        where: { status: { notIn: ['CANCELLED', 'REVERSED'] } },
+        _sum: { commissionAmount: true },
+      }),
+      this.prisma.commission.aggregate({
+        where: { status: { in: ['PENDING', 'ELIGIBLE'] } },
+        _sum: { commissionAmount: true },
+      }),
+      this.prisma.wallet.aggregate({ _sum: { availableBalance: true, pendingBalance: true } }),
+      this.prisma.withdrawal.aggregate({
+        where: { status: { in: ['PENDING', 'SCHEDULED', 'PROCESSING'] } },
+        _sum: { amount: true },
+        _count: true,
+      }),
+      this.prisma.withdrawal.aggregate({
+        where: { status: 'PAID' },
+        _sum: { amount: true },
+        _count: true,
+      }),
+    ]);
+
+    return {
+      // Flat rupee totals — this is the contract the admin dashboard is built against.
+      totalSales: totalSalesAgg._sum.netAmount ?? 0,
+      totalAffiliateSales: affiliateSalesAgg._sum.commissionBaseAmount ?? 0,
+      activeEmployees,
+      totalCommission: totalCommissionAgg._sum.commissionAmount ?? 0,
+      pendingCommission: pendingCommissionAgg._sum.commissionAmount ?? 0,
+      // Total money we currently owe employees and can be withdrawn right now.
+      availableWalletLiability: walletLiabilityAgg._sum.availableBalance ?? 0,
+      heldWalletLiability: walletLiabilityAgg._sum.pendingBalance ?? 0,
+      pendingWithdrawals: pendingWithdrawalsAgg._sum.amount ?? 0,
+      paidWithdrawals: paidWithdrawalsAgg._sum.amount ?? 0,
+      // Underlying counts, kept available under distinct keys for anything that wants them.
+      totalSalesCount: totalSalesAgg._count,
+      totalAffiliateSalesCount: affiliateSalesAgg._count,
+      pendingWithdrawalsCount: pendingWithdrawalsAgg._count,
+      paidWithdrawalsCount: paidWithdrawalsAgg._count,
+    };
+  }
+
+  /** Guards against a caller passing a code shaped like anything other than EMP-XXXXX. */
+  assertCodeShape(code: string): string {
+    const normalized = normalizeEmployeeCode(code);
+    if (!EMPLOYEE_CODE_REGEX.test(normalized)) throw new BadRequestException(GENERIC_INVALID_MESSAGE);
+    return normalized;
+  }
+}

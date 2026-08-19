@@ -15,19 +15,22 @@ const config_1 = require("@nestjs/config");
 const prisma_service_1 = require("../prisma/prisma.service");
 const razorpay_provider_1 = require("../payments/razorpay.provider");
 const invoices_service_1 = require("../invoices/invoices.service");
+const commission_service_1 = require("../affiliate/services/commission.service");
 const client_1 = require("@prisma/client");
 let WebhooksService = class WebhooksService {
     prisma;
     razorpayGateway;
     configService;
     invoicesService;
+    commissionService;
     logger = new common_1.Logger('WebhooksService');
     webhookSecret;
-    constructor(prisma, razorpayGateway, configService, invoicesService) {
+    constructor(prisma, razorpayGateway, configService, invoicesService, commissionService) {
         this.prisma = prisma;
         this.razorpayGateway = razorpayGateway;
         this.configService = configService;
         this.invoicesService = invoicesService;
+        this.commissionService = commissionService;
         this.webhookSecret = this.configService.get('razorpay.webhookSecret', 'mock-razorpay-webhook-secret');
     }
     async handleRazorpayWebhook(rawBody, signature) {
@@ -170,6 +173,7 @@ let WebhooksService = class WebhooksService {
             return;
         const payment = await this.prisma.payment.findFirst({
             where: { gatewayTransactionId: entity.payment_id },
+            include: { order: { select: { id: true, netAmount: true, taxAmount: true } } },
         });
         if (payment) {
             await this.prisma.payment.update({
@@ -188,6 +192,21 @@ let WebhooksService = class WebhooksService {
                 },
             });
             this.logger.log(`💸 Webhook: Refund processed for payment ${entity.payment_id}`);
+            // Affiliate commission clawback. Proportional for partial refunds; a full
+            // refund reverses the whole commission. Idempotency is provided both by the
+            // transaction-level check above and by a REVERSED-status guard inside
+            // reverseCommission, so a replayed webhook cannot double-reverse.
+            if (payment.orderId && payment.order) {
+                try {
+                    const refundAmount = (entity.amount ?? 0) / 100; // Razorpay sends paise
+                    // The customer-paid total is the taxable base plus tax.
+                    const orderTotal = payment.order.netAmount + payment.order.taxAmount;
+                    await this.commissionService.reverseCommission(payment.orderId, refundAmount, orderTotal);
+                }
+                catch (error) {
+                    this.logger.error(`❌ Webhook: Commission reversal failed for order ${payment.orderId}: ${error.message}`);
+                }
+            }
         }
     }
     async handleSubscriptionCharged(entity) {
@@ -237,6 +256,7 @@ exports.WebhooksService = WebhooksService = __decorate([
     __metadata("design:paramtypes", [prisma_service_1.PrismaService,
         razorpay_provider_1.RazorpayGateway,
         config_1.ConfigService,
-        invoices_service_1.InvoicesService])
+        invoices_service_1.InvoicesService,
+        commission_service_1.CommissionService])
 ], WebhooksService);
 //# sourceMappingURL=webhooks.service.js.map

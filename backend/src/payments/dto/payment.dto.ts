@@ -11,6 +11,17 @@ export class CreatePaymentOrderDto {
   @IsOptional()
   @IsString()
   currency?: string = 'INR';
+
+  /**
+   * Optional sales-employee attribution code. It is re-validated server-side here —
+   * a prior /checkout/affiliate/validate call is never trusted, and no "already
+   * validated" flag from the client is accepted. An invalid code aborts the request
+   * before any gateway call is made.
+   */
+  @ApiPropertyOptional({ description: 'Sales employee code applied at checkout', example: 'EMP-7K2QX' })
+  @IsOptional()
+  @IsString()
+  employeeCode?: string;
 }
 
 export class VerifyPaymentDto {

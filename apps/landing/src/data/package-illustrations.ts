@@ -1,9 +1,12 @@
+const ECOMMERCE_ILLUSTRATION_URL =
+  "https://res.cloudinary.com/dkkqzckfq/image/upload/v1786966935/simbolo/package-illustrations/ecommerce-illustration-photoroom.png";
+
 export const PACKAGE_ILLUSTRATION_PATHS = [
   "/images/services/ai_automation_1784887931272.png",
   "/images/services/branding_1784887903218.png",
   "/images/services/content_marketing_1784887968386.png",
   "/images/services/crm_integration_1784887948999.png",
-  "/images/services/ecommerce-illustration.png",
+  ECOMMERCE_ILLUSTRATION_URL,
   "/images/services/ecommerce_1784887873510.png",
   "/images/services/email_marketing_1784887958663.png",
   "/images/services/google_ads_1784887852918.png",
@@ -26,7 +29,7 @@ const serviceIllustrationFallbacks: ReadonlyArray<readonly [string, string]> = [
   ["meta", "/images/services/meta-ads.png"],
   ["seo", "/images/services/seo.png"],
   ["shopify", "/images/services/shopify_development_1784887883421.png"],
-  ["ecommerce", "/images/services/ecommerce_1784887873510.png"],
+  ["ecommerce", ECOMMERCE_ILLUSTRATION_URL],
   ["website", "/images/services/website-design.png"],
   ["web design", "/images/services/website-design.png"],
   ["mobile", "/images/services/mobile_app_development_1784887912184.png"],

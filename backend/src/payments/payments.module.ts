@@ -3,9 +3,13 @@ import { PaymentsController } from './payments.controller';
 import { PaymentsService } from './payments.service';
 import { RazorpayGateway } from './razorpay.provider';
 import { PrismaModule } from '../prisma/prisma.module';
+import { AffiliateModule } from '../affiliate/affiliate.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 
+// Dependency direction is one-way: Webhooks -> Payments -> Affiliate.
+// AffiliateModule never imports PaymentsModule, so no forwardRef is needed.
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, AffiliateModule, NotificationsModule],
   controllers: [PaymentsController],
   providers: [PaymentsService, RazorpayGateway],
   exports: [PaymentsService, RazorpayGateway],

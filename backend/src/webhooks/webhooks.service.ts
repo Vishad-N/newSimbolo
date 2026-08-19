@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 import { RazorpayGateway } from '../payments/razorpay.provider';
 import { InvoicesService } from '../invoices/invoices.service';
+import { CommissionService } from '../affiliate/services/commission.service';
 import { OrderStatusEnum, PaymentStatusEnum } from '@prisma/client';
 
 @Injectable()
@@ -15,6 +16,7 @@ export class WebhooksService {
     private readonly razorpayGateway: RazorpayGateway,
     private readonly configService: ConfigService,
     private readonly invoicesService: InvoicesService,
+    private readonly commissionService: CommissionService,
   ) {
     this.webhookSecret = this.configService.get<string>('razorpay.webhookSecret', 'mock-razorpay-webhook-secret');
   }
@@ -168,6 +170,7 @@ export class WebhooksService {
     if (!entity?.payment_id) return;
     const payment = await this.prisma.payment.findFirst({
       where: { gatewayTransactionId: entity.payment_id },
+      include: { order: { select: { id: true, netAmount: true, taxAmount: true } } },
     });
 
     if (payment) {
@@ -187,6 +190,23 @@ export class WebhooksService {
         },
       });
       this.logger.log(`💸 Webhook: Refund processed for payment ${entity.payment_id}`);
+
+      // Affiliate commission clawback. Proportional for partial refunds; a full
+      // refund reverses the whole commission. Idempotency is provided both by the
+      // transaction-level check above and by a REVERSED-status guard inside
+      // reverseCommission, so a replayed webhook cannot double-reverse.
+      if (payment.orderId && payment.order) {
+        try {
+          const refundAmount = (entity.amount ?? 0) / 100; // Razorpay sends paise
+          // The customer-paid total is the taxable base plus tax.
+          const orderTotal = payment.order.netAmount + payment.order.taxAmount;
+          await this.commissionService.reverseCommission(payment.orderId, refundAmount, orderTotal);
+        } catch (error) {
+          this.logger.error(
+            `❌ Webhook: Commission reversal failed for order ${payment.orderId}: ${(error as Error).message}`,
+          );
+        }
+      }
     }
   }
 

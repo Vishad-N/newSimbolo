@@ -6,6 +6,7 @@ import authConfig from './auth.config';
 import storageConfig from './storage.config';
 import emailConfig from './email.config';
 import razorpayConfig from './razorpay.config';
+import razorpayxConfig from './razorpayx.config';
 import redisConfig from './redis.config';
 import observabilityConfig from './observability.config';
 import cloudinaryConfig from './cloudinary.config';
@@ -25,6 +26,7 @@ import { validate } from './env.validation';
         storageConfig,
         emailConfig,
         razorpayConfig,
+        razorpayxConfig,
         redisConfig,
         observabilityConfig,
         cloudinaryConfig,

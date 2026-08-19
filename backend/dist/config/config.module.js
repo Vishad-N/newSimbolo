@@ -15,6 +15,7 @@ const auth_config_1 = require("./auth.config");
 const storage_config_1 = require("./storage.config");
 const email_config_1 = require("./email.config");
 const razorpay_config_1 = require("./razorpay.config");
+const razorpayx_config_1 = require("./razorpayx.config");
 const redis_config_1 = require("./redis.config");
 const observability_config_1 = require("./observability.config");
 const cloudinary_config_1 = require("./cloudinary.config");
@@ -37,6 +38,7 @@ exports.ConfigModule = ConfigModule = __decorate([
                     storage_config_1.default,
                     email_config_1.default,
                     razorpay_config_1.default,
+                    razorpayx_config_1.default,
                     redis_config_1.default,
                     observability_config_1.default,
                     cloudinary_config_1.default,

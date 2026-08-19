@@ -165,6 +165,63 @@ flowchart TD
 - After creation, send the client their email and temporary password only through the approved private communication channel.
 - If packages do not load, sign in again using the top-right `Admin Sign In` button or ask the technical team to check API access.
 
+### Step-By-Step: Create A New Client Manually
+
+Use these steps when the admin team needs to create a client account from the admin dashboard.
+
+1. Open the admin dashboard.
+2. If the browser asks for Basic Auth, enter the admin website username and password.
+3. Click `Admin Sign In` in the top-right navbar.
+4. Enter the admin API email and password.
+5. Open `Users` from the left sidebar.
+6. Wait for the `Available Packages` count to load.
+7. In the `Manual Client Creation` form, enter the client's `First Name`.
+8. Enter the client's `Last Name`.
+9. Enter the client's `Email`.
+10. Enter the client's phone number only if available.
+11. If phone is entered, keep the country code separate, for example `+91`.
+12. Enter exactly 10 digits in the phone number field.
+13. Enter a temporary password in `Temporary Password`.
+14. Keep `Timezone` as `Asia/Kolkata` unless the client is in another timezone.
+15. If the client should not get a plan immediately, leave `Assign Package` as `No plan yet`.
+16. If the client should get a plan immediately, follow the package assignment steps below.
+17. Add `GST Number` only if the client has provided a valid GSTIN.
+18. Add `Billing Address` if available.
+19. Add `Internal Notes` only for admin team reference.
+20. Click `Create Client`.
+21. Wait for the success message.
+22. Confirm the client appears in the `Recent Clients` list.
+23. Share the login email and temporary password with the client through the approved private channel.
+
+### Step-By-Step: Assign A Package While Creating A Client
+
+Use these steps inside the same `Manual Client Creation` form on the `Users` page.
+
+1. Click the `Assign Package` dropdown.
+2. Select the package the client has purchased or should receive.
+3. Confirm that the selected package name is correct.
+4. Choose the billing `Interval`: `Monthly`, `Quarterly`, or `Yearly`.
+5. Check the `Price` field.
+6. If the price is empty, confirm the package setup in `Packages` first.
+7. Keep `Currency` as `INR` unless the business team has approved another currency.
+8. Fill the remaining client details.
+9. Click `Create Client`.
+10. Check the success message. It should say the client was created and assigned the selected plan.
+11. If an error appears, correct the highlighted field and click `Create Client` again.
+
+Important: package assignment happens at the time you click `Create Client`. If you leave `Assign Package` as `No plan yet`, the user is created without an active subscription.
+
+### Common Mistakes During Client Creation
+
+| Problem | What to do |
+| --- | --- |
+| Packages are not loading | Click `Refresh`; if still empty, sign in again with `Admin Sign In`. |
+| Client phone is rejected | Enter only 10 digits in the phone field and keep country code separate. |
+| Name is rejected | Remove numbers or symbols from first name and last name. |
+| Email is rejected | Check spelling and make sure the email has a valid format like `name@company.com`. |
+| Price is missing after selecting package | Open `Packages`, check the package base price, then return to `Users`. |
+| Create Client fails with authorization error | Sign in again from the top-right `Admin Sign In` button. |
+
 ## Individual Service Page Workflow
 
 The sidebar contains service pages for SEO, Google Ads, Meta Ads, Website Design, Video Editing, Graphic Design, and E-Commerce.

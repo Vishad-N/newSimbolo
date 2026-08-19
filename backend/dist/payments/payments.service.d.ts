@@ -3,10 +3,18 @@ import { BaseService } from '../shared/abstractions/base.service';
 import { RazorpayGateway } from './razorpay.provider';
 import { CreatePaymentOrderDto, VerifyPaymentDto } from './dto/payment.dto';
 import { PaymentStatusEnum } from '@prisma/client';
+import { AffiliateService } from '../affiliate/services/affiliate.service';
+import { AffiliateSettingsService } from '../affiliate/services/affiliate-settings.service';
+import { CommissionService } from '../affiliate/services/commission.service';
+import { NotificationsService } from '../notifications/notifications.service';
 export declare class PaymentsService extends BaseService {
     private readonly prisma;
     private readonly razorpayGateway;
-    constructor(prisma: PrismaService, razorpayGateway: RazorpayGateway);
+    private readonly affiliateService;
+    private readonly affiliateSettingsService;
+    private readonly commissionService;
+    private readonly notificationsService;
+    constructor(prisma: PrismaService, razorpayGateway: RazorpayGateway, affiliateService: AffiliateService, affiliateSettingsService: AffiliateSettingsService, commissionService: CommissionService, notificationsService: NotificationsService);
     private generatePaymentNumber;
     private generateTransactionId;
     /**
@@ -39,7 +47,24 @@ export declare class PaymentsService extends BaseService {
      * Verifies Razorpay payment signature on the backend.
      * NEVER trusts client-side payment status.
      */
-    verifyPayment(dto: VerifyPaymentDto, verifiedBy?: string): Promise<any>;
+    verifyPayment(dto: VerifyPaymentDto, verifiedBy?: string): Promise<{
+        id: string;
+        createdAt: Date;
+        status: import(".prisma/client").$Enums.PaymentStatusEnum;
+        updatedAt: Date;
+        createdBy: string | null;
+        updatedBy: string | null;
+        method: string | null;
+        currency: string;
+        orderId: string | null;
+        amount: number;
+        paymentNumber: string;
+        gatewayProvider: string;
+        gatewayTransactionId: string | null;
+        gatewayOrderId: string | null;
+        invoiceId: string | null;
+        paidAt: Date | null;
+    }>;
     findAll(clientId?: string, status?: PaymentStatusEnum, page?: number, limit?: number): Promise<{
         data: ({
             order: {

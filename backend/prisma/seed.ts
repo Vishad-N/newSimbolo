@@ -170,6 +170,19 @@ async function main() {
       module: 'settings',
       description: 'Can change system configuration',
     },
+    // Affiliate / sales employee commission module
+    {
+      name: 'Manage Affiliates',
+      slug: 'affiliate.manage',
+      module: 'affiliate',
+      description: 'Can manage sales employees, commissions, wallets and program settings',
+    },
+    {
+      name: 'Process Payouts',
+      slug: 'affiliate.payouts.process',
+      module: 'affiliate',
+      description: 'Can approve, process and retry sales employee commission payouts',
+    },
   ];
 
   console.log(`Creating/updating ${permissionsData.length} permissions...`);

@@ -82,11 +82,13 @@ const assets_module_1 = require("./assets/assets.module");
 const website_team_module_1 = require("./website-team/website-team.module");
 const leads_module_1 = require("./leads/leads.module");
 const service_page_config_module_1 = require("./service-page-config/service-page-config.module");
+// Sales Employee / Affiliate Commission & Wallet system
+const affiliate_module_1 = require("./affiliate/affiliate.module");
 let AppModule = class AppModule {
     configure(consumer) {
         consumer.apply(request_context_middleware_1.RequestContextMiddleware, request_logger_middleware_1.RequestLoggerMiddleware, csrf_middleware_1.CsrfMiddleware).forRoutes('*');
-        // Raw body middleware for Razorpay webhook signature verification
-        consumer.apply(raw_body_middleware_1.RawBodyMiddleware).forRoutes('webhooks/razorpay');
+        // Raw body middleware for Razorpay / RazorpayX webhook signature verification
+        consumer.apply(raw_body_middleware_1.RawBodyMiddleware).forRoutes('webhooks/razorpay', 'webhooks/razorpayx');
     }
 };
 exports.AppModule = AppModule;
@@ -130,6 +132,7 @@ exports.AppModule = AppModule = __decorate([
             meetings_module_1.MeetingsModule,
             dashboard_module_1.DashboardModule,
             // Phase 8: Payments, Billing, Notifications & Real-Time Collaboration
+            affiliate_module_1.AffiliateModule,
             payments_module_1.PaymentsModule,
             transactions_module_1.TransactionsModule,
             webhooks_module_1.WebhooksModule,

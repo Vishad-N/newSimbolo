@@ -2,7 +2,7 @@
 
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { CreditCard, CheckCircle2, AlertCircle, ShieldCheck, FileText, ArrowRight } from "lucide-react";
+import { CreditCard, CheckCircle2, AlertCircle, ShieldCheck, FileText, ArrowRight, Check, X, Loader2 } from "lucide-react";
 import { RazorpayCheckout } from "@/components/checkout/RazorpayCheckout";
 import { mockApi, splitStoredPhone } from "@/services/api";
 import {
@@ -75,6 +75,44 @@ function CheckoutContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSuccess, setIsSuccess] = useState(false);
   const [gstError, setGstError] = useState("");
+
+  // Optional sales-employee attribution code.
+  const [employeeCodeInput, setEmployeeCodeInput] = useState("");
+  const [appliedEmployee, setAppliedEmployee] = useState<{ code: string; name: string } | null>(null);
+  const [employeeCodeError, setEmployeeCodeError] = useState("");
+  const [isValidatingEmployeeCode, setIsValidatingEmployeeCode] = useState(false);
+
+  const handleApplyEmployeeCode = async () => {
+    const code = employeeCodeInput.trim();
+    setAppliedEmployee(null);
+    setEmployeeCodeError("");
+
+    if (!code) {
+      setEmployeeCodeError("Enter an employee code to apply.");
+      return;
+    }
+
+    setIsValidatingEmployeeCode(true);
+    try {
+      const res = await fetch("/api/checkout/validate-employee", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ employeeCode: code }),
+      });
+      const result = await res.json();
+
+      if (res.ok && result?.valid && result?.employee) {
+        setAppliedEmployee({ code: result.employee.code || code, name: result.employee.name || "" });
+      } else {
+        setEmployeeCodeError("Invalid or inactive employee code");
+      }
+    } catch (err) {
+      console.error("Employee code validation failed", err);
+      setEmployeeCodeError("Invalid or inactive employee code");
+    } finally {
+      setIsValidatingEmployeeCode(false);
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -322,6 +360,7 @@ function CheckoutContent() {
               packageName={selectedPackage.name} 
               packageId={selectedPackage.id || packageId}
               profile={userProfile}
+              employeeCode={appliedEmployee?.code}
               validateBeforePayment={() => {
                 const firstNameError = validatePersonName(userProfile?.firstName || "", "First Name");
                 const lastNameError = validatePersonName(userProfile?.lastName || "", "Last Name");
@@ -353,6 +392,53 @@ function CheckoutContent() {
                 <h4 className="font-bold text-white">{selectedPackage.name}</h4>
                 <p className="text-xs text-gray-400 line-clamp-2 mt-1">{selectedPackage.description}</p>
               </div>
+            </div>
+
+            {/* Optional sales employee attribution */}
+            <div className="mb-6 border-b border-white/10 pb-6">
+              <label className="mb-1.5 block text-xs font-medium text-gray-400">Employee Code (Optional)</label>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <input
+                  type="text"
+                  placeholder="EMP-XXXXX"
+                  value={employeeCodeInput}
+                  onChange={(e) => {
+                    setEmployeeCodeInput(e.target.value.toUpperCase());
+                    // Editing after applying invalidates the previous validation.
+                    if (appliedEmployee) setAppliedEmployee(null);
+                    if (employeeCodeError) setEmployeeCodeError("");
+                  }}
+                  className="w-full rounded-xl border border-white/10 bg-black/20 p-3 text-sm text-white uppercase focus:border-[var(--primary)] focus:outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={handleApplyEmployeeCode}
+                  disabled={isValidatingEmployeeCode}
+                  className="shrink-0 rounded-xl border border-[var(--primary)]/40 bg-[var(--primary)]/10 px-5 py-3 text-sm font-bold text-[var(--primary)] transition-colors hover:bg-[var(--primary)]/20 disabled:opacity-60 sm:w-auto"
+                >
+                  {isValidatingEmployeeCode ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin" /> Applying
+                    </span>
+                  ) : (
+                    "Apply"
+                  )}
+                </button>
+              </div>
+
+              {appliedEmployee && (
+                <p className="mt-2 flex items-start gap-2 text-xs font-medium text-green-400">
+                  <Check className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                  <span>Employee code applied — Employee: {appliedEmployee.name}</span>
+                </p>
+              )}
+
+              {employeeCodeError && (
+                <p className="mt-2 flex items-start gap-2 text-xs font-medium text-red-400">
+                  <X className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                  <span>{employeeCodeError}</span>
+                </p>
+              )}
             </div>
 
             <div className="space-y-3 border-b border-white/10 pb-6 text-sm">

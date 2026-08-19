@@ -38,6 +38,10 @@ class EnvironmentVariables {
     RAZORPAY_KEY_ID;
     RAZORPAY_KEY_SECRET;
     RAZORPAY_WEBHOOK_SECRET;
+    RAZORPAYX_KEY_ID;
+    RAZORPAYX_KEY_SECRET;
+    RAZORPAYX_ACCOUNT_NUMBER;
+    RAZORPAYX_WEBHOOK_SECRET;
     SMTP_HOST;
     SMTP_PORT;
     SMTP_USER;
@@ -145,6 +149,26 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], EnvironmentVariables.prototype, "RAZORPAY_WEBHOOK_SECRET", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], EnvironmentVariables.prototype, "RAZORPAYX_KEY_ID", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], EnvironmentVariables.prototype, "RAZORPAYX_KEY_SECRET", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], EnvironmentVariables.prototype, "RAZORPAYX_ACCOUNT_NUMBER", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], EnvironmentVariables.prototype, "RAZORPAYX_WEBHOOK_SECRET", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),

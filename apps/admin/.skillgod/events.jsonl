@@ -1,0 +1,4 @@
+{"ts": 1787139339.9481, "iso": "2026-08-19T17:05:39", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.35"}
+{"ts": 1787139344.9721754, "iso": "2026-08-19T17:05:44", "event": "pre_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "pre_tool: inject chars=7860"}
+{"ts": 1787142066.010927, "iso": "2026-08-19T17:51:06", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.35"}
+{"ts": 1787142071.9929469, "iso": "2026-08-19T17:51:11", "event": "pre_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "pre_tool: inject chars=9987"}

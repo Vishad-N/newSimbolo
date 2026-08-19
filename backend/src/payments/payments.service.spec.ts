@@ -3,6 +3,10 @@ import { OrderStatusEnum, PaymentStatusEnum } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { RazorpayGateway } from './razorpay.provider';
 import { PaymentsService } from './payments.service';
+import { AffiliateService } from '../affiliate/services/affiliate.service';
+import { AffiliateSettingsService } from '../affiliate/services/affiliate-settings.service';
+import { CommissionService } from '../affiliate/services/commission.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 type PaymentsPrismaMock = {
   payment: {
@@ -25,6 +29,14 @@ describe('PaymentsService', () => {
   let prisma: PaymentsPrismaMock;
   let gateway: jest.Mocked<Pick<RazorpayGateway, 'verifyPaymentSignature'>>;
   let service: PaymentsService;
+  let affiliateService: { validateEmployeeCode: jest.Mock };
+  let affiliateSettingsService: { get: jest.Mock };
+  let commissionService: {
+    resolveAndFreezeCommission: jest.Mock;
+    attachPaymentOp: jest.Mock;
+    settleCommissionOnPaymentSuccess: jest.Mock;
+  };
+  let notificationsService: { notifyCommissionEarned: jest.Mock; notifyCommissionCredited: jest.Mock };
 
   beforeEach(() => {
     prisma = {
@@ -46,7 +58,25 @@ describe('PaymentsService', () => {
     gateway = {
       verifyPaymentSignature: jest.fn(),
     };
-    service = new PaymentsService(prisma as unknown as PrismaService, gateway as unknown as RazorpayGateway);
+    affiliateService = { validateEmployeeCode: jest.fn() };
+    affiliateSettingsService = { get: jest.fn().mockResolvedValue({ commissionHoldPeriodDays: 7 }) };
+    commissionService = {
+      resolveAndFreezeCommission: jest.fn(),
+      attachPaymentOp: jest.fn(),
+      settleCommissionOnPaymentSuccess: jest.fn().mockResolvedValue(null),
+    };
+    notificationsService = {
+      notifyCommissionEarned: jest.fn(),
+      notifyCommissionCredited: jest.fn(),
+    };
+    service = new PaymentsService(
+      prisma as unknown as PrismaService,
+      gateway as unknown as RazorpayGateway,
+      affiliateService as unknown as AffiliateService,
+      affiliateSettingsService as unknown as AffiliateSettingsService,
+      commissionService as unknown as CommissionService,
+      notificationsService as unknown as NotificationsService,
+    );
   });
 
   it('records a successful payment only after gateway signature verification', async () => {
@@ -61,7 +91,10 @@ describe('PaymentsService', () => {
     };
     const updatedPayment = { ...payment, status: PaymentStatusEnum.SUCCESSFUL };
     prisma.payment.findFirst.mockResolvedValue(payment);
-    prisma.$transaction.mockResolvedValue([updatedPayment]);
+    prisma.payment.update.mockResolvedValue(updatedPayment);
+    // verifyPayment now uses an interactive transaction so the affiliate commission
+    // can settle atomically alongside the payment/order writes.
+    prisma.$transaction.mockImplementation(async (fn: any) => fn(prisma));
     gateway.verifyPaymentSignature.mockReturnValue({ isValid: true, transactionId: 'pay_123' });
 
     await expect(
@@ -73,12 +106,12 @@ describe('PaymentsService', () => {
     ).resolves.toEqual(updatedPayment);
 
     expect(gateway.verifyPaymentSignature).toHaveBeenCalledWith('order_123', 'pay_123', 'valid-signature');
-    expect(prisma.$transaction).toHaveBeenCalledWith([
-      expect.objectContaining({}),
-      expect.objectContaining({}),
-      expect.objectContaining({}),
-      expect.objectContaining({}),
-    ]);
+    expect(prisma.$transaction).toHaveBeenCalledWith(expect.any(Function));
+    expect(commissionService.settleCommissionOnPaymentSuccess).toHaveBeenCalledWith(
+      prisma,
+      'order-id',
+      expect.objectContaining({ commissionHoldPeriodDays: 7 }),
+    );
     expect(prisma.order.update).toHaveBeenCalledWith({
       where: { id: 'order-id' },
       data: { status: OrderStatusEnum.CONFIRMED },

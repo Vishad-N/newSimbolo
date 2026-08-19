@@ -9,12 +9,14 @@ interface RazorpayCheckoutProps {
   packageName: string;
   packageId: string;
   profile?: { firstName: string; lastName: string; email: string; countryCode?: string; phone?: string; companyName?: string; billingAddress?: string; gstNumber?: string; stateCode?: string } | null;
+  /** Sales employee code, only passed once it has been successfully validated. */
+  employeeCode?: string;
   validateBeforePayment?: () => string | null;
   onBeforePayment?: () => Promise<void>;
   onSuccess: () => void;
 }
 
-export function RazorpayCheckout({ amount, packageName, packageId, profile, validateBeforePayment, onBeforePayment, onSuccess }: RazorpayCheckoutProps) {
+export function RazorpayCheckout({ amount, packageName, packageId, profile, employeeCode, validateBeforePayment, onBeforePayment, onSuccess }: RazorpayCheckoutProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isShaking, setIsShaking] = useState(false);
@@ -65,13 +67,25 @@ export function RazorpayCheckout({ amount, packageName, packageId, profile, vali
       const orderRes = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ packageId })
+        body: JSON.stringify({ packageId, ...(employeeCode ? { employeeCode } : {}) })
       });
-      
+
       if (!orderRes.ok) {
-        throw new Error("Failed to create order on server");
+        // The server proxy forwards the backend's message (e.g. an employee code that
+        // became invalid between Apply and payment). Surface it instead of a generic error
+        // and never fall through to opening Razorpay Checkout.
+        let message = "Failed to create order on server";
+        try {
+          const errorBody = await orderRes.json();
+          if (errorBody?.message) {
+            message = Array.isArray(errorBody.message) ? errorBody.message[0] : errorBody.message;
+          }
+        } catch {
+          // Non-JSON error body: keep the generic message.
+        }
+        throw new Error(message);
       }
-      
+
       const paymentOrderData = await orderRes.json();
       const gatewayOrderId = paymentOrderData.data?.gatewayOrder?.gatewayOrderId || paymentOrderData.gatewayOrder?.gatewayOrderId;
 
@@ -150,7 +164,9 @@ export function RazorpayCheckout({ amount, packageName, packageId, profile, vali
 
     } catch (err: any) {
       console.error(err);
-      setError("An unexpected error occurred during payment initialization.");
+      setError(err?.message || "An unexpected error occurred during payment initialization.");
+      setIsShaking(true);
+      setTimeout(() => setIsShaking(false), 500);
       setIsProcessing(false);
     }
   };

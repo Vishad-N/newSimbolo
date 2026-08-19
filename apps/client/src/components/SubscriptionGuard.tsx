@@ -20,9 +20,10 @@ export function SubscriptionGuard({ children }: { children: React.ReactNode }) {
   const [subscription, setSubscription] = useState<ClientSubscription | null>(null);
   const [redirectUrl, setRedirectUrl] = useState<string | null>(null);
   
-  // Don't enforce lockdown on the checkout page itself
-  const isCheckout = pathname?.includes("/checkout");
-  
+  // Don't enforce lockdown on the checkout page itself, nor on the affiliate portal —
+  // sales employees are not required to hold a client subscription.
+  const isCheckout = pathname?.includes("/checkout") || pathname?.includes("/affiliate");
+
   useEffect(() => {
     if (isCheckout) {
       setIsLoading(false);

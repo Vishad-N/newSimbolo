@@ -1,8 +1,8 @@
 import { OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Job } from 'bullmq';
+import { Job, JobsOptions } from 'bullmq';
 import { BaseService } from '../shared/abstractions/base.service';
-export type QueueName = 'email' | 'invoice-pdf' | 'ai' | 'analytics' | 'exports' | 'images' | 'notifications' | 'reminders';
+export type QueueName = 'email' | 'invoice-pdf' | 'ai' | 'analytics' | 'exports' | 'images' | 'notifications' | 'reminders' | 'commissions';
 export declare class QueueService extends BaseService implements OnModuleDestroy {
     private readonly configService;
     private readonly connection?;
@@ -13,7 +13,7 @@ export declare class QueueService extends BaseService implements OnModuleDestroy
     private lastQueueCounts;
     constructor(configService: ConfigService);
     onModuleDestroy(): Promise<void>;
-    add<T extends Record<string, unknown>>(queueName: QueueName, name: string, data: T): Promise<{
+    add<T extends Record<string, unknown>>(queueName: QueueName, name: string, data: T, opts?: JobsOptions): Promise<{
         queued: boolean;
         queueName: QueueName;
         name: string;

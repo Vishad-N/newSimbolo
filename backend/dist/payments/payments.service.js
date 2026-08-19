@@ -15,13 +15,25 @@ const prisma_service_1 = require("../prisma/prisma.service");
 const base_service_1 = require("../shared/abstractions/base.service");
 const razorpay_provider_1 = require("./razorpay.provider");
 const client_1 = require("@prisma/client");
+const affiliate_service_1 = require("../affiliate/services/affiliate.service");
+const affiliate_settings_service_1 = require("../affiliate/services/affiliate-settings.service");
+const commission_service_1 = require("../affiliate/services/commission.service");
+const notifications_service_1 = require("../notifications/notifications.service");
 let PaymentsService = class PaymentsService extends base_service_1.BaseService {
     prisma;
     razorpayGateway;
-    constructor(prisma, razorpayGateway) {
+    affiliateService;
+    affiliateSettingsService;
+    commissionService;
+    notificationsService;
+    constructor(prisma, razorpayGateway, affiliateService, affiliateSettingsService, commissionService, notificationsService) {
         super('PaymentsService');
         this.prisma = prisma;
         this.razorpayGateway = razorpayGateway;
+        this.affiliateService = affiliateService;
+        this.affiliateSettingsService = affiliateSettingsService;
+        this.commissionService = commissionService;
+        this.notificationsService = notificationsService;
     }
     generatePaymentNumber() {
         const timestamp = Date.now().toString(36).toUpperCase();
@@ -41,7 +53,7 @@ let PaymentsService = class PaymentsService extends base_service_1.BaseService {
         const order = await this.prisma.order.findFirst({
             where: { id: dto.orderId, deletedAt: null },
             include: {
-                client: { include: { user: { select: { email: true, firstName: true } } } },
+                client: { include: { user: { select: { id: true, email: true, firstName: true } } } },
             },
         });
         if (!order)
@@ -50,21 +62,46 @@ let PaymentsService = class PaymentsService extends base_service_1.BaseService {
         if (nonPayableStatuses.includes(order.status)) {
             throw new common_1.BadRequestException(`Order ${order.orderNumber} cannot be paid in its current status`);
         }
+        // ── Sales-employee attribution (optional) ───────────────────────────────
+        // Runs BEFORE any gateway call. An invalid/inactive code aborts here, so no
+        // Razorpay order, no Payment row and no Commission row can ever exist for one.
+        // Behaviour is completely unchanged when employeeCode is omitted.
+        let frozenCommission = null;
+        if (dto.employeeCode) {
+            // Self-referral is evaluated against the CLIENT the order belongs to, not the
+            // JWT caller — checkout may legitimately be initiated on the client's behalf.
+            const buyerUserId = order.client?.userId;
+            const validation = await this.affiliateService.validateEmployeeCode(dto.employeeCode, buyerUserId);
+            if (!validation.valid || !validation.affiliate) {
+                throw new common_1.BadRequestException('Invalid or inactive employee code');
+            }
+            const settings = await this.affiliateSettingsService.get();
+            // Every monetary input is derived from DB rows — never from the request body.
+            frozenCommission = await this.commissionService.resolveAndFreezeCommission(order, validation.affiliate, settings);
+        }
         const receipt = order.orderNumber;
         const currency = dto.currency ?? order.currency ?? 'INR';
+        // The gateway call is deliberately OUTSIDE any DB transaction — an external HTTP
+        // call cannot be rolled back, so it is sequenced between the two DB writes.
         const gatewayOrder = await this.razorpayGateway.createOrder(order.netAmount, currency, receipt);
         const paymentNumber = this.generatePaymentNumber();
-        const payment = await this.prisma.payment.create({
-            data: {
-                paymentNumber,
-                amount: order.netAmount,
-                currency,
-                status: client_1.PaymentStatusEnum.PENDING,
-                gatewayProvider: 'RAZORPAY',
-                gatewayOrderId: gatewayOrder.gatewayOrderId,
-                orderId: order.id,
-                createdBy: requesterId ?? null,
-            },
+        const payment = await this.prisma.$transaction(async (tx) => {
+            const created = await tx.payment.create({
+                data: {
+                    paymentNumber,
+                    amount: order.netAmount,
+                    currency,
+                    status: client_1.PaymentStatusEnum.PENDING,
+                    gatewayProvider: 'RAZORPAY',
+                    gatewayOrderId: gatewayOrder.gatewayOrderId,
+                    orderId: order.id,
+                    createdBy: requesterId ?? null,
+                },
+            });
+            if (frozenCommission) {
+                await this.commissionService.attachPaymentOp(tx, frozenCommission.id, created.id);
+            }
+            return created;
         });
         return {
             payment,
@@ -107,8 +144,14 @@ let PaymentsService = class PaymentsService extends base_service_1.BaseService {
             });
             throw new common_1.ForbiddenException('Payment signature verification failed');
         }
-        const txActions = [
-            this.prisma.payment.update({
+        // Program settings are read outside the transaction to keep it short.
+        const affiliateSettings = await this.affiliateSettingsService.get();
+        // Successful payment — update records.
+        // Converted from a batched array transaction to an interactive one so the
+        // affiliate commission can settle inside the SAME transaction as the payment
+        // and order state changes. The set of writes below is otherwise unchanged.
+        const { updatedPayment, settledCommission } = await this.prisma.$transaction(async (tx) => {
+            const updated = await tx.payment.update({
                 where: { id: payment.id },
                 data: {
                     status: client_1.PaymentStatusEnum.SUCCESSFUL,
@@ -116,8 +159,8 @@ let PaymentsService = class PaymentsService extends base_service_1.BaseService {
                     paidAt: new Date(),
                     updatedBy: verifiedBy ?? null,
                 },
-            }),
-            this.prisma.transaction.create({
+            });
+            await tx.transaction.create({
                 data: {
                     transactionId: this.generateTransactionId(),
                     type: 'PAYMENT_CAPTURED',
@@ -130,12 +173,12 @@ let PaymentsService = class PaymentsService extends base_service_1.BaseService {
                         razorpayOrderId: dto.razorpayOrderId,
                     }),
                 },
-            }),
-            this.prisma.order.update({
+            });
+            await tx.order.update({
                 where: { id: payment.orderId },
                 data: { status: client_1.OrderStatusEnum.CONFIRMED },
-            }),
-            this.prisma.timeline.create({
+            });
+            await tx.timeline.create({
                 data: {
                     title: `Payment received`,
                     description: `Payment of ₹${payment.amount} ${payment.currency} received successfully`,
@@ -144,28 +187,55 @@ let PaymentsService = class PaymentsService extends base_service_1.BaseService {
                     clientId: payment.order?.clientId ?? undefined,
                     userId: verifiedBy ?? undefined,
                 },
-            }),
-        ];
-        if (payment.order?.packageId) {
-            const currentPeriodStart = new Date();
-            const currentPeriodEnd = new Date();
-            currentPeriodEnd.setMonth(currentPeriodEnd.getMonth() + 1); // Default to monthly
-            txActions.push(this.prisma.subscription.create({
-                data: {
-                    subscriptionNumber: `SUB-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`,
-                    clientId: payment.order.clientId,
-                    packageId: payment.order.packageId,
-                    price: payment.amount,
-                    currency: payment.currency,
-                    status: 'ACTIVE',
-                    interval: 'MONTHLY',
-                    currentPeriodStart,
-                    currentPeriodEnd,
-                },
-            }));
+            });
+            if (payment.order?.packageId) {
+                const currentPeriodStart = new Date();
+                const currentPeriodEnd = new Date();
+                currentPeriodEnd.setMonth(currentPeriodEnd.getMonth() + 1); // Default to monthly
+                await tx.subscription.create({
+                    data: {
+                        subscriptionNumber: `SUB-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`,
+                        clientId: payment.order.clientId,
+                        packageId: payment.order.packageId,
+                        price: payment.amount,
+                        currency: payment.currency,
+                        status: 'ACTIVE',
+                        interval: 'MONTHLY',
+                        currentPeriodStart,
+                        currentPeriodEnd,
+                    },
+                });
+            }
+            // Affiliate commission settlement.
+            // Idempotency note: re-verifying an already-SUCCESSFUL payment is rejected by
+            // the early-exit check above ("Payment already verified and recorded"), so this
+            // block cannot run twice for the same payment. settleCommissionOnPaymentSuccess
+            // only matches PENDING commissions, giving a second layer of protection.
+            let settled = null;
+            if (payment.orderId) {
+                settled = await this.commissionService.settleCommissionOnPaymentSuccess(tx, payment.orderId, affiliateSettings);
+            }
+            return { updatedPayment: updated, settledCommission: settled };
+        });
+        // Notifications are fired after commit — never inside the transaction.
+        if (settledCommission?.commission) {
+            try {
+                const affiliate = await this.prisma.affiliate.findUnique({
+                    where: { id: settledCommission.commission.affiliateId },
+                    select: { userId: true },
+                });
+                if (affiliate) {
+                    await this.notificationsService.notifyCommissionEarned(affiliate.userId, settledCommission.commission.commissionAmount, payment.order?.orderNumber ?? '', settledCommission.commission.currency);
+                    if (settledCommission.credited) {
+                        await this.notificationsService.notifyCommissionCredited(affiliate.userId, settledCommission.commission.commissionAmount, settledCommission.commission.currency);
+                    }
+                }
+            }
+            catch (error) {
+                // A notification failure must never fail a settled payment.
+                this.logger.error(`Failed to notify affiliate of commission: ${error.message}`);
+            }
         }
-        // Successful payment — update records
-        const [updatedPayment] = await this.prisma.$transaction(txActions);
         this.logger.log(`✅ Payment verified: ${payment.paymentNumber} (₹${payment.amount})`);
         return updatedPayment;
     }
@@ -224,6 +294,10 @@ exports.PaymentsService = PaymentsService;
 exports.PaymentsService = PaymentsService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [prisma_service_1.PrismaService,
-        razorpay_provider_1.RazorpayGateway])
+        razorpay_provider_1.RazorpayGateway,
+        affiliate_service_1.AffiliateService,
+        affiliate_settings_service_1.AffiliateSettingsService,
+        commission_service_1.CommissionService,
+        notifications_service_1.NotificationsService])
 ], PaymentsService);
 //# sourceMappingURL=payments.service.js.map

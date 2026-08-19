@@ -26,7 +26,24 @@ export declare class PaymentsController {
         gatewayOrder: import("./razorpay.provider").GatewayOrderResult;
         keyId: string;
     }>;
-    verifyPayment(dto: VerifyPaymentDto, req: any): Promise<any>;
+    verifyPayment(dto: VerifyPaymentDto, req: any): Promise<{
+        id: string;
+        createdAt: Date;
+        status: import(".prisma/client").$Enums.PaymentStatusEnum;
+        updatedAt: Date;
+        createdBy: string | null;
+        updatedBy: string | null;
+        method: string | null;
+        currency: string;
+        orderId: string | null;
+        amount: number;
+        paymentNumber: string;
+        gatewayProvider: string;
+        gatewayTransactionId: string | null;
+        gatewayOrderId: string | null;
+        invoiceId: string | null;
+        paidAt: Date | null;
+    }>;
     findAll(page: number, limit: number, status?: PaymentStatusEnum, clientId?: string): Promise<{
         data: ({
             order: {

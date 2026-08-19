@@ -5,6 +5,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { InvoicesService } from '../invoices/invoices.service';
 import { RazorpayGateway } from '../payments/razorpay.provider';
 import { WebhooksService } from './webhooks.service';
+import { CommissionService } from '../affiliate/services/commission.service';
 
 type WebhookPrismaMock = {
   auditLog: {
@@ -57,11 +58,15 @@ describe('WebhooksService', () => {
     const configService = {
       get: jest.fn().mockReturnValue('webhook-secret'),
     };
+    const commissionService = {
+      reverseCommission: jest.fn().mockResolvedValue({ reversed: false }),
+    };
     service = new WebhooksService(
       prisma as unknown as PrismaService,
       gateway as unknown as RazorpayGateway,
       configService as unknown as ConfigService,
       invoicesService as unknown as InvoicesService,
+      commissionService as unknown as CommissionService,
     );
   });
 

@@ -23,6 +23,10 @@ declare class EnvironmentVariables {
     RAZORPAY_KEY_ID?: string;
     RAZORPAY_KEY_SECRET?: string;
     RAZORPAY_WEBHOOK_SECRET?: string;
+    RAZORPAYX_KEY_ID?: string;
+    RAZORPAYX_KEY_SECRET?: string;
+    RAZORPAYX_ACCOUNT_NUMBER?: string;
+    RAZORPAYX_WEBHOOK_SECRET?: string;
     SMTP_HOST?: string;
     SMTP_PORT?: number;
     SMTP_USER?: string;

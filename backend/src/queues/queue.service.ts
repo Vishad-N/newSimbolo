@@ -1,11 +1,19 @@
 import { Injectable, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Job, Queue, Worker } from 'bullmq';
+import { Job, JobsOptions, Queue, Worker } from 'bullmq';
 import Redis from 'ioredis';
 import { BaseService } from '../shared/abstractions/base.service';
 
 export type QueueName =
-  'email' | 'invoice-pdf' | 'ai' | 'analytics' | 'exports' | 'images' | 'notifications' | 'reminders';
+  | 'email'
+  | 'invoice-pdf'
+  | 'ai'
+  | 'analytics'
+  | 'exports'
+  | 'images'
+  | 'notifications'
+  | 'reminders'
+  | 'commissions';
 
 @Injectable()
 export class QueueService extends BaseService implements OnModuleDestroy {
@@ -34,7 +42,7 @@ export class QueueService extends BaseService implements OnModuleDestroy {
     await this.connection?.quit();
   }
 
-  async add<T extends Record<string, unknown>>(queueName: QueueName, name: string, data: T) {
+  async add<T extends Record<string, unknown>>(queueName: QueueName, name: string, data: T, opts?: JobsOptions) {
     const queue = this.getQueue(queueName);
     if (!queue) return { queued: false, queueName, name };
     const job = await queue.add(name, data, {
@@ -42,6 +50,7 @@ export class QueueService extends BaseService implements OnModuleDestroy {
       backoff: { type: 'exponential', delay: 5000 },
       removeOnComplete: 100,
       removeOnFail: false,
+      ...opts,
     });
     return { queued: true, queueName, jobId: job.id };
   }

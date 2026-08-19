@@ -63,6 +63,64 @@ export declare class NotificationsService extends BaseService {
         readAt: Date | null;
         deepLink: string | null;
     } | null>;
+    /** Fired when a sale is attributed and the commission is frozen + payment confirmed. */
+    notifyCommissionEarned(userId: string, amount: number, orderNumber: string, currency?: string): Promise<{
+        message: string;
+        id: string;
+        createdAt: Date;
+        userId: string;
+        updatedAt: Date;
+        deletedAt: Date | null;
+        type: import(".prisma/client").$Enums.NotificationTypeEnum;
+        title: string;
+        isRead: boolean;
+        channel: import(".prisma/client").$Enums.NotificationChannelEnum;
+        readAt: Date | null;
+        deepLink: string | null;
+    } | null>;
+    /** Fired when a held commission clears its hold period and lands in the wallet. */
+    notifyCommissionCredited(userId: string, amount: number, currency?: string): Promise<{
+        message: string;
+        id: string;
+        createdAt: Date;
+        userId: string;
+        updatedAt: Date;
+        deletedAt: Date | null;
+        type: import(".prisma/client").$Enums.NotificationTypeEnum;
+        title: string;
+        isRead: boolean;
+        channel: import(".prisma/client").$Enums.NotificationChannelEnum;
+        readAt: Date | null;
+        deepLink: string | null;
+    } | null>;
+    notifyWithdrawalProcessed(userId: string, amount: number, currency?: string): Promise<{
+        message: string;
+        id: string;
+        createdAt: Date;
+        userId: string;
+        updatedAt: Date;
+        deletedAt: Date | null;
+        type: import(".prisma/client").$Enums.NotificationTypeEnum;
+        title: string;
+        isRead: boolean;
+        channel: import(".prisma/client").$Enums.NotificationChannelEnum;
+        readAt: Date | null;
+        deepLink: string | null;
+    } | null>;
+    notifyWithdrawalFailed(userId: string, amount: number, reason: string, currency?: string): Promise<{
+        message: string;
+        id: string;
+        createdAt: Date;
+        userId: string;
+        updatedAt: Date;
+        deletedAt: Date | null;
+        type: import(".prisma/client").$Enums.NotificationTypeEnum;
+        title: string;
+        isRead: boolean;
+        channel: import(".prisma/client").$Enums.NotificationChannelEnum;
+        readAt: Date | null;
+        deepLink: string | null;
+    } | null>;
     notifyNewMessage(userId: string, conversationId: string, senderName: string): Promise<{
         message: string;
         id: string;

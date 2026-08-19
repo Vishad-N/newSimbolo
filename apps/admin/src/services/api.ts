@@ -78,6 +78,191 @@ interface ApiEnvelope<T> {
   data: T;
 }
 
+/* ---------------------------------------------------------------------------
+ * Affiliate / Sales Commission System
+ * ------------------------------------------------------------------------- */
+
+export type AffiliateStatus = 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
+export type CommissionStatus = 'PENDING' | 'ELIGIBLE' | 'CREDITED' | 'REVERSED' | 'CANCELLED';
+export type WithdrawalStatus =
+  | 'PENDING'
+  | 'SCHEDULED'
+  | 'PROCESSING'
+  | 'PAID'
+  | 'FAILED'
+  | 'REVERSED'
+  | 'CANCELLED';
+
+export interface Paginated<T> {
+  items: T[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface AffiliateOverview {
+  totalSales: number;
+  totalAffiliateSales: number;
+  activeEmployees: number;
+  totalCommission: number;
+  pendingCommission: number;
+  availableWalletLiability: number;
+  pendingWithdrawals: number;
+  paidWithdrawals: number;
+}
+
+export interface AffiliateEmployee {
+  id: string;
+  userId: string;
+  name: string;
+  email: string;
+  affiliateCode: string;
+  status: AffiliateStatus;
+  ordersCount: number;
+  salesTotal: number;
+  commissionTotal: number;
+  walletAvailable: number;
+  walletPending: number;
+  lifetimeWithdrawn: number;
+}
+
+export interface AdminAffiliateCommission {
+  id: string;
+  orderId: string;
+  employeeName?: string;
+  employeeCode?: string;
+  commissionAmount: number;
+  commissionRate: number;
+  status: CommissionStatus;
+  eligibleAt: string | null;
+  creditedAt: string | null;
+  createdAt: string;
+}
+
+export interface AdminWalletTransaction {
+  id: string;
+  type: string;
+  amount: number;
+  balanceBefore: number;
+  balanceAfter: number;
+  description: string;
+  createdAt: string;
+}
+
+export interface AdminAffiliateWithdrawal {
+  id: string;
+  employeeName: string;
+  employeeCode: string;
+  amount: number;
+  status: WithdrawalStatus;
+  requestedAt: string;
+  processedAt?: string | null;
+  payoutMethod: string;
+  razorpayPayoutId: string | null;
+  failureReason?: string | null;
+}
+
+export interface AdminPayoutMethod {
+  id: string;
+  type: 'BANK_ACCOUNT' | 'UPI';
+  isDefault: boolean;
+  status: 'PENDING' | 'VERIFIED' | 'DISABLED';
+  maskedDetails: string;
+  last4?: string;
+}
+
+export interface AffiliateEmployeeDetail extends AffiliateEmployee {
+  commissionRate?: number;
+  isEligibleForCommission?: boolean;
+  createdAt?: string;
+  commissions?: AdminAffiliateCommission[];
+  walletTransactions?: AdminWalletTransaction[];
+  withdrawals?: AdminAffiliateWithdrawal[];
+  payoutMethods?: AdminPayoutMethod[];
+}
+
+export interface AffiliateCommissionFilters {
+  status?: string;
+  employeeId?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+export interface AffiliateSettings {
+  defaultCommissionRate: number;
+  commissionCalculationBasis: string;
+  commissionHoldPeriodDays: number;
+  minimumWithdrawalAmount: number;
+  maximumWithdrawalAmount: number;
+  paydayFrequency: string;
+  paydayDayOfWeek: number;
+  paydayCutoffTime: string;
+  payoutAutoProcessingEnabled: boolean;
+  selfReferralAllowed: boolean;
+}
+
+const emptyPage = <T,>(pageSize: number): Paginated<T> => ({ items: [], total: 0, page: 1, pageSize });
+
+/**
+ * The affiliate backend's list endpoints follow this codebase's existing pagination
+ * convention — `{ data, meta: { total, page, limit, totalPages } }` (same shape as
+ * PaymentsService.findAll etc.) — rather than the flat `{ items, total, page, pageSize }`
+ * shape used elsewhere in this file. Normalize here instead of at every call site.
+ */
+const toPaginated = <T,>(raw: unknown, fallbackPage: number, fallbackPageSize: number): Paginated<T> => {
+  const payload = raw as
+    | { items?: T[]; total?: number; page?: number; pageSize?: number }
+    | { data?: T[]; meta?: { total?: number; page?: number; limit?: number } }
+    | T[]
+    | null
+    | undefined;
+  if (Array.isArray(payload)) {
+    return { items: payload, total: payload.length, page: fallbackPage, pageSize: fallbackPageSize };
+  }
+  if (!payload) return emptyPage<T>(fallbackPageSize);
+  if ('items' in payload && payload.items) {
+    return {
+      items: payload.items,
+      total: payload.total ?? payload.items.length,
+      page: payload.page ?? fallbackPage,
+      pageSize: payload.pageSize ?? fallbackPageSize,
+    };
+  }
+  if ('data' in payload && payload.data) {
+    return {
+      items: payload.data,
+      total: payload.meta?.total ?? payload.data.length,
+      page: payload.meta?.page ?? fallbackPage,
+      pageSize: payload.meta?.limit ?? fallbackPageSize,
+    };
+  }
+  return emptyPage<T>(fallbackPageSize);
+};
+
+const EMPTY_AFFILIATE_OVERVIEW: AffiliateOverview = {
+  totalSales: 0,
+  totalAffiliateSales: 0,
+  activeEmployees: 0,
+  totalCommission: 0,
+  pendingCommission: 0,
+  availableWalletLiability: 0,
+  pendingWithdrawals: 0,
+  paidWithdrawals: 0,
+};
+
+const DEFAULT_AFFILIATE_SETTINGS: AffiliateSettings = {
+  defaultCommissionRate: 0,
+  commissionCalculationBasis: 'SUBTOTAL_AFTER_DISCOUNT',
+  commissionHoldPeriodDays: 0,
+  minimumWithdrawalAmount: 0,
+  maximumWithdrawalAmount: 0,
+  paydayFrequency: 'WEEKLY',
+  paydayDayOfWeek: 5,
+  paydayCutoffTime: '18:00',
+  payoutAutoProcessingEnabled: false,
+  selfReferralAllowed: false,
+};
+
 export const api = {
   auth: {
     login: async (data: AdminLoginPayload) => {
@@ -221,6 +406,72 @@ export const api = {
     update: async (id: string, data: any) => fetchFromApi(`/leads/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
     delete: async (id: string) => fetchFromApi(`/leads/${id}`, { method: 'DELETE' }),
   },
+  affiliate: {
+    getOverview: async () =>
+      fetchFromApi<AffiliateOverview>('/admin/affiliate/overview', { method: 'GET' }, EMPTY_AFFILIATE_OVERVIEW),
+    getEmployees: async (page = 1, pageSize = 50) =>
+      toPaginated<AffiliateEmployee>(
+        await fetchFromApi(
+          `/admin/affiliate/employees?page=${page}&limit=${pageSize}`,
+          { method: 'GET' },
+          emptyPage<AffiliateEmployee>(pageSize),
+        ),
+        page,
+        pageSize,
+      ),
+    getEmployee: async (id: string) =>
+      fetchFromApi<AffiliateEmployeeDetail | null>(`/admin/affiliate/employees/${id}`, { method: 'GET' }, null),
+    activateEmployee: async (id: string) =>
+      fetchFromApi(`/admin/affiliate/employees/${id}/activate`, { method: 'PATCH' }),
+    deactivateEmployee: async (id: string) =>
+      fetchFromApi(`/admin/affiliate/employees/${id}/deactivate`, { method: 'PATCH' }),
+
+    getCommissions: async (filters: AffiliateCommissionFilters = {}) => {
+      const page = filters.page ?? 1;
+      const pageSize = filters.pageSize ?? 50;
+      const query = new URLSearchParams();
+      if (filters.status) query.set('status', filters.status);
+      if (filters.employeeId) query.set('employeeId', filters.employeeId);
+      query.set('page', String(page));
+      query.set('limit', String(pageSize));
+      return toPaginated<AdminAffiliateCommission>(
+        await fetchFromApi(
+          `/admin/affiliate/commissions?${query.toString()}`,
+          { method: 'GET' },
+          emptyPage<AdminAffiliateCommission>(pageSize),
+        ),
+        page,
+        pageSize,
+      );
+    },
+
+    getWithdrawals: async (page = 1, pageSize = 50) =>
+      toPaginated<AdminAffiliateWithdrawal>(
+        await fetchFromApi(
+          `/admin/affiliate/withdrawals?page=${page}&limit=${pageSize}`,
+          { method: 'GET' },
+          emptyPage<AdminAffiliateWithdrawal>(pageSize),
+        ),
+        page,
+        pageSize,
+      ),
+    getWithdrawal: async (id: string) =>
+      fetchFromApi<AdminAffiliateWithdrawal | null>(`/admin/affiliate/withdrawals/${id}`, { method: 'GET' }, null),
+    approveWithdrawal: async (id: string) =>
+      fetchFromApi(`/admin/affiliate/withdrawals/${id}/approve`, { method: 'POST' }),
+    processWithdrawal: async (id: string) =>
+      fetchFromApi(`/admin/affiliate/withdrawals/${id}/process`, { method: 'POST' }),
+    retryWithdrawal: async (id: string) =>
+      fetchFromApi(`/admin/affiliate/withdrawals/${id}/retry`, { method: 'POST' }),
+    cancelWithdrawal: async (id: string) =>
+      fetchFromApi(`/admin/affiliate/withdrawals/${id}/cancel`, { method: 'POST' }),
+
+    getSettings: async () =>
+      fetchFromApi<AffiliateSettings>('/admin/affiliate/settings', { method: 'GET' }, DEFAULT_AFFILIATE_SETTINGS),
+    updateSettings: async (data: Partial<AffiliateSettings>) =>
+      fetchFromApi<AffiliateSettings>('/admin/affiliate/settings', { method: 'PUT', body: JSON.stringify(data) }),
+  },
+
   config: {
     baseURL: API_BASE_URL,
   },

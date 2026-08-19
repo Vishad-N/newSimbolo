@@ -81,6 +81,22 @@ class EnvironmentVariables {
 
   @IsOptional()
   @IsString()
+  RAZORPAYX_KEY_ID?: string;
+
+  @IsOptional()
+  @IsString()
+  RAZORPAYX_KEY_SECRET?: string;
+
+  @IsOptional()
+  @IsString()
+  RAZORPAYX_ACCOUNT_NUMBER?: string;
+
+  @IsOptional()
+  @IsString()
+  RAZORPAYX_WEBHOOK_SECRET?: string;
+
+  @IsOptional()
+  @IsString()
   SMTP_HOST?: string;
 
   @IsOptional()

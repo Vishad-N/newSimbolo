@@ -23,7 +23,8 @@ import {
   User, 
   Settings, 
   LogOut,
-  ChevronLeft
+  ChevronLeft,
+  BadgeIndianRupee
 } from "lucide-react";
 
 const mainNavItems = [
@@ -38,6 +39,7 @@ const mainNavItems = [
 
 const billingNavItems = [
   { href: "/payments", label: "Billing & Invoices", icon: CreditCard },
+  { href: "/affiliate", label: "Sales & Commissions", icon: BadgeIndianRupee },
 ];
 
 const accountNavItems = [

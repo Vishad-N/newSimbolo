@@ -73,6 +73,8 @@ import { AssetsModule } from './assets/assets.module';
 import { WebsiteTeamModule } from './website-team/website-team.module';
 import { LeadsModule } from './leads/leads.module';
 import { ServicePageConfigModule } from './service-page-config/service-page-config.module';
+// Sales Employee / Affiliate Commission & Wallet system
+import { AffiliateModule } from './affiliate/affiliate.module';
 
 @Module({
   imports: [
@@ -113,6 +115,7 @@ import { ServicePageConfigModule } from './service-page-config/service-page-conf
     MeetingsModule,
     DashboardModule,
     // Phase 8: Payments, Billing, Notifications & Real-Time Collaboration
+    AffiliateModule,
     PaymentsModule,
     TransactionsModule,
     WebhooksModule,
@@ -194,7 +197,7 @@ import { ServicePageConfigModule } from './service-page-config/service-page-conf
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(RequestContextMiddleware, RequestLoggerMiddleware, CsrfMiddleware).forRoutes('*');
-    // Raw body middleware for Razorpay webhook signature verification
-    consumer.apply(RawBodyMiddleware).forRoutes('webhooks/razorpay');
+    // Raw body middleware for Razorpay / RazorpayX webhook signature verification
+    consumer.apply(RawBodyMiddleware).forRoutes('webhooks/razorpay', 'webhooks/razorpayx');
   }
 }

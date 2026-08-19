@@ -10,6 +10,11 @@ export async function POST(request: Request, { params }: { params: Promise<{ pat
   return handleProxy(request, resolvedParams.path);
 }
 
+export async function PUT(request: Request, { params }: { params: Promise<{ path: string[] }> }) {
+  const resolvedParams = await params;
+  return handleProxy(request, resolvedParams.path);
+}
+
 export async function PATCH(request: Request, { params }: { params: Promise<{ path: string[] }> }) {
   const resolvedParams = await params;
   return handleProxy(request, resolvedParams.path);

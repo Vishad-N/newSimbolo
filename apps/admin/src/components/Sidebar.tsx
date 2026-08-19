@@ -26,11 +26,22 @@ import {
   Settings,
   Users,
   ChevronDown,
-  Building2
+  Building2,
+  BadgeIndianRupee,
+  Wallet
 } from "lucide-react";
 import { useState } from "react";
 
-const navigation = [
+interface NavItem {
+  name: string;
+  href?: string;
+  icon?: any;
+  isGroup?: boolean;
+  isCollapsible?: boolean;
+  items?: NavItem[];
+}
+
+const navigation: NavItem[] = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
   {
     name: "Website Management",
@@ -69,6 +80,15 @@ const navigation = [
       { name: "Testimonials", href: "/testimonials", icon: MessageSquare },
       { name: "About Us", href: "/about-us", icon: Building2 },
       { name: "Team Members", href: "/team-members", icon: Users },
+    ]
+  },
+  {
+    name: "Sales & Affiliate",
+    isGroup: true,
+    items: [
+      { name: "Affiliate Overview", href: "/affiliate", icon: BadgeIndianRupee },
+      { name: "Payouts", href: "/affiliate/withdrawals", icon: Wallet },
+      { name: "Affiliate Settings", href: "/affiliate/settings", icon: Settings },
     ]
   },
   { name: "Media Library", href: "/media", icon: ImageIcon },
@@ -139,7 +159,7 @@ export function Sidebar() {
                                 return (
                                   <Link
                                     key={nestedIdx}
-                                    href={nested.href}
+                                    href={nested.href!}
                                     className={cn(
                                       "flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors group",
                                       isActive 

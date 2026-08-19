@@ -3,12 +3,15 @@ export interface PackageIllustrationOption {
   path: string;
 }
 
+const ECOMMERCE_ILLUSTRATION_URL =
+  "https://res.cloudinary.com/dkkqzckfq/image/upload/v1786966935/simbolo/package-illustrations/ecommerce-illustration-photoroom.png";
+
 export const PACKAGE_ILLUSTRATION_OPTIONS: readonly PackageIllustrationOption[] = [
   { label: "AI Automation", path: "/images/services/ai_automation_1784887931272.png" },
   { label: "Branding", path: "/images/services/branding_1784887903218.png" },
   { label: "Content Marketing", path: "/images/services/content_marketing_1784887968386.png" },
   { label: "CRM Integration", path: "/images/services/crm_integration_1784887948999.png" },
-  { label: "E-commerce Illustration", path: "/images/services/ecommerce-illustration.png" },
+  { label: "E-commerce Illustration", path: ECOMMERCE_ILLUSTRATION_URL },
   { label: "E-commerce", path: "/images/services/ecommerce_1784887873510.png" },
   { label: "Email Marketing", path: "/images/services/email_marketing_1784887958663.png" },
   { label: "Google Ads", path: "/images/services/google_ads_1784887852918.png" },

@@ -16,8 +16,15 @@ const class_validator_1 = require("class-validator");
 class CreatePaymentOrderDto {
     orderId;
     currency = 'INR';
+    /**
+     * Optional sales-employee attribution code. It is re-validated server-side here —
+     * a prior /checkout/affiliate/validate call is never trusted, and no "already
+     * validated" flag from the client is accepted. An invalid code aborts the request
+     * before any gateway call is made.
+     */
+    employeeCode;
     static _OPENAPI_METADATA_FACTORY() {
-        return { orderId: { required: true, type: () => String }, currency: { required: false, type: () => String, default: "INR" } };
+        return { orderId: { required: true, type: () => String }, currency: { required: false, type: () => String, default: "INR" }, employeeCode: { required: false, type: () => String, description: "Optional sales-employee attribution code. It is re-validated server-side here \u2014\na prior /checkout/affiliate/validate call is never trusted, and no \"already\nvalidated\" flag from the client is accepted. An invalid code aborts the request\nbefore any gateway call is made." } };
     }
 }
 exports.CreatePaymentOrderDto = CreatePaymentOrderDto;
@@ -33,6 +40,12 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CreatePaymentOrderDto.prototype, "currency", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'Sales employee code applied at checkout', example: 'EMP-7K2QX' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreatePaymentOrderDto.prototype, "employeeCode", void 0);
 class VerifyPaymentDto {
     razorpayOrderId;
     razorpayPaymentId;

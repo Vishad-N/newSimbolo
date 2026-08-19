@@ -61,6 +61,59 @@ enum InvoiceStatusEnum {
   CANCELLED
 }
 
+enum AffiliateStatusEnum {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum CommissionStatusEnum {
+  PENDING
+  ELIGIBLE
+  CREDITED
+  REVERSED
+  CANCELLED
+}
+
+enum CommissionCalculationBasisEnum {
+  SUBTOTAL
+  SUBTOTAL_AFTER_DISCOUNT
+  TAXABLE_AMOUNT
+  GRAND_TOTAL
+}
+
+enum WalletTransactionTypeEnum {
+  COMMISSION_CREDIT
+  COMMISSION_REVERSAL
+  WITHDRAWAL_HOLD
+  WITHDRAWAL_RELEASE
+  WITHDRAWAL_DEBIT
+  ADMIN_CREDIT
+  ADMIN_DEBIT
+  PAYOUT_REVERSAL
+}
+
+enum WithdrawalStatusEnum {
+  PENDING
+  SCHEDULED
+  PROCESSING
+  PAID
+  FAILED
+  REVERSED
+  CANCELLED
+}
+
+enum PayoutMethodTypeEnum {
+  BANK_ACCOUNT
+  UPI
+}
+
+enum PayoutMethodStatusEnum {
+  PENDING
+  VERIFIED
+  DISABLED
+}
+
 enum InvoiceTypeEnum {
   TAX_INVOICE
   CREDIT_NOTE
@@ -733,10 +786,10 @@ model ServiceCategory {
 model ServicePageConfig {
   id            String   @id @default(uuid()) @db.Uuid
   serviceId     String   @unique @db.Uuid
-  heroBenefits  Json?    // ["High ROI", "Advanced Targeting", ...]
-  statsBar      Json?    // [{title, description, iconName}, ...]
-  servicesList  Json?    // [{title, description, iconName, startingPrice}, ...]
-  resultMetrics Json?    // [{value, label, iconName}, ...]
+  heroBenefits  Json? // ["High ROI", "Advanced Targeting", ...]
+  statsBar      Json? // [{title, description, iconName}, ...]
+  servicesList  Json? // [{title, description, iconName, startingPrice}, ...]
+  resultMetrics Json? // [{value, label, iconName}, ...]
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -744,7 +797,6 @@ model ServicePageConfig {
 
   @@map("service_page_configs")
 }
-
 
 /// Purpose: Granular capability included in a marketing service.
 /// Relationships: Belongs to Service.
@@ -945,9 +997,9 @@ model OrderItem {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  order       Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  service     Service?       @relation(fields: [serviceId], references: [id])
-  package     Package?       @relation(fields: [packageId], references: [id])
+  order   Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  service Service? @relation(fields: [serviceId], references: [id])
+  package Package? @relation(fields: [packageId], references: [id])
 
   @@index([orderId])
   @@index([serviceId])
@@ -959,19 +1011,19 @@ model OrderItem {
 /// Relationships: None (Standalone).
 /// Business responsibility: Stores contact form submissions.
 model Lead {
-  id        String         @id @default(uuid()) @db.Uuid
-  firstName String
-  lastName  String
-  email     String
+  id          String         @id @default(uuid()) @db.Uuid
+  firstName   String
+  lastName    String
+  email       String
   countryCode String?
-  phone     String?
-  company   String?
-  service   String?
-  message   String         @db.Text
-  status    LeadStatusEnum @default(NEW)
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
-  deletedAt DateTime?
+  phone       String?
+  company     String?
+  service     String?
+  message     String         @db.Text
+  status      LeadStatusEnum @default(NEW)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  deletedAt   DateTime?
 
   @@index([email])
   @@index([status])
@@ -1002,6 +1054,7 @@ model Payment {
   order        Order?        @relation(fields: [orderId], references: [id])
   invoice      Invoice?      @relation(fields: [invoiceId], references: [id])
   transactions Transaction[]
+  commissions  Commission[]
 
   @@index([paymentNumber])
   @@index([orderId])
@@ -2225,30 +2278,39 @@ model ThemeSetting {
 // AFFILIATES & REFERRAL TRACKING
 // ==========================================
 
-/// Purpose: Partner referral program account profile.
-/// Relationships: Belongs to User. Has many Referrals and Commissions.
-/// Business responsibility: Tracks referral link clicks and tier-based commission payouts.
+/// Purpose: Sales employee / affiliate partner account profile. The unique `affiliateCode`
+/// (format EMP-XXXXX) is the "Employee Code" customers may enter at checkout.
+/// Relationships: Belongs to User. Has many Referrals, Commissions, one Wallet, many
+/// EmployeePayoutMethods and Withdrawals.
+/// Business responsibility: Source of truth for who a checkout employee-code attribution
+/// resolves to, and whether that party is currently eligible to earn commission.
 model Affiliate {
-  id             String    @id @default(uuid()) @db.Uuid
-  affiliateCode  String    @unique
-  commissionRate Float     @default(15.0)
-  totalEarnings  Float     @default(0.0)
-  pendingBalance Float     @default(0.0)
-  paidBalance    Float     @default(0.0)
-  status         String    @default("ACTIVE")
-  userId         String    @unique @db.Uuid
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-  deletedAt      DateTime?
-  createdBy      String?
-  updatedBy      String?
+  id                      String                          @id @default(uuid()) @db.Uuid
+  affiliateCode           String                          @unique
+  commissionRate          Float                           @default(15.0)
+  commissionBasisDefault  CommissionCalculationBasisEnum?
+  totalEarnings           Float                           @default(0.0)
+  pendingBalance          Float                           @default(0.0)
+  paidBalance             Float                           @default(0.0)
+  status                  AffiliateStatusEnum             @default(ACTIVE)
+  isEligibleForCommission Boolean                         @default(true)
+  userId                  String                          @unique @db.Uuid
+  createdAt               DateTime                        @default(now())
+  updatedAt               DateTime                        @updatedAt
+  deletedAt               DateTime?
+  createdBy               String?
+  updatedBy               String?
 
-  user        User         @relation("UserAffiliate", fields: [userId], references: [id], onDelete: Cascade)
-  referrals   Referral[]
-  commissions Commission[]
+  user          User                   @relation("UserAffiliate", fields: [userId], references: [id], onDelete: Cascade)
+  referrals     Referral[]
+  commissions   Commission[]
+  wallet        Wallet?
+  payoutMethods EmployeePayoutMethod[]
+  withdrawals   Withdrawal[]
 
   @@index([affiliateCode])
   @@index([userId])
+  @@index([status])
   @@map("affiliates")
 }
 
@@ -2271,27 +2333,180 @@ model Referral {
   @@map("referrals")
 }
 
-/// Purpose: Earned monetary bounty generated from an order conversion.
-/// Relationships: Belongs to Affiliate and Order.
-/// Business responsibility: Commission payout ledger for affiliate withdrawals.
+/// Purpose: Earned monetary bounty generated from an order conversion, frozen at
+/// payment-preparation time and never recalculated retroactively.
+/// Relationships: Belongs to Affiliate, Order, and (once payment succeeds) Payment.
+/// Business responsibility: Immutable, append-only commission ledger driving the Wallet.
 model Commission {
-  id          String    @id @default(uuid()) @db.Uuid
-  amount      Float
-  currency    String    @default("INR")
-  status      String    @default("PENDING")
-  percentage  Float
-  orderId     String    @db.Uuid
-  affiliateId String    @db.Uuid
-  paidAt      DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id                   String                         @id @default(uuid()) @db.Uuid
+  orderId              String                         @db.Uuid
+  paymentId            String?                        @db.Uuid
+  affiliateId          String                         @db.Uuid
+  employeeCodeSnapshot String
+  commissionRate       Float
+  commissionBaseAmount Float
+  commissionAmount     Float
+  calculationBasis     CommissionCalculationBasisEnum
+  currency             String                         @default("INR")
+  status               CommissionStatusEnum           @default(PENDING)
+  eligibleAt           DateTime?
+  creditedAt           DateTime?
+  reversedAt           DateTime?
+  reversedAmount       Float?
+  metadata             Json?
+  createdAt            DateTime                       @default(now())
+  updatedAt            DateTime                       @updatedAt
 
   order     Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  payment   Payment?  @relation(fields: [paymentId], references: [id])
   affiliate Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
 
+  @@unique([orderId, affiliateId])
   @@index([affiliateId])
   @@index([orderId])
+  @@index([paymentId])
+  @@index([status])
   @@map("commissions")
+}
+
+/// Purpose: Real-time balance snapshot for one Affiliate/Sales Employee, derived from and
+/// always reconcilable against WalletTransaction. Never mutated except inside a DB
+/// transaction alongside a corresponding ledger entry.
+/// Relationships: Belongs to Affiliate (1:1). Has many WalletTransactions.
+model Wallet {
+  id                String   @id @default(uuid()) @db.Uuid
+  affiliateId       String   @unique @db.Uuid
+  availableBalance  Float    @default(0.0)
+  pendingBalance    Float    @default(0.0)
+  lifetimeEarned    Float    @default(0.0)
+  lifetimeWithdrawn Float    @default(0.0)
+  version           Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  affiliate    Affiliate           @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  transactions WalletTransaction[]
+  withdrawals  Withdrawal[]
+
+  @@map("wallets")
+}
+
+/// Purpose: Append-only, immutable ledger entry for every wallet balance change.
+/// Relationships: Belongs to Wallet.
+/// Business responsibility: Sole source of truth for how a Wallet's balances were derived;
+/// never updated or deleted after creation.
+model WalletTransaction {
+  id            String                    @id @default(uuid()) @db.Uuid
+  walletId      String                    @db.Uuid
+  type          WalletTransactionTypeEnum
+  amount        Float
+  balanceBefore Float
+  balanceAfter  Float
+  referenceType String
+  referenceId   String
+  description   String?
+  metadata      Json?
+  createdAt     DateTime                  @default(now())
+
+  wallet Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+
+  @@index([walletId])
+  @@index([referenceType, referenceId])
+  @@index([type])
+  @@map("wallet_transactions")
+}
+
+/// Purpose: Employee/affiliate withdrawal request and its payout lifecycle via RazorpayX.
+/// Relationships: Belongs to Affiliate, Wallet, and an EmployeePayoutMethod.
+model Withdrawal {
+  id                    String               @id @default(uuid()) @db.Uuid
+  affiliateId           String               @db.Uuid
+  walletId              String               @db.Uuid
+  amount                Float
+  status                WithdrawalStatusEnum @default(PENDING)
+  requestedAt           DateTime             @default(now())
+  scheduledAt           DateTime?
+  processedAt           DateTime?
+  razorpayPayoutId      String?              @unique
+  razorpayContactId     String?
+  razorpayFundAccountId String?
+  payoutMethodId        String?              @db.Uuid
+  failureReason         String?
+  metadata              Json?
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+
+  affiliate    Affiliate             @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  wallet       Wallet                @relation(fields: [walletId], references: [id])
+  payoutMethod EmployeePayoutMethod? @relation(fields: [payoutMethodId], references: [id])
+
+  @@index([affiliateId])
+  @@index([walletId])
+  @@index([status])
+  @@map("withdrawals")
+}
+
+/// Purpose: Stored payout destination (bank account or UPI) for an affiliate/sales employee,
+/// backed by a RazorpayX Contact + Fund Account. Never stores full account/UPI details.
+/// Relationships: Belongs to Affiliate. Has many Withdrawals.
+model EmployeePayoutMethod {
+  id                    String                 @id @default(uuid()) @db.Uuid
+  affiliateId           String                 @db.Uuid
+  type                  PayoutMethodTypeEnum
+  isDefault             Boolean                @default(false)
+  status                PayoutMethodStatusEnum @default(PENDING)
+  razorpayContactId     String?
+  razorpayFundAccountId String?
+  maskedDetails         String
+  last4                 String?
+  verifiedAt            DateTime?
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+
+  affiliate   Affiliate    @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  withdrawals Withdrawal[]
+
+  @@index([affiliateId])
+  @@map("employee_payout_methods")
+}
+
+/// Purpose: Singleton admin-configurable affiliate/commission program settings.
+/// Business responsibility: Central knob for commission basis, hold periods, withdrawal
+/// limits and payday cadence; never retroactively changes already-frozen Commission rows.
+model AffiliateSettings {
+  id                          String                         @id @default(uuid()) @db.Uuid
+  defaultCommissionRate       Float                          @default(15.0)
+  commissionCalculationBasis  CommissionCalculationBasisEnum @default(SUBTOTAL_AFTER_DISCOUNT)
+  commissionHoldPeriodDays    Int                            @default(7)
+  minimumWithdrawalAmount     Float                          @default(500.0)
+  maximumWithdrawalAmount     Float                          @default(200000.0)
+  paydayFrequency             String                         @default("WEEKLY")
+  paydayDayOfWeek             Int?                           @default(5)
+  paydayCutoffTime            String?                        @default("17:00")
+  payoutAutoProcessingEnabled Boolean                        @default(false)
+  selfReferralAllowed         Boolean                        @default(false)
+  updatedAt                   DateTime                       @updatedAt
+  updatedBy                   String?
+
+  @@map("affiliate_settings")
+}
+
+/// Purpose: Idempotency & audit store for inbound gateway webhook events (RazorpayX payouts
+/// and any future providers). Prevents duplicate processing of retried/replayed events.
+model WebhookEvent {
+  id          String    @id @default(uuid()) @db.Uuid
+  provider    String
+  eventId     String    @unique
+  eventType   String
+  payload     Json
+  processed   Boolean   @default(false)
+  processedAt DateTime?
+  error       String?
+  createdAt   DateTime  @default(now())
+
+  @@index([provider])
+  @@index([eventType])
+  @@map("webhook_events")
 }
 
 // ==========================================

@@ -40,7 +40,7 @@ let QueueService = class QueueService extends base_service_1.BaseService {
         await this.deadLetterQueue?.close();
         await this.connection?.quit();
     }
-    async add(queueName, name, data) {
+    async add(queueName, name, data, opts) {
         const queue = this.getQueue(queueName);
         if (!queue)
             return { queued: false, queueName, name };
@@ -49,6 +49,7 @@ let QueueService = class QueueService extends base_service_1.BaseService {
             backoff: { type: 'exponential', delay: 5000 },
             removeOnComplete: 100,
             removeOnFail: false,
+            ...opts,
         });
         return { queued: true, queueName, jobId: job.id };
     }

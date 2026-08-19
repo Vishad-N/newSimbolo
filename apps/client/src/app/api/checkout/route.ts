@@ -32,21 +32,41 @@ export async function POST(request: Request) {
     const internalOrderId = orderData.data?.id || orderData.id;
 
     // 2. Create Gateway Order
+    // The optional sales-employee code is only attributed at payment-order time.
+    const employeeCode = typeof body.employeeCode === 'string' ? body.employeeCode.trim() : '';
+    const paymentOrderPayload: { orderId: string; employeeCode?: string } = { orderId: internalOrderId };
+    if (employeeCode) {
+      paymentOrderPayload.employeeCode = employeeCode;
+    }
+
     const paymentOrderRes = await fetch(`${apiUrl}/payments/create-order`, {
       method: "POST",
-      headers: { 
+      headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`
       },
-      body: JSON.stringify({ orderId: internalOrderId })
+      body: JSON.stringify(paymentOrderPayload)
     });
 
     if (!paymentOrderRes.ok) {
       const errorText = await paymentOrderRes.text();
       console.error("Payment order creation failed:", errorText);
-      return NextResponse.json({ success: false, message: 'Failed to create payment order' }, { status: paymentOrderRes.status });
+
+      // Surface the backend's validation message (e.g. "Invalid or inactive employee code")
+      // so the checkout UI can show why the payment could not be started.
+      let message = 'Failed to create payment order';
+      try {
+        const parsed = JSON.parse(errorText) as { message?: string | string[] };
+        if (parsed?.message) {
+          message = Array.isArray(parsed.message) ? parsed.message[0] : parsed.message;
+        }
+      } catch {
+        // Non-JSON error body: keep the generic message.
+      }
+
+      return NextResponse.json({ success: false, message }, { status: paymentOrderRes.status });
     }
-    
+
     const paymentOrderData = await paymentOrderRes.json();
     return NextResponse.json(paymentOrderData);
   } catch (error) {

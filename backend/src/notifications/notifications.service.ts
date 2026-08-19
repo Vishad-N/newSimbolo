@@ -109,6 +109,54 @@ export class NotificationsService extends BaseService {
     });
   }
 
+  // ── Affiliate / commission notifications ───────────────────────────────
+
+  /** Fired when a sale is attributed and the commission is frozen + payment confirmed. */
+  async notifyCommissionEarned(userId: string, amount: number, orderNumber: string, currency = 'INR') {
+    const symbol = currency === 'INR' ? '₹' : '$';
+    return this.sendNotification({
+      userId,
+      type: NotificationTypeEnum.ORDER,
+      title: 'Commission Earned',
+      message: `You earned ${symbol}${amount.toLocaleString('en-IN')} commission on order ${orderNumber}.`,
+      deepLink: '/dashboard/affiliate/commissions',
+    });
+  }
+
+  /** Fired when a held commission clears its hold period and lands in the wallet. */
+  async notifyCommissionCredited(userId: string, amount: number, currency = 'INR') {
+    const symbol = currency === 'INR' ? '₹' : '$';
+    return this.sendNotification({
+      userId,
+      type: NotificationTypeEnum.ORDER,
+      title: 'Commission Credited',
+      message: `${symbol}${amount.toLocaleString('en-IN')} has been credited to your wallet and is available to withdraw.`,
+      deepLink: '/dashboard/affiliate/wallet',
+    });
+  }
+
+  async notifyWithdrawalProcessed(userId: string, amount: number, currency = 'INR') {
+    const symbol = currency === 'INR' ? '₹' : '$';
+    return this.sendNotification({
+      userId,
+      type: NotificationTypeEnum.INVOICE,
+      title: 'Withdrawal Paid',
+      message: `Your withdrawal of ${symbol}${amount.toLocaleString('en-IN')} has been paid out successfully.`,
+      deepLink: '/dashboard/affiliate/withdrawals',
+    });
+  }
+
+  async notifyWithdrawalFailed(userId: string, amount: number, reason: string, currency = 'INR') {
+    const symbol = currency === 'INR' ? '₹' : '$';
+    return this.sendNotification({
+      userId,
+      type: NotificationTypeEnum.INVOICE,
+      title: 'Withdrawal Failed',
+      message: `Your withdrawal of ${symbol}${amount.toLocaleString('en-IN')} could not be processed (${reason}). The funds have been returned to your wallet balance.`,
+      deepLink: '/dashboard/affiliate/withdrawals',
+    });
+  }
+
   async notifyNewMessage(userId: string, conversationId: string, senderName: string) {
     return this.sendNotification({
       userId,
