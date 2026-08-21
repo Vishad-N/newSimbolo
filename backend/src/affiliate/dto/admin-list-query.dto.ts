@@ -5,7 +5,7 @@ import {
   CommissionStatusEnum,
   WithdrawalStatusEnum,
 } from '@prisma/client';
-import { IsEnum, IsInt, IsOptional, IsString, IsUUID, Max, Min } from 'class-validator';
+import { IsEmail, IsEnum, IsInt, IsOptional, IsString, IsUUID, MinLength, Max, Min } from 'class-validator';
 
 export class PaginationQueryDto {
   @ApiPropertyOptional({ default: 1 })
@@ -69,8 +69,40 @@ export class AdminSalesListQueryDto extends PaginationQueryDto {
 
 export class CreateAffiliateEmployeeDto {
   @ApiPropertyOptional({ description: 'Existing user ID to convert into a sales employee' })
+  @IsOptional()
   @IsUUID()
-  userId: string;
+  userId?: string;
+
+  @ApiPropertyOptional({ description: 'New employee email. Required when userId is omitted.' })
+  @IsOptional()
+  @IsEmail()
+  email?: string;
+
+  @ApiPropertyOptional({ description: 'New employee first name. Required when userId is omitted.' })
+  @IsOptional()
+  @IsString()
+  firstName?: string;
+
+  @ApiPropertyOptional({ description: 'New employee last name. Required when userId is omitted.' })
+  @IsOptional()
+  @IsString()
+  lastName?: string;
+
+  @ApiPropertyOptional({ description: 'New employee password. Required when userId is omitted.' })
+  @IsOptional()
+  @IsString()
+  @MinLength(8)
+  password?: string;
+
+  @ApiPropertyOptional({ description: 'New employee phone country code, e.g. +91' })
+  @IsOptional()
+  @IsString()
+  countryCode?: string;
+
+  @ApiPropertyOptional({ description: 'New employee phone number' })
+  @IsOptional()
+  @IsString()
+  phone?: string;
 
   @ApiPropertyOptional({ description: 'Commission percentage override. Defaults to program default.' })
   @IsOptional()

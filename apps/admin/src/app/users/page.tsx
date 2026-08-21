@@ -73,8 +73,12 @@ const defaultForm: ManualClientPayload = {
   notes: "",
 };
 
-function getDataArray<T>(response: T[] | PaginatedResponse<T>): T[] {
-  return Array.isArray(response) ? response : response.data;
+function getDataArray<T>(response: unknown): T[] {
+  if (Array.isArray(response)) return response;
+  const envelope = response as { data?: T[]; items?: T[] } | null | undefined;
+  if (Array.isArray(envelope?.data)) return envelope.data;
+  if (Array.isArray(envelope?.items)) return envelope.items;
+  return [];
 }
 
 function getRequestMessage(error: unknown, fallback: string): string {

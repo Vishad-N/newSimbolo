@@ -45,14 +45,13 @@ export class AdminAffiliateController {
 
   @Post('employees')
   @ApiOperation({
-    summary: 'Create a sales employee for an existing user',
-    description: 'Generates a unique EMP-XXXXX code and provisions the wallet in one transaction.',
+    summary: 'Create a sales employee',
+    description:
+      'Accepts either an existing userId, or email/firstName/lastName/password to create the user inline. ' +
+      'Generates a unique EMP-XXXXX code and provisions the wallet in one transaction.',
   })
   createEmployee(@Body() dto: CreateAffiliateEmployeeDto, @CurrentUser() user: any) {
-    return this.affiliateService.createEmployee(dto.userId, {
-      commissionRate: dto.commissionRate,
-      actorUserId: user?.sub,
-    });
+    return this.affiliateService.createEmployee(dto, { actorUserId: user?.sub });
   }
 
   @Patch('employees/:id/activate')

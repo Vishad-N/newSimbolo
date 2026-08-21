@@ -191,7 +191,13 @@ export interface AdminUserSearchResult {
 }
 
 export interface CreateAffiliateEmployeePayload {
-  userId: string;
+  userId?: string;
+  email?: string;
+  firstName?: string;
+  lastName?: string;
+  password?: string;
+  countryCode?: string;
+  phone?: string;
   commissionRate?: number;
 }
 

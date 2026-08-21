@@ -5,13 +5,14 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { Affiliate, AffiliateStatusEnum, CommissionStatusEnum, Prisma } from '@prisma/client';
+import { Affiliate, AffiliateStatusEnum, CommissionStatusEnum, Prisma, UserStatusEnum } from '@prisma/client';
+import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../prisma/prisma.service';
 import { BaseService } from '../../shared/abstractions/base.service';
 import { AuditService } from '../../shared/audit/audit.service';
 import { AffiliateSettingsService } from './affiliate-settings.service';
 import { EMPLOYEE_CODE_REGEX, generateEmployeeCode, normalizeEmployeeCode } from '../utils/employee-code.util';
-import { AdminAffiliateListQueryDto } from '../dto/admin-list-query.dto';
+import { AdminAffiliateListQueryDto, CreateAffiliateEmployeeDto } from '../dto/admin-list-query.dto';
 
 export type AffiliateWithUser = Affiliate & {
   user: { id: string; firstName: string | null; lastName: string | null; email: string };
@@ -333,22 +334,69 @@ export class AffiliateService extends BaseService {
   }
 
   /**
-   * Creates an Affiliate profile (with its Wallet) for an existing user.
+   * Resolves the User to attach an Affiliate to: reuses dto.userId if given,
+   * otherwise creates a fresh User (role AFFILIATE) from the inline fields.
+   * Kept outside the code-generation retry loop below so a code collision retry
+   * never re-creates the User.
+   */
+  private async resolveEmployeeUserId(dto: CreateAffiliateEmployeeDto, actorUserId?: string): Promise<string> {
+    if (dto.userId) {
+      const user = await this.prisma.user.findUnique({ where: { id: dto.userId }, select: { id: true } });
+      if (!user) throw new NotFoundException(`User ${dto.userId} not found`);
+      return user.id;
+    }
+
+    if (!dto.email || !dto.firstName || !dto.lastName || !dto.password) {
+      throw new BadRequestException(
+        'Provide either an existing userId, or email/firstName/lastName/password to create a new employee.',
+      );
+    }
+
+    const existingUser = await this.prisma.user.findUnique({ where: { email: dto.email } });
+    if (existingUser) throw new ConflictException('A user with this email address already exists');
+
+    const affiliateRole = await this.prisma.role.findUnique({ where: { slug: 'AFFILIATE' } });
+    if (!affiliateRole) {
+      throw new BadRequestException('Default AFFILIATE role is not initialized in system. Please run database seeding.');
+    }
+
+    const passwordHash = await bcrypt.hash(dto.password, 12);
+    const newUser = await this.prisma.user.create({
+      data: {
+        email: dto.email,
+        passwordHash,
+        firstName: dto.firstName,
+        lastName: dto.lastName,
+        countryCode: dto.countryCode,
+        phone: dto.phone,
+        status: UserStatusEnum.ACTIVE,
+        roleId: affiliateRole.id,
+        createdBy: actorUserId ?? null,
+      },
+      select: { id: true },
+    });
+    return newUser.id;
+  }
+
+  /**
+   * Creates an Affiliate profile (with its Wallet) for a user — either an existing
+   * user (dto.userId) or a brand-new one created inline from dto.email/firstName/
+   * lastName/password. Inline creation lets HR onboard a sales employee without
+   * first routing them through the client-facing user pool.
    * Affiliate and Wallet are created inside a single transaction — the invariant is
    * that every Affiliate ALWAYS has exactly one Wallet.
    */
   async createEmployee(
-    userId: string,
-    options: { commissionRate?: number; actorUserId?: string } = {},
+    dto: CreateAffiliateEmployeeDto,
+    options: { actorUserId?: string } = {},
   ): Promise<Affiliate> {
-    const user = await this.prisma.user.findUnique({ where: { id: userId }, select: { id: true } });
-    if (!user) throw new NotFoundException(`User ${userId} not found`);
+    const userId = await this.resolveEmployeeUserId(dto, options.actorUserId);
 
     const existing = await this.prisma.affiliate.findUnique({ where: { userId } });
     if (existing) throw new ConflictException('This user already has a sales employee profile');
 
     const settings = await this.settingsService.get();
-    const commissionRate = options.commissionRate ?? settings.defaultCommissionRate;
+    const commissionRate = dto.commissionRate ?? settings.defaultCommissionRate;
 
     let lastError: unknown;
     for (let attempt = 1; attempt <= AffiliateService.CODE_GENERATION_MAX_ATTEMPTS; attempt += 1) {

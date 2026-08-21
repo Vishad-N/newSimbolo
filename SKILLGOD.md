@@ -3,7 +3,7 @@
 > Auto-managed digest for Aider and other CLIs that `read:` this file. Your notes above the markers are safe.
 
 <!-- SKILLGOD:START v1.1 -->
-# SkillGod Project Memory (auto-generated — do not edit; updated 2026-08-19 19:03)
+# SkillGod Project Memory (auto-generated — do not edit; updated 2026-08-21 16:03)
 
 # SkillGod Active
 
@@ -22,20 +22,20 @@ After completing **meaningful** work (decisions, architecture, non-obvious fixes
 ## SkillGod health
 - version: 1.0.1+794a995
 - project_id: `visha-90fc8883`
-- last inject: 2026-08-19T19:03:12 (runtime)
+- last inject: 2026-08-21T16:03:14 (runtime)
 - last capture: never (-)
 - markers: SKILLGOD:START v1.1
 
 ## Project memory
 
 ## Decisions
+- {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\admin\\src\\services\\api.ts", "oldString": "export interface CreateAffiliateEmployeePayload {\n userId: string;\n commissionRate?
+- {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\admin\\src\\services\\api.ts", "oldString": " activateEmployee: async (id: string) =>\n fetchFromApi(`/admin/affiliate/employees/$
 - {"stdout": "- Environments: .env.local\n\nâš The \"middleware\" file convention is deprecated. Please use \"proxy\" instead. Learn more: https://nextjs.org/docs/messages/middleware
 - {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\admin\\src\\services\\api.ts", "oldString": " getEmployee: async (id: string) =>\n fetchFromApi<AffiliateEmployeeDetail | null>(`/
 - {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\admin\\src\\services\\api.ts", "oldString": "export interface AffiliateCommissionFilters {", "newString": "export interface AdminU
 - {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\admin\\src\\services\\api.ts", "oldString": " commissionCalculationBasis: 'ORDER_SUBTOTAL',", "newString": " commissionCalculation
 - {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\admin\\src\\services\\api.ts", "oldString": " getCommissions: async (filters: AffiliateCommissionFilters = {}) => {\n const query 
-- {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\admin\\src\\services\\api.ts", "oldString": " getEmployees: async (page = 1, pageSize = 50) =>\n fetchFromApi<Paginated<AffiliateE
-- {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\admin\\src\\services\\api.ts", "oldString": "const emptyPage = <T,>(pageSize: number): Paginated<T> => ({ items: [], total: 0, pag
 
 ## Notes
 

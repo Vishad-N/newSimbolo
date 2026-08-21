@@ -22,28 +22,30 @@ export default function AffiliateOverviewPage() {
 
   // Create-employee modal
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [createMode, setCreateMode] = useState<"existing" | "new">("existing");
   const [userQuery, setUserQuery] = useState("");
   const [userResults, setUserResults] = useState<AdminUserSearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [selectedUser, setSelectedUser] = useState<AdminUserSearchResult | null>(null);
+  const [newEmployee, setNewEmployee] = useState({ email: "", firstName: "", lastName: "", password: "", phone: "" });
   const [commissionRateInput, setCommissionRateInput] = useState("");
   const [createError, setCreateError] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
 
   const openCreateModal = () => {
+    setCreateMode("existing");
     setUserQuery("");
     setUserResults([]);
     setSelectedUser(null);
+    setNewEmployee({ email: "", firstName: "", lastName: "", password: "", phone: "" });
     setCommissionRateInput("");
     setCreateError(null);
     setIsCreateOpen(true);
   };
 
-  // Debounced user search — mirrors the backend's own `userId`-required contract:
-  // an employee is always created FROM an existing user, never from raw name/email
-  // fields typed here, so this search is only ever a picker.
+  // Debounced user search, only relevant in "existing" mode.
   useEffect(() => {
-    if (!isCreateOpen || selectedUser) return;
+    if (!isCreateOpen || createMode !== "existing" || selectedUser) return;
     if (userQuery.trim().length < 2) {
       setUserResults([]);
       return;
@@ -64,23 +66,46 @@ export default function AffiliateOverviewPage() {
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [userQuery, isCreateOpen, selectedUser]);
+  }, [userQuery, isCreateOpen, createMode, selectedUser]);
 
   const handleCreateEmployee = async () => {
-    if (!selectedUser) {
-      setCreateError("Select a user to enroll as a sales employee.");
-      return;
-    }
     const rate = commissionRateInput.trim() === "" ? undefined : Number(commissionRateInput);
     if (rate !== undefined && (!Number.isFinite(rate) || rate < 0 || rate > 100)) {
       setCreateError("Commission rate must be a number between 0 and 100.");
       return;
     }
 
+    let payload: Parameters<typeof api.affiliate.createEmployee>[0];
+    if (createMode === "existing") {
+      if (!selectedUser) {
+        setCreateError("Select a user to enroll as a sales employee.");
+        return;
+      }
+      payload = { userId: selectedUser.id, commissionRate: rate };
+    } else {
+      const { email, firstName, lastName, password, phone } = newEmployee;
+      if (!email.trim() || !firstName.trim() || !lastName.trim() || !password) {
+        setCreateError("Email, first name, last name, and password are required.");
+        return;
+      }
+      if (password.length < 8) {
+        setCreateError("Password must be at least 8 characters.");
+        return;
+      }
+      payload = {
+        email: email.trim(),
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        password,
+        phone: phone.trim() || undefined,
+        commissionRate: rate,
+      };
+    }
+
     setIsCreating(true);
     setCreateError(null);
     try {
-      await api.affiliate.createEmployee({ userId: selectedUser.id, commissionRate: rate });
+      await api.affiliate.createEmployee(payload);
       setIsCreateOpen(false);
       await fetchData();
     } catch (requestError) {
@@ -283,7 +308,7 @@ export default function AffiliateOverviewPage() {
         />
       )}
 
-      {/* Add Employee — enrolls an EXISTING user; the backend generates the code and wallet */}
+      {/* Add Employee — enroll an existing user, or create a brand-new employee user inline */}
       {isCreateOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <div className="bg-[#0B0F19] border border-white/10 p-6 rounded-xl w-full max-w-lg shadow-2xl">
@@ -291,8 +316,7 @@ export default function AffiliateOverviewPage() {
               <div>
                 <h2 className="text-xl font-bold text-white">Add Sales Employee</h2>
                 <p className="text-sm text-gray-400">
-                  Search for an existing user account to enroll. A unique employee code and wallet are created
-                  automatically.
+                  A unique employee code and wallet are created automatically.
                 </p>
               </div>
               <button onClick={() => setIsCreateOpen(false)} className="text-gray-400 hover:text-white">
@@ -300,7 +324,66 @@ export default function AffiliateOverviewPage() {
               </button>
             </div>
 
+            <div className="mb-4 flex rounded-lg border border-white/10 bg-black/20 p-1 text-sm">
+              <button
+                onClick={() => setCreateMode("existing")}
+                className={`flex-1 rounded-md py-1.5 font-medium transition-colors ${
+                  createMode === "existing" ? "bg-primary text-white" : "text-gray-400 hover:text-white"
+                }`}
+              >
+                Existing User
+              </button>
+              <button
+                onClick={() => setCreateMode("new")}
+                className={`flex-1 rounded-md py-1.5 font-medium transition-colors ${
+                  createMode === "new" ? "bg-primary text-white" : "text-gray-400 hover:text-white"
+                }`}
+              >
+                New Employee
+              </button>
+            </div>
+
             <div className="space-y-4">
+              {createMode === "new" ? (
+                <div className="grid grid-cols-2 gap-3">
+                  <input
+                    autoFocus
+                    type="text"
+                    placeholder="First name"
+                    value={newEmployee.firstName}
+                    onChange={(e) => setNewEmployee((v) => ({ ...v, firstName: e.target.value }))}
+                    className="w-full rounded-lg border border-white/10 bg-black/20 p-3 text-sm text-white focus:border-primary focus:outline-none"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Last name"
+                    value={newEmployee.lastName}
+                    onChange={(e) => setNewEmployee((v) => ({ ...v, lastName: e.target.value }))}
+                    className="w-full rounded-lg border border-white/10 bg-black/20 p-3 text-sm text-white focus:border-primary focus:outline-none"
+                  />
+                  <input
+                    type="email"
+                    placeholder="Email"
+                    value={newEmployee.email}
+                    onChange={(e) => setNewEmployee((v) => ({ ...v, email: e.target.value }))}
+                    className="col-span-2 w-full rounded-lg border border-white/10 bg-black/20 p-3 text-sm text-white focus:border-primary focus:outline-none"
+                  />
+                  <input
+                    type="password"
+                    placeholder="Password (min 8 chars)"
+                    value={newEmployee.password}
+                    onChange={(e) => setNewEmployee((v) => ({ ...v, password: e.target.value }))}
+                    className="col-span-2 w-full rounded-lg border border-white/10 bg-black/20 p-3 text-sm text-white focus:border-primary focus:outline-none"
+                  />
+                  <input
+                    type="tel"
+                    placeholder="Phone (optional)"
+                    value={newEmployee.phone}
+                    onChange={(e) => setNewEmployee((v) => ({ ...v, phone: e.target.value }))}
+                    className="col-span-2 w-full rounded-lg border border-white/10 bg-black/20 p-3 text-sm text-white focus:border-primary focus:outline-none"
+                  />
+                </div>
+              ) : (
               <div>
                 <label className="mb-1.5 block text-xs font-medium text-gray-400">User (name or email)</label>
                 {selectedUser ? (
@@ -359,6 +442,7 @@ export default function AffiliateOverviewPage() {
                   </>
                 )}
               </div>
+              )}
 
               <div>
                 <label className="mb-1.5 block text-xs font-medium text-gray-400">
@@ -385,7 +469,7 @@ export default function AffiliateOverviewPage() {
               <div className="flex flex-col gap-2 sm:flex-row">
                 <button
                   onClick={handleCreateEmployee}
-                  disabled={isCreating || !selectedUser}
+                  disabled={isCreating || (createMode === "existing" && !selectedUser)}
                   className="flex flex-1 items-center justify-center gap-2 px-4 py-3 bg-primary hover:bg-primary-hover text-white text-sm font-bold rounded-lg transition-colors disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <UserPlus className="w-4 h-4" />
