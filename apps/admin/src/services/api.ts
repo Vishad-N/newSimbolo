@@ -224,6 +224,21 @@ export interface AffiliateSettings {
 const emptyPage = <T,>(pageSize: number): Paginated<T> => ({ items: [], total: 0, page: 1, pageSize });
 
 /**
+ * Normalizes any list-endpoint response — a raw array, `{ data: [...] }`, or
+ * `{ items: [...] }` — into a plain array, defaulting to `[]` for anything else.
+ * Use this at every call site that feeds an API list response into `.map()` or
+ * `<DataTable data={...} />`, instead of an ad-hoc `(response.data || response)`
+ * unwrap that still throws when the response doesn't match the assumed shape.
+ */
+export function getDataArray<T>(response: unknown): T[] {
+  if (Array.isArray(response)) return response;
+  const envelope = response as { data?: T[]; items?: T[] } | null | undefined;
+  if (Array.isArray(envelope?.data)) return envelope.data;
+  if (Array.isArray(envelope?.items)) return envelope.items;
+  return [];
+}
+
+/**
  * The affiliate backend's list endpoints follow this codebase's existing pagination
  * convention — `{ data, meta: { total, page, limit, totalPages } }` (same shape as
  * PaymentsService.findAll etc.) — rather than the flat `{ items, total, page, pageSize }`

@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { DataTable } from "@/components/DataTable";
-import { api } from "@/services/api";
+import { api, getDataArray } from "@/services/api";
 import { FilePenLine, Plus, RefreshCw, Save, Trash, X } from "lucide-react";
 
 interface BlogCategory {
@@ -62,10 +62,6 @@ const defaultForm: BlogFormData = {
   tags: "",
 };
 
-function getDataArray<T>(response: T[] | DataResponse<T>): T[] {
-  return Array.isArray(response) ? response : response.data;
-}
-
 function getAuthorName(author?: BlogAuthor | null): string {
   const user = author?.user;
   const fullName = [user?.firstName, user?.lastName].filter(Boolean).join(" ").trim();
@@ -106,7 +102,7 @@ export default function BlogsManagerPage() {
         api.blogs.getAuthors() as Promise<BlogAuthor[] | DataResponse<BlogAuthor>>,
       ]);
 
-      const blogRows = getDataArray(blogResponse).map((blog): BlogRow => ({
+      const blogRows = getDataArray<BlogRecord>(blogResponse).map((blog): BlogRow => ({
         id: blog.id,
         title: blog.title,
         category: blog.category?.name || "Uncategorized",
@@ -116,8 +112,8 @@ export default function BlogsManagerPage() {
       }));
 
       setBlogs(blogRows);
-      setCategories(getDataArray(categoryResponse));
-      setAuthors(getDataArray(authorResponse));
+      setCategories(getDataArray<BlogCategory>(categoryResponse));
+      setAuthors(getDataArray<BlogAuthor>(authorResponse));
     } catch (requestError) {
       setError(getRequestMessage(requestError, "Failed to load blogs"));
     } finally {

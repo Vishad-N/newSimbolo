@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { DataTable } from "@/components/DataTable";
 import { Plus, Search, X, Save, RefreshCw, Trash } from "lucide-react";
-import { api } from "@/services/api";
+import { api, getDataArray } from "@/services/api";
 
 interface SEOData {
   id: string;
@@ -30,7 +30,7 @@ export default function GlobalSEOSettings() {
     setError(null);
     try {
       const response = await api.seo.getAll() as any;
-      const mappedData: SEOData[] = (response.data || response).map((seo: any) => ({
+      const mappedData: SEOData[] = getDataArray<any>(response).map((seo: any) => ({
         id: seo.id,
         path: seo.path,
         metaTitle: seo.metaTitle,

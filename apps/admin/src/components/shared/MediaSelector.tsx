@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Loader2, UploadCloud, Image as ImageIcon, Check, X } from "lucide-react";
 import { cn } from "@/utils/utils";
+import { getDataArray } from "@/services/api";
 
 interface MediaAsset {
   id: string;
@@ -39,7 +40,7 @@ export function MediaSelector({ onSelect, triggerText = "Select Media", triggerI
       });
       if (res.ok) {
         const data = await res.json();
-        setAssets(data);
+        setAssets(getDataArray<MediaAsset>(data));
       }
     } catch (error) {
       console.error("Failed to fetch media assets", error);

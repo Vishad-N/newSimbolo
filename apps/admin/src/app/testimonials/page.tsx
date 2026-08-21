@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { DataTable } from "@/components/DataTable";
 import { Plus, MessageSquare, X, Save, RefreshCw, Trash } from "lucide-react";
-import { api } from "@/services/api";
+import { api, getDataArray } from "@/services/api";
 
 interface TestimonialData {
   id: string;
@@ -37,7 +37,7 @@ export default function TestimonialsManager() {
     setError(null);
     try {
       const response = await api.testimonials.getAll() as any;
-      const mappedData: TestimonialData[] = (response.data || response).map((t: any) => ({
+      const mappedData: TestimonialData[] = getDataArray<any>(response).map((t: any) => ({
         id: t.id,
         name: t.clientName,
         role: t.clientTitle || "",

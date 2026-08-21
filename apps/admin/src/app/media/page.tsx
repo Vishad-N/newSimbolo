@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Loader2, UploadCloud, Image as ImageIcon, Search, Trash2, Folder, Grid, List } from "lucide-react";
 import { cn } from "@/utils/utils";
-import { api } from "@/services/api";
+import { api, getDataArray } from "@/services/api";
 
 interface MediaAsset {
   id: string;
@@ -29,7 +29,7 @@ export default function MediaLibraryPage() {
     setIsLoading(true);
     try {
       const data = await api.media.getAll(selectedFolder);
-      setAssets(data as MediaAsset[]);
+      setAssets(getDataArray<MediaAsset>(data));
     } catch (error) {
       console.error("Failed to fetch media assets", error);
     } finally {

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { DataTable } from "@/components/DataTable";
 import { Plus, Briefcase, X, Save, RefreshCw, Trash } from "lucide-react";
-import { api } from "@/services/api";
+import { api, getDataArray } from "@/services/api";
 
 interface ProjectData {
   id: string;
@@ -39,9 +39,9 @@ export default function PortfolioManager() {
         fetch(`${api.config.baseURL}/portfolio/categories`).then(r => r.json())
       ]) as [any, any];
       
-      setCategories(catRes.data || catRes);
+      setCategories(getDataArray(catRes));
 
-      const mappedData: ProjectData[] = (projRes.data || projRes).map((proj: any) => ({
+      const mappedData: ProjectData[] = getDataArray<any>(projRes).map((proj: any) => ({
         id: proj.id,
         title: proj.title,
         clientName: proj.clientName || "Unknown Client",

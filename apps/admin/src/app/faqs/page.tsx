@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { DataTable } from "@/components/DataTable";
 import { Plus, HelpCircle, X, Save, RefreshCw, Trash } from "lucide-react";
-import { api } from "@/services/api";
+import { api, getDataArray } from "@/services/api";
 
 interface FAQData {
   id: string;
@@ -32,9 +32,9 @@ export default function FAQManager() {
         fetch(`${api.config.baseURL}/faqs/categories`).then(r => r.json())
       ]) as [any, any];
       
-      setCategories(catRes.data || catRes);
+      setCategories(getDataArray(catRes));
 
-      const mappedData: FAQData[] = (faqsRes.data || faqsRes).map((faq: any) => ({
+      const mappedData: FAQData[] = getDataArray<any>(faqsRes).map((faq: any) => ({
         id: faq.id,
         question: faq.question,
         answer: faq.answer,

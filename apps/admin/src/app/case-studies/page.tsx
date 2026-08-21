@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { DataTable } from "@/components/DataTable";
 import { Plus, Briefcase, X, Save, RefreshCw, Trash } from "lucide-react";
-import { api } from "@/services/api";
+import { api, getDataArray } from "@/services/api";
 
 interface CaseStudyData {
   id: string;
@@ -41,9 +41,9 @@ export default function CaseStudiesManagerPage() {
         fetch(`${api.config.baseURL}/case-studies/categories`).then(r => r.json())
       ]) as [any, any];
       
-      setCategories(catRes.data || catRes);
+      setCategories(getDataArray(catRes));
 
-      const mappedData: CaseStudyData[] = (csRes.data || csRes).map((cs: any) => ({
+      const mappedData: CaseStudyData[] = getDataArray<any>(csRes).map((cs: any) => ({
         id: cs.id,
         title: cs.title,
         client: cs.clientName || "Unknown Client",

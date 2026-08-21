@@ -39,6 +39,9 @@ export function DataTable<T extends { id: string | number }>({
   emptyMessage = "No items found."
 }: DataTableProps<T>) {
   const [openActionMenuId, setOpenActionMenuId] = useState<string | number | null>(null);
+  // Backstop: a page passing a non-array (e.g. an un-normalized API response) must
+  // render an empty table, never crash the whole page with "data.map is not a function".
+  const rows = Array.isArray(data) ? data : [];
 
   const toggleMenu = (id: string | number) => {
     setOpenActionMenuId(openActionMenuId === id ? null : id);
@@ -63,14 +66,14 @@ export function DataTable<T extends { id: string | number }>({
             </tr>
           </thead>
           <tbody>
-            {data.length === 0 ? (
+            {rows.length === 0 ? (
               <tr>
                 <td colSpan={columns.length + 1} className="px-6 py-12 text-center text-gray-400">
                   {emptyMessage}
                 </td>
               </tr>
             ) : (
-              data.map((item) => (
+              rows.map((item) => (
                 <tr 
                   key={item.id} 
                   className="border-b border-white/5 hover:bg-white/[0.02] transition-colors relative"
@@ -155,7 +158,7 @@ export function DataTable<T extends { id: string | number }>({
       
       {/* Basic Pagination Footer */}
       <div className="px-6 py-4 border-t border-white/5 flex items-center justify-between text-sm text-gray-400 bg-white/[0.01]">
-        <span>Showing {data.length > 0 ? 1 : 0} to {data.length} of {data.length} entries</span>
+        <span>Showing {rows.length > 0 ? 1 : 0} to {rows.length} of {rows.length} entries</span>
         <div className="flex gap-2">
           <button type="button" disabled aria-label="Previous page" title="All results are shown on one page" className="p-1 rounded hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed">
             <ChevronLeft className="w-4 h-4" />

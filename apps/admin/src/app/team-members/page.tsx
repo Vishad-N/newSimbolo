@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { DataTable } from "@/components/DataTable";
 import { Plus, Users, X, Save, RefreshCw, Trash } from "lucide-react";
-import { api } from "@/services/api";
+import { api, getDataArray } from "@/services/api";
 
 interface TeamMemberData {
   id: string;
@@ -39,7 +39,7 @@ export default function TeamMembersManager() {
     setError(null);
     try {
       const response = await api.websiteTeam.getAll() as any;
-      const mappedData: TeamMemberData[] = (response.data || response).map((member: any) => ({
+      const mappedData: TeamMemberData[] = getDataArray<any>(response).map((member: any) => ({
         id: member.id,
         name: member.name,
         designation: member.designation,
