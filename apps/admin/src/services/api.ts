@@ -29,7 +29,14 @@ async function fetchFromApi<T>(endpoint: string, options?: RequestInit, fallback
     if (!res.ok) {
       throw new Error(`API error (${res.status}): ${res.statusText}`);
     }
-    return await res.json();
+    const json = await res.json();
+    // The backend's global TransformInterceptor wraps every response in
+    // { success, message, data }. Unwrap it here, once, so every caller gets the
+    // real payload directly instead of each having to know about this envelope.
+    if (json && typeof json === 'object' && 'success' in json && 'data' in json) {
+      return json.data;
+    }
+    return json;
   } catch (error) {
     console.warn(`[Simbolo API Fallback] Could not fetch ${endpoint}, returning fallback data:`, error);
     if (fallback !== undefined) {
