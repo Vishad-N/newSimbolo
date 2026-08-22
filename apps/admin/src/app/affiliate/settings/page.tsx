@@ -44,7 +44,33 @@ export default function AffiliateSettingsPage() {
     setMessage(null);
     setError(null);
     try {
-      await api.affiliate.updateSettings(settings);
+      // `settings` may carry read-only fields (id/updatedAt/updatedBy) picked up
+      // from GET — the update DTO rejects unknown properties, so whitelist to
+      // exactly the editable fields before sending.
+      const {
+        defaultCommissionRate,
+        commissionCalculationBasis,
+        commissionHoldPeriodDays,
+        minimumWithdrawalAmount,
+        maximumWithdrawalAmount,
+        paydayFrequency,
+        paydayDayOfWeek,
+        paydayCutoffTime,
+        payoutAutoProcessingEnabled,
+        selfReferralAllowed,
+      } = settings;
+      await api.affiliate.updateSettings({
+        defaultCommissionRate,
+        commissionCalculationBasis,
+        commissionHoldPeriodDays,
+        minimumWithdrawalAmount,
+        maximumWithdrawalAmount,
+        paydayFrequency,
+        paydayDayOfWeek,
+        paydayCutoffTime,
+        payoutAutoProcessingEnabled,
+        selfReferralAllowed,
+      });
       setMessage("Affiliate settings saved successfully.");
     } catch (requestError) {
       setError(getErrorMessage(requestError, "Failed to save affiliate settings"));
