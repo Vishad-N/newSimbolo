@@ -331,8 +331,27 @@ function RegisterModal({ onClose }: { onClose: () => void }) {
 
     setIsLoading(true);
 
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: normalizeEmail(formData.email),
+          password: formData.password,
+          firstName: formData.firstName.trim(),
+          lastName: formData.lastName.trim(),
+          // The backend requires phone whenever countryCode is present, but this
+          // form treats phone as optional — omit both together so an intentionally
+          // blank phone doesn't turn into a validation error.
+          ...(formData.phone ? { countryCode: formData.countryCode, phone: formData.phone } : {}),
+        }),
+      });
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(Array.isArray(payload.message) ? payload.message.join(" ") : payload.message || "Unable to register.");
+      }
+
       setIsLoading(false);
       setIsSuccess(true);
       setTimeout(() => {
@@ -344,7 +363,10 @@ function RegisterModal({ onClose }: { onClose: () => void }) {
           window.location.href = `/packages`;
         }
       }, 2000);
-    }, 1500);
+    } catch (registerError) {
+      setError(registerError instanceof Error ? registerError.message : "Unable to register.");
+      setIsLoading(false);
+    }
   };
 
   const switchToLogin = () => {
