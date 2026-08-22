@@ -10,6 +10,7 @@ import {
   redirectToLanding,
 } from "@/services/api";
 import type { ClientSubscription } from "@/services/api";
+import { getUserRole } from "@/utils/utils";
 import { Lock, CreditCard, ArrowRight, PackageOpen } from "lucide-react";
 
 export function SubscriptionGuard({ children }: { children: React.ReactNode }) {
@@ -19,10 +20,12 @@ export function SubscriptionGuard({ children }: { children: React.ReactNode }) {
   const [isLocked, setIsLocked] = useState(false);
   const [subscription, setSubscription] = useState<ClientSubscription | null>(null);
   const [redirectUrl, setRedirectUrl] = useState<string | null>(null);
-  
-  // Don't enforce lockdown on the checkout page itself, nor on the affiliate portal —
-  // sales employees are not required to hold a client subscription.
-  const isCheckout = pathname?.includes("/checkout") || pathname?.includes("/affiliate");
+
+  // Sales employees (Affiliate role) are never required to hold a client
+  // subscription — the lock only applies to actual client accounts. Also skip
+  // it on the checkout page itself, since that's how a client gets a plan.
+  const isAffiliate = getUserRole() === "AFFILIATE";
+  const isCheckout = isAffiliate || pathname?.includes("/checkout");
 
   useEffect(() => {
     if (isCheckout) {

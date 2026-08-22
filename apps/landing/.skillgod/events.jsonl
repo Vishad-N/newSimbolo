@@ -1,0 +1,2 @@
+{"ts": 1787319795.4280372, "iso": "2026-08-21T19:13:15", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.35"}
+{"ts": 1787319804.2909513, "iso": "2026-08-21T19:13:24", "event": "pre_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "pre_tool: inject chars=7824"}

@@ -13,13 +13,15 @@ const DASHBOARD_URL = process.env.NEXT_PUBLIC_DASHBOARD_URL || "http://localhost
 interface AuthenticationTokens {
   accessToken: string;
   refreshToken: string;
+  user?: { role?: string };
 }
 
-const redirectToDashboard = ({ accessToken, refreshToken }: AuthenticationTokens, next = "/dashboard") => {
+const redirectToDashboard = ({ accessToken, refreshToken, user }: AuthenticationTokens, next = "/dashboard") => {
   const callbackUrl = new URL("/auth/callback", DASHBOARD_URL);
   callbackUrl.searchParams.set("accessToken", accessToken);
   callbackUrl.searchParams.set("refreshToken", refreshToken);
   callbackUrl.searchParams.set("next", next);
+  if (user?.role) callbackUrl.searchParams.set("role", user.role);
   window.location.replace(callbackUrl.toString());
 };
 export function AuthModals() {
@@ -123,6 +125,8 @@ function LoginModal({ onClose }: { onClose: () => void }) {
       const checkoutPackage = searchParams.get("checkout");
       const next = checkoutPackage
         ? `/checkout?package=${encodeURIComponent(checkoutPackage)}`
+        : authentication.user?.role === "AFFILIATE"
+        ? "/affiliate"
         : "/dashboard";
       redirectToDashboard(authentication, next);
     } catch (loginError) {

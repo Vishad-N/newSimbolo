@@ -39,5 +39,18 @@ export async function GET(request: Request) {
     maxAge: 60 * 60 * 24 * 7,
   });
 
+  // Readable by client components (Sidebar, SubscriptionGuard) to isolate the
+  // affiliate self-service portal from the client dashboard within this same app.
+  const role = requestUrl.searchParams.get('role');
+  if (role === 'AFFILIATE' || role === 'CLIENT') {
+    response.cookies.set('userRole', role, {
+      httpOnly: false,
+      sameSite: 'lax',
+      secure,
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7,
+    });
+  }
+
   return response;
 }

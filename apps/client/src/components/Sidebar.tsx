@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useUIStore } from "@/store/uiStore";
-import { cn } from "@/utils/utils";
+import { cn, getUserRole } from "@/utils/utils";
 import Image from "next/image";
 import { 
   LayoutDashboard, 
@@ -39,6 +39,9 @@ const mainNavItems = [
 
 const billingNavItems = [
   { href: "/payments", label: "Billing & Invoices", icon: CreditCard },
+];
+
+const affiliateNavItems = [
   { href: "/affiliate", label: "Sales & Commissions", icon: BadgeIndianRupee },
 ];
 
@@ -52,6 +55,13 @@ const accountNavItems = [
 export function Sidebar() {
   const pathname = usePathname();
   const { sidebarOpen, toggleSidebar, setSidebarOpen } = useUIStore();
+  const [role, setRole] = useState<"CLIENT" | "AFFILIATE" | null>(null);
+  const isAffiliate = role === "AFFILIATE";
+  const homeHref = isAffiliate ? "/affiliate" : "/dashboard";
+
+  useEffect(() => {
+    setRole(getUserRole());
+  }, []);
 
   useEffect(() => {
     if (typeof window !== "undefined" && window.innerWidth < 768) {
@@ -116,8 +126,8 @@ export function Sidebar() {
       >
         {/* Brand Header */}
         <div className="h-16 flex items-center justify-between px-4 border-b border-white/10 shrink-0 relative">
-          <Link 
-            href="/dashboard" 
+          <Link
+            href={homeHref}
             onClick={() => {
               if (typeof window !== "undefined" && window.innerWidth < 768) {
                 setSidebarOpen(false);
@@ -158,15 +168,24 @@ export function Sidebar() {
       {/* Navigation Groups */}
       <div className="flex-1 overflow-y-auto custom-scrollbar py-6 px-3 flex flex-col gap-6 overflow-x-hidden">
         
-        <div className="space-y-1">
-          {sidebarOpen && <div className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Workspace</div>}
-          {mainNavItems.map(item => <NavLink key={item.href} {...item} />)}
-        </div>
+        {isAffiliate ? (
+          <div className="space-y-1">
+            {sidebarOpen && <div className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Affiliate</div>}
+            {affiliateNavItems.map(item => <NavLink key={item.href} {...item} />)}
+          </div>
+        ) : (
+          <>
+            <div className="space-y-1">
+              {sidebarOpen && <div className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Workspace</div>}
+              {mainNavItems.map(item => <NavLink key={item.href} {...item} />)}
+            </div>
 
-        <div className="space-y-1">
-          {sidebarOpen && <div className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Billing</div>}
-          {billingNavItems.map(item => <NavLink key={item.href} {...item} />)}
-        </div>
+            <div className="space-y-1">
+              {sidebarOpen && <div className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Billing</div>}
+              {billingNavItems.map(item => <NavLink key={item.href} {...item} />)}
+            </div>
+          </>
+        )}
 
         <div className="space-y-1">
           {sidebarOpen && <div className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Account</div>}
