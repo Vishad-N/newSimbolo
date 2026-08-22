@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { AlertTriangle, X, RefreshCw } from "lucide-react";
-import { mockApi } from "@/services/api";
+import { mockApi, redirectToLanding } from "@/services/api";
 import { cn } from "@/utils/utils";
 
 export function StickyRenewCard() {
+  const router = useRouter();
   const [subscription, setSubscription] = useState<any>(null);
   const [isVisible, setIsVisible] = useState(true);
 
@@ -55,25 +57,21 @@ export function StickyRenewCard() {
         </div>
 
         <div className="flex gap-2 mt-2">
-          <button 
-            onClick={async () => {
-              try {
-                await mockApi.subscription.renew();
-                alert("Renewed successfully! (Mock)");
-                setIsVisible(false);
-              } catch (error) {
-                console.error("Renewal failed", error);
-              }
-            }}
+          <button
+            onClick={() => router.push(`/checkout?package=${subscription.packageId}&repeat=true`)}
+            disabled={!subscription.packageId}
             className={cn(
-            "flex-1 flex items-center justify-center gap-2 py-2 text-xs font-bold rounded-lg transition-colors shadow-lg",
-            isExpired 
-              ? "bg-red-500 hover:bg-red-600 text-white shadow-red-500/20" 
+            "flex-1 flex items-center justify-center gap-2 py-2 text-xs font-bold rounded-lg transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed",
+            isExpired
+              ? "bg-red-500 hover:bg-red-600 text-white shadow-red-500/20"
               : "bg-yellow-500 hover:bg-yellow-600 text-black shadow-yellow-500/20"
           )}>
             <RefreshCw className="w-3 h-3" /> Renew Now
           </button>
-          <button className="flex-1 py-2 bg-white/5 hover:bg-white/10 border border-white/10 text-white text-xs font-medium rounded-lg transition-colors">
+          <button
+            onClick={() => redirectToLanding('/packages')}
+            className="flex-1 py-2 bg-white/5 hover:bg-white/10 border border-white/10 text-white text-xs font-medium rounded-lg transition-colors"
+          >
             View Plans
           </button>
         </div>

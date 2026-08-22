@@ -13,6 +13,7 @@ export function UploadModal({ isOpen, onClose, onUpload }: UploadModalProps) {
   const [files, setFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   if (!isOpen) return null;
@@ -50,7 +51,8 @@ export function UploadModal({ isOpen, onClose, onUpload }: UploadModalProps) {
   const handleUploadSubmit = async () => {
     if (files.length === 0) return;
     setUploading(true);
-    
+    setError(null);
+
     // Simulate progress for UI purposes until real R2 upload is hooked up
     const interval = setInterval(() => {
       setProgress((prev) => {
@@ -68,9 +70,11 @@ export function UploadModal({ isOpen, onClose, onUpload }: UploadModalProps) {
         setProgress(0);
         onClose();
       }, 1000);
-    } catch (error) {
-      console.error(error);
+    } catch (uploadError) {
+      console.error(uploadError);
+      setError(uploadError instanceof Error ? uploadError.message : "Upload failed. Please try again.");
       setUploading(false);
+      setProgress(0);
     } finally {
       clearInterval(interval);
     }
@@ -87,6 +91,12 @@ export function UploadModal({ isOpen, onClose, onUpload }: UploadModalProps) {
         </div>
 
         <div className="p-6 flex-1 overflow-y-auto custom-scrollbar">
+          {error && (
+            <div className="mb-4 flex items-start gap-2 rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-300">
+              <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
           {!uploading ? (
             <>
               <div 

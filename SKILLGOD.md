@@ -3,7 +3,7 @@
 > Auto-managed digest for Aider and other CLIs that `read:` this file. Your notes above the markers are safe.
 
 <!-- SKILLGOD:START v1.1 -->
-# SkillGod Project Memory (auto-generated — do not edit; updated 2026-08-22 12:31)
+# SkillGod Project Memory (auto-generated — do not edit; updated 2026-08-22 13:46)
 
 # SkillGod Active
 
@@ -22,20 +22,20 @@ After completing **meaningful** work (decisions, architecture, non-obvious fixes
 ## SkillGod health
 - version: 1.0.1+794a995
 - project_id: `visha-90fc8883`
-- last inject: 2026-08-22T12:31:26 (runtime)
+- last inject: 2026-08-22T13:46:23 (runtime)
 - last capture: never (-)
 - markers: SKILLGOD:START v1.1
 
 ## Project memory
 
 ## Decisions
+- {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\client\\src\\app\\documents\\page.tsx", "oldString": " onUpload={async (files) => {\n // Mock upload\n await new Promise(r =>
+- {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\landing\\src\\components\\websiteDesign\\WebsiteDesignPage.tsx", "oldString": "import { PhoneNumberFields } from \"@/components/ui
+- {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\landing\\src\\components\\websiteDesign\\WebsiteDesignPage.tsx", "oldString": " <LeadForm title=\"Request Free Consultation\" desc
+- {"mode": "content", "numFiles": 0, "filenames": [], "content": "c:\\Users\\visha\\simbolonew\\apps\\landing\\src\\components\\websiteDesign\\WebsiteDesignPage.tsx:6:import { LeadFo
+- {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\client\\src\\components\\checkout\\RazorpayCheckout.tsx", "oldString": " setIsProcessing(true);\n setError(null);\n\n const mockKe
+- {"isAsync": true, "status": "async_launched", "agentId": "acb09ade3f270930a", "description": "Audit for fake/mocked frontend flows", "resolvedModel": "claude-sonnet-5", "prompt": "
 - {"stdout": "Associate existing project with current directory, may specify projectId as an argument\n\nUsage: railway.exe link [OPTIONS]\n\nOptions:\n -e, --environment <ENVIRONMEN
-- {"stdout": "warning: in the working copy of 'apps/admin/src/services/api.ts', LF will be replaced by CRLF the next time Git touches it\ndiff --git a/apps/admin/src/services/api.ts 
-- {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\admin\\src\\services\\api.ts", "oldString": " if (!res.ok) {\n throw new Error(`API error (${res.status}): ${res.statusText}`);\n 
-- {"mode": "content", "numFiles": 0, "filenames": [], "content": "230: * `<DataTable data={...} />`, instead of an ad-hoc `(response.data || response)`", "numLines": 1, "totalLines":
-- {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\admin\\src\\services\\api.ts", "oldString": "const emptyPage = <T,>(pageSize: number): Paginated<T> => ({ items: [], total: 0, pag
-- {"questions": [{"question": "How do you want to fix the remaining unsafe pages?", "header": "Fix approach", "options": [{"label": "Harden DataTable + fix each page (Recommended)", 
-- {"mode": "content", "numFiles": 0, "filenames": [], "content": "96:export interface Paginated<T> {\n97- items: T[];\n98- total: number;\n99- page: number;\n100- pageSize: number;\n
 
 ## Notes
 

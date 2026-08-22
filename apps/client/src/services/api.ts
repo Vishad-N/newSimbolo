@@ -424,12 +424,6 @@ export const mockApi = {
         ]
       };
     },
-    upgrade: async () => {
-      return { success: true, message: "Upgrade request sent successfully" };
-    },
-    renew: async () => {
-      return { success: true, message: "Renewal request sent successfully" };
-    }
   },
 
   payments: {

@@ -1,30 +1,20 @@
 import { Card } from "@/components/ui/Card";
-import { ArrowUpCircle, Sparkles, Loader2 } from "lucide-react";
-import { useState } from "react";
-import { mockApi } from "@/services/api";
+import { ArrowUpCircle, Sparkles } from "lucide-react";
+import { redirectToLanding } from "@/services/api";
 
 interface UpgradeCardProps {
   subscription: any;
 }
 
 export function UpgradeCard({ subscription }: UpgradeCardProps) {
-  const [isUpgrading, setIsUpgrading] = useState(false);
-
   if (!subscription || subscription.rank >= subscription.highestRank) {
     return null; // Do not show if already at highest plan
   }
 
-  const handleUpgrade = async () => {
-    setIsUpgrading(true);
-    try {
-      await mockApi.subscription.upgrade();
-      alert("Upgraded successfully! (Mock)");
-    } catch (error) {
-      console.error("Upgrade failed", error);
-    } finally {
-      setIsUpgrading(false);
-    }
-  };
+  // There's no "upgrade in place" endpoint — an upgrade is a new purchase, so
+  // send the user to pick a plan through the real checkout flow rather than
+  // faking success for an action that never touched the backend.
+  const handleUpgrade = () => redirectToLanding('/packages');
 
   return (
     <Card className="border-secondary/30 bg-gradient-to-tr from-surface to-secondary/10 relative overflow-hidden group">
@@ -45,13 +35,12 @@ export function UpgradeCard({ subscription }: UpgradeCardProps) {
           </p>
         </div>
 
-        <button 
+        <button
           onClick={handleUpgrade}
-          disabled={isUpgrading}
-          className="w-full sm:w-auto px-6 py-3 bg-secondary hover:bg-secondary/80 text-black font-semibold rounded-xl transition-colors shadow-[0_0_15px_rgba(45,212,191,0.4)] flex items-center justify-center gap-2 shrink-0 disabled:opacity-50"
+          className="w-full sm:w-auto px-6 py-3 bg-secondary hover:bg-secondary/80 text-black font-semibold rounded-xl transition-colors shadow-[0_0_15px_rgba(45,212,191,0.4)] flex items-center justify-center gap-2 shrink-0"
         >
-          {isUpgrading ? <Loader2 className="w-5 h-5 animate-spin" /> : <ArrowUpCircle className="w-5 h-5" />}
-          {isUpgrading ? "Upgrading..." : "Upgrade Now"}
+          <ArrowUpCircle className="w-5 h-5" />
+          Upgrade Now
         </button>
       </div>
     </Card>

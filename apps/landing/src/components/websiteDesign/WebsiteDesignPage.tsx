@@ -22,7 +22,6 @@ import {
   websiteDesignFaqs,
 } from "@/data/services/websiteDesign";
 import { SharedPackage } from "@/types/shared";
-import { PhoneNumberFields } from "@/components/ui/PhoneNumberFields";
 
 interface WebsiteDesignPageProps {
   livePackages?: SharedPackage[];
@@ -72,46 +71,31 @@ export function WebsiteDesignPage({ livePackages, liveProjects, liveConfig }: We
             <div className="grid gap-4 xl:grid-cols-[2.5fr_0.9fr]">
               <PricingSection title="Website Maintenance Packages" packages={packages}  />
               <div className="h-full">
-                <LeadForm title="Request Free Consultation" description="Submit your project details and we will get back to you with a custom plan." buttonText="Request Free Consultation">
-                  <input
-                    aria-label="Your Name"
-                    placeholder="Your Name"
-                    className="h-10 w-full rounded-[8px] border border-white/10 bg-[var(--background)]/44 px-3 text-[0.78rem] text-white outline-none transition placeholder:text-white/42 focus:border-[var(--accent)]/60"
-                  />
-                  <input
-                    aria-label="Email Address"
-                    placeholder="Email Address"
-                    className="h-10 w-full rounded-[8px] border border-white/10 bg-[var(--background)]/44 px-3 text-[0.78rem] text-white outline-none transition placeholder:text-white/42 focus:border-[var(--accent)]/60"
-                  />
-                  <PhoneNumberFields compact />
-                  <select
-                    aria-label="Business Type"
-                    className="h-10 w-full rounded-[8px] border border-white/10 bg-[var(--background)]/44 px-3 text-[0.78rem] text-white outline-none transition placeholder:text-white/42 focus:border-[var(--accent)]/60 appearance-none"
-                    defaultValue=""
-                  >
-                    <option value="" disabled className="bg-[var(--surface)]">Business Type</option>
-                    <option value="ecommerce" className="bg-[var(--surface)]">E-Commerce</option>
-                    <option value="saas" className="bg-[var(--surface)]">SaaS</option>
-                    <option value="agency" className="bg-[var(--surface)]">Agency / Service</option>
-                    <option value="portfolio" className="bg-[var(--surface)]">Portfolio</option>
-                  </select>
-                  <select
-                    aria-label="Budget"
-                    className="h-10 w-full rounded-[8px] border border-white/10 bg-[var(--background)]/44 px-3 text-[0.78rem] text-white outline-none transition placeholder:text-white/42 focus:border-[var(--accent)]/60 appearance-none"
-                    defaultValue=""
-                  >
-                    <option value="" disabled className="bg-[var(--surface)]">Estimated Budget</option>
-                    <option value="under_50k" className="bg-[var(--surface)]">Under ₹50,000</option>
-                    <option value="50k_100k" className="bg-[var(--surface)]">₹50,000 - ₹1,00,000</option>
-                    <option value="100k_500k" className="bg-[var(--surface)]">₹1,00,000 - ₹5,00,000</option>
-                    <option value="above_500k" className="bg-[var(--surface)]">Above ₹5,00,000</option>
-                  </select>
-                  <textarea
-                    aria-label="Project Description"
-                    placeholder="Briefly describe your project..."
-                    className="h-24 w-full resize-none rounded-[8px] border border-white/10 bg-[var(--background)]/44 p-3 text-[0.78rem] text-white outline-none transition placeholder:text-white/42 focus:border-[var(--accent)]/60"
-                  />
-                </LeadForm>
+                <LeadForm
+                  title="Request Free Consultation"
+                  description="Submit your project details and we will get back to you with a custom plan."
+                  buttonText="Request Free Consultation"
+                  extraFields={[
+                    {
+                      id: "businessType",
+                      label: "Business Type",
+                      type: "select",
+                      options: ["E-Commerce", "SaaS", "Agency / Service", "Portfolio"],
+                    },
+                    {
+                      id: "budget",
+                      label: "Estimated Budget",
+                      type: "select",
+                      options: ["Under ₹50,000", "₹50,000 - ₹1,00,000", "₹1,00,000 - ₹5,00,000", "Above ₹5,00,000"],
+                    },
+                    {
+                      id: "projectDescription",
+                      label: "Project Description",
+                      type: "textarea",
+                      placeholder: "Briefly describe your project...",
+                    },
+                  ]}
+                />
               </div>
             </div>
 

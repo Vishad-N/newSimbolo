@@ -116,11 +116,13 @@ export default function DocumentsPage() {
       <UploadModal 
         isOpen={isUploadModalOpen} 
         onClose={() => setUploadModalOpen(false)} 
-        onUpload={async (files) => {
-          // Mock upload
-          await new Promise(r => setTimeout(r, 2000));
-          console.log("Uploaded files:", files);
-        }} 
+        onUpload={async () => {
+          // No client-facing upload endpoint exists yet — the backend's
+          // POST /documents requires staff-only `documents.manage` and expects
+          // an already-hosted fileUrl, not raw file bytes. Surface that honestly
+          // instead of faking success.
+          throw new Error("File uploads aren't available yet. Please contact your account manager to share files.");
+        }}
       />
       <CreateFolderModal 
         isOpen={isCreateFolderModalOpen} 

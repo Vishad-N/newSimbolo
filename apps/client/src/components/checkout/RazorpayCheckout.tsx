@@ -43,24 +43,21 @@ export function RazorpayCheckout({ amount, packageName, packageId, profile, empl
       }
     }
 
+    const actualKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
+    if (!actualKey) {
+      // No silent fake-success path: a missing key is a real configuration error,
+      // not something to paper over with a simulated payment.
+      setError("Payments are not configured. Please contact support.");
+      setIsProcessing(false);
+      return;
+    }
+
     setIsProcessing(true);
     setError(null);
-
-    const mockKey = "rzp_test_mock_key_12345";
-    const actualKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || mockKey;
 
     try {
       if (onBeforePayment) {
         await onBeforePayment();
-      }
-
-      // If we are using the mock key, don't even try to load Razorpay because it will fail with "Invalid Key"
-      if (actualKey === mockKey) {
-        setTimeout(() => {
-          console.log("Simulating mock payment success because no real Razorpay key was provided");
-          onSuccess();
-        }, 1500);
-        return;
       }
 
       // 1. Create Internal Order & Gateway Order via Proxy API

@@ -98,6 +98,31 @@ function LoginModal({ onClose }: { onClose: () => void }) {
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [mode, setMode] = useState<"login" | "forgot" | "forgot-sent">("login");
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [isSendingReset, setIsSendingReset] = useState(false);
+
+  const handleForgotPassword = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsSendingReset(true);
+    setError("");
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: normalizeEmail(forgotEmail) }),
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(Array.isArray(payload.message) ? payload.message.join(" ") : payload.message || "Unable to send reset email.");
+      }
+      setMode("forgot-sent");
+    } catch (forgotError) {
+      setError(forgotError instanceof Error ? forgotError.message : "Unable to send reset email.");
+    } finally {
+      setIsSendingReset(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -141,6 +166,80 @@ function LoginModal({ onClose }: { onClose: () => void }) {
     router.push(`?${newParams.toString()}`, { scroll: false });
   };
 
+  if (mode === "forgot" || mode === "forgot-sent") {
+    return (
+      <div className="relative overflow-hidden rounded-[24px] border border-white/[0.08] bg-[var(--surface)]/90 p-8 shadow-[0_24px_48px_rgba(0,0,0,0.5)] backdrop-blur-2xl">
+        <button
+          onClick={onClose}
+          className="absolute right-4 top-4 rounded-full p-1 text-[#64748B] transition-colors hover:bg-white/10 hover:text-white"
+        >
+          <X className="h-5 w-5" />
+        </button>
+        <div className="pointer-events-none absolute -right-20 -top-20 h-40 w-40 rounded-full bg-[var(--primary)]/20 blur-[50px]" />
+
+        <div className="relative z-10 text-center">
+          {mode === "forgot-sent" ? (
+            <>
+              <h2 className="mb-2 text-2xl font-bold text-white">Check your email</h2>
+              <p className="mb-8 text-sm text-[var(--muted)]">
+                If an account exists for {forgotEmail}, we've sent a password reset link to it.
+              </p>
+              <button
+                onClick={() => setMode("login")}
+                className="text-sm font-semibold text-white hover:text-[var(--primary)] transition-colors"
+              >
+                Back to Sign In
+              </button>
+            </>
+          ) : (
+            <>
+              <h2 className="mb-2 text-2xl font-bold text-white">Reset your password</h2>
+              <p className="mb-8 text-sm text-[var(--muted)]">Enter your email and we'll send you a reset link.</p>
+
+              {error && (
+                <div className="mb-4 rounded-lg bg-red-500/10 p-3 text-sm text-red-400 border border-red-500/20">
+                  {error}
+                </div>
+              )}
+
+              <form onSubmit={handleForgotPassword} className="space-y-4">
+                <div className="space-y-1">
+                  <label className="block text-left text-xs font-medium text-[var(--text-primary)]">Email</label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#64748B]" />
+                    <input
+                      type="email"
+                      required
+                      value={forgotEmail}
+                      onChange={(e) => setForgotEmail(e.target.value)}
+                      className="w-full rounded-[12px] border border-white/[0.08] bg-white/[0.035] p-3 pl-10 text-sm text-white placeholder:text-[#64748B] transition-colors focus:border-[var(--primary)] focus:bg-white/[0.05] focus:outline-none"
+                      placeholder="Enter your email"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isSendingReset}
+                  className="group relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-[14px] bg-[var(--primary)] p-3.5 text-sm font-bold text-white transition-all hover:bg-[var(--primary-hover)] active:scale-[0.98] disabled:opacity-70"
+                >
+                  {isSendingReset ? <Loader2 className="h-4 w-4 animate-spin" /> : "Send Reset Link"}
+                </button>
+              </form>
+
+              <button
+                onClick={() => setMode("login")}
+                className="mt-6 text-sm font-semibold text-white hover:text-[var(--primary)] transition-colors"
+              >
+                Back to Sign In
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="relative overflow-hidden rounded-[24px] border border-white/[0.08] bg-[var(--surface)]/90 p-8 shadow-[0_24px_48px_rgba(0,0,0,0.5)] backdrop-blur-2xl">
       <button
@@ -182,7 +281,14 @@ function LoginModal({ onClose }: { onClose: () => void }) {
           <div className="space-y-1">
             <div className="flex items-center justify-between">
               <label className="text-xs font-medium text-[var(--text-primary)]">Password</label>
-              <button type="button" className="text-xs text-[var(--primary)] hover:underline">
+              <button
+                type="button"
+                onClick={() => {
+                  setError("");
+                  setMode("forgot");
+                }}
+                className="text-xs text-[var(--primary)] hover:underline"
+              >
                 Forgot password?
               </button>
             </div>

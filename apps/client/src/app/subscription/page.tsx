@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { mockApi } from "@/services/api";
 import { SubscriptionCard } from "@/components/ui/SubscriptionCard";
 import { UpgradeCard } from "@/components/ui/UpgradeCard";
@@ -8,6 +9,7 @@ import { Card } from "@/components/ui/Card";
 import { Crown, Download, CreditCard, ShieldCheck } from "lucide-react";
 
 export default function SubscriptionPage() {
+  const router = useRouter();
   const [subscription, setSubscription] = useState<any>(null);
 
   useEffect(() => {
@@ -72,16 +74,10 @@ export default function SubscriptionPage() {
             </div>
 
             <div className="flex flex-wrap gap-3 pt-4 border-t border-white/10">
-              <button 
-                onClick={async () => {
-                  try {
-                    await mockApi.subscription.renew();
-                    alert("Renewed successfully! (Mock)");
-                  } catch (error) {
-                    console.error("Renewal failed", error);
-                  }
-                }}
-                className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-hover text-white text-sm font-medium rounded-lg transition-colors shadow-[0_0_15px_var(--primary-glow)]"
+              <button
+                onClick={() => router.push(`/checkout?package=${subscription.packageId}&repeat=true`)}
+                disabled={!subscription.packageId}
+                className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-hover text-white text-sm font-medium rounded-lg transition-colors shadow-[0_0_15px_var(--primary-glow)] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Renew Plan
               </button>
