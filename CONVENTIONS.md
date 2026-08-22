@@ -1,5 +1,5 @@
 <!-- SKILLGOD:START v1.1 -->
-# SkillGod Project Memory (auto-generated — do not edit; updated 2026-08-22 13:46)
+# SkillGod Project Memory (auto-generated — do not edit; updated 2026-08-22 16:07)
 
 # SkillGod Active
 
@@ -18,20 +18,20 @@ After completing **meaningful** work (decisions, architecture, non-obvious fixes
 ## SkillGod health
 - version: 1.0.1+794a995
 - project_id: `visha-90fc8883`
-- last inject: 2026-08-22T13:46:23 (runtime)
+- last inject: 2026-08-22T16:07:50 (runtime)
 - last capture: never (-)
 - markers: SKILLGOD:START v1.1
 
 ## Project memory
 
 ## Decisions
+- {"filePath": "c:\\Users\\visha\\simbolonew\\backend\\src\\payments\\payments.service.ts", "oldString": " // Program settings are read outside the transaction to keep it short.\n co
+- {"questions": [{"question": "Want me to fix this now by unifying the webhook and client-verify payment paths into one shared settlement method?", "header": "Fix now?", "options": [
 - {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\client\\src\\app\\documents\\page.tsx", "oldString": " onUpload={async (files) => {\n // Mock upload\n await new Promise(r =>
 - {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\landing\\src\\components\\websiteDesign\\WebsiteDesignPage.tsx", "oldString": "import { PhoneNumberFields } from \"@/components/ui
 - {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\landing\\src\\components\\websiteDesign\\WebsiteDesignPage.tsx", "oldString": " <LeadForm title=\"Request Free Consultation\" desc
 - {"mode": "content", "numFiles": 0, "filenames": [], "content": "c:\\Users\\visha\\simbolonew\\apps\\landing\\src\\components\\websiteDesign\\WebsiteDesignPage.tsx:6:import { LeadFo
 - {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\client\\src\\components\\checkout\\RazorpayCheckout.tsx", "oldString": " setIsProcessing(true);\n setError(null);\n\n const mockKe
-- {"isAsync": true, "status": "async_launched", "agentId": "acb09ade3f270930a", "description": "Audit for fake/mocked frontend flows", "resolvedModel": "claude-sonnet-5", "prompt": "
-- {"stdout": "Associate existing project with current directory, may specify projectId as an argument\n\nUsage: railway.exe link [OPTIONS]\n\nOptions:\n -e, --environment <ENVIRONMEN
 
 ## Notes
 

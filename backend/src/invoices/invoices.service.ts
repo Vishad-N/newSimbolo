@@ -265,7 +265,9 @@ export class InvoicesService extends BaseService {
       originalname: `${invoice.invoiceNumber}.pdf`,
     } as any;
 
-    const storageKey = `invoices/${invoice.financialYear || '00-00'}/${invoice.invoiceNumber}.pdf`;
+    // invoice.invoiceNumber already embeds the financial year (e.g. "SIM/26-27/000001"),
+    // so prefixing it again here would duplicate that segment in the storage path.
+    const storageKey = `invoices/${invoice.invoiceNumber}.pdf`;
     const uploadResult = await this.storageService.upload(file, storageKey);
 
     await this.prisma.invoice.update({
@@ -273,7 +275,7 @@ export class InvoicesService extends BaseService {
       data: { pdfUrl: uploadResult.url },
     });
 
-    this.logger.log(`📄 Invoice PDF uploaded to R2: ${storageKey}`);
+    this.logger.log(`📄 Invoice PDF uploaded (${uploadResult.provider}): ${storageKey}`);
 
     return pdfBuffer;
   }

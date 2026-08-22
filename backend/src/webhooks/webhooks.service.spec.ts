@@ -1,11 +1,10 @@
 import { BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { OrderStatusEnum, PaymentStatusEnum } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
-import { InvoicesService } from '../invoices/invoices.service';
 import { RazorpayGateway } from '../payments/razorpay.provider';
 import { WebhooksService } from './webhooks.service';
 import { CommissionService } from '../affiliate/services/commission.service';
+import { PaymentsService } from '../payments/payments.service';
 
 type WebhookPrismaMock = {
   auditLog: {
@@ -13,22 +12,13 @@ type WebhookPrismaMock = {
   };
   transaction: {
     findFirst: jest.Mock;
-    create: jest.Mock;
   };
-  payment: {
-    findFirst: jest.Mock;
-    update: jest.Mock;
-  };
-  order: {
-    update: jest.Mock;
-  };
-  $transaction: jest.Mock;
 };
 
 describe('WebhooksService', () => {
   let prisma: WebhookPrismaMock;
   let gateway: jest.Mocked<Pick<RazorpayGateway, 'verifyWebhookSignature'>>;
-  let invoicesService: jest.Mocked<Pick<InvoicesService, 'createFromOrder'>>;
+  let paymentsService: jest.Mocked<Pick<PaymentsService, 'loadPaymentWithOrder' | 'finalizeSuccessfulPayment'>>;
   let service: WebhooksService;
 
   beforeEach(() => {
@@ -38,22 +28,10 @@ describe('WebhooksService', () => {
       },
       transaction: {
         findFirst: jest.fn(),
-        create: jest.fn(),
       },
-      payment: {
-        findFirst: jest.fn(),
-        update: jest.fn(),
-      },
-      order: {
-        update: jest.fn(),
-      },
-      $transaction: jest.fn().mockResolvedValue([]),
     };
     gateway = {
       verifyWebhookSignature: jest.fn(),
-    };
-    invoicesService = {
-      createFromOrder: jest.fn().mockResolvedValue({}),
     };
     const configService = {
       get: jest.fn().mockReturnValue('webhook-secret'),
@@ -61,12 +39,16 @@ describe('WebhooksService', () => {
     const commissionService = {
       reverseCommission: jest.fn().mockResolvedValue({ reversed: false }),
     };
+    paymentsService = {
+      loadPaymentWithOrder: jest.fn(),
+      finalizeSuccessfulPayment: jest.fn(),
+    } as any;
     service = new WebhooksService(
       prisma as unknown as PrismaService,
       gateway as unknown as RazorpayGateway,
       configService as unknown as ConfigService,
-      invoicesService as unknown as InvoicesService,
       commissionService as unknown as CommissionService,
+      paymentsService as unknown as PaymentsService,
     );
   });
 
@@ -80,13 +62,13 @@ describe('WebhooksService', () => {
     expect(prisma.auditLog.create).not.toHaveBeenCalled();
   });
 
-  it('processes captured payments idempotently', async () => {
+  it('processes captured payments idempotently by delegating to the shared settlement path', async () => {
     gateway.verifyWebhookSignature.mockReturnValue(true);
     prisma.transaction.findFirst.mockResolvedValue(null);
-    prisma.payment.findFirst.mockResolvedValue({
-      id: 'payment-id',
-      orderId: 'order-id',
-    });
+    const payment = { id: 'payment-id', orderId: 'order-id' };
+    paymentsService.loadPaymentWithOrder.mockResolvedValue(payment as any);
+    paymentsService.finalizeSuccessfulPayment.mockResolvedValue({ ...payment, status: 'SUCCESSFUL' } as any);
+
     const payload = Buffer.from(
       JSON.stringify({
         event: 'payment.captured',
@@ -113,24 +95,18 @@ describe('WebhooksService', () => {
     expect(prisma.transaction.findFirst).toHaveBeenCalledWith({
       where: { transactionId: 'pay_123' },
     });
-    expect(prisma.payment.update).toHaveBeenCalledWith({
-      where: { id: 'payment-id' },
-      data: expect.objectContaining({
-        status: PaymentStatusEnum.SUCCESSFUL,
-        gatewayTransactionId: 'pay_123',
-      }),
-    });
-    expect(prisma.order.update).toHaveBeenCalledWith({
-      where: { id: 'order-id' },
-      data: { status: OrderStatusEnum.CONFIRMED },
-    });
-    expect(prisma.$transaction).toHaveBeenCalledTimes(1);
+    expect(paymentsService.loadPaymentWithOrder).toHaveBeenCalledWith('order_123');
+    // finalizeSuccessfulPayment is the SAME method the client's own
+    // POST /payments/verify calls — this is what guarantees subscription
+    // creation and commission settlement run exactly once, no matter which of
+    // the two paths (webhook or client verify) wins the race to get there first.
+    expect(paymentsService.finalizeSuccessfulPayment).toHaveBeenCalledWith(payment, 'pay_123');
 
-    prisma.$transaction.mockClear();
+    paymentsService.finalizeSuccessfulPayment.mockClear();
     prisma.transaction.findFirst.mockResolvedValue({ id: 'existing-transaction' });
 
     await service.handleRazorpayWebhook(payload, 'valid-signature');
 
-    expect(prisma.$transaction).not.toHaveBeenCalled();
+    expect(paymentsService.finalizeSuccessfulPayment).not.toHaveBeenCalled();
   });
 });

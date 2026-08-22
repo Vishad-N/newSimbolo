@@ -27,6 +27,7 @@ export class LocalStorageProvider implements StorageProvider {
 
   async upload(buffer: Buffer, key: string, mimeType: string): Promise<StoredObject> {
     const filePath = path.join(this.uploadDir, key);
+    fs.mkdirSync(path.dirname(filePath), { recursive: true });
     fs.writeFileSync(filePath, buffer);
     return { storageKey: key, url: `/uploads/${key}`, provider: `local:${mimeType}` };
   }

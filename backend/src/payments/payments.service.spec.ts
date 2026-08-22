@@ -7,11 +7,14 @@ import { AffiliateService } from '../affiliate/services/affiliate.service';
 import { AffiliateSettingsService } from '../affiliate/services/affiliate-settings.service';
 import { CommissionService } from '../affiliate/services/commission.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { InvoicesService } from '../invoices/invoices.service';
 
 type PaymentsPrismaMock = {
   payment: {
     findFirst: jest.Mock;
     update: jest.Mock;
+    updateMany: jest.Mock;
+    findUniqueOrThrow: jest.Mock;
   };
   transaction: {
     create: jest.Mock;
@@ -37,12 +40,15 @@ describe('PaymentsService', () => {
     settleCommissionOnPaymentSuccess: jest.Mock;
   };
   let notificationsService: { notifyCommissionEarned: jest.Mock; notifyCommissionCredited: jest.Mock };
+  let invoicesService: { createFromOrder: jest.Mock };
 
   beforeEach(() => {
     prisma = {
       payment: {
         findFirst: jest.fn(),
         update: jest.fn(),
+        updateMany: jest.fn(),
+        findUniqueOrThrow: jest.fn(),
       },
       transaction: {
         create: jest.fn(),
@@ -69,6 +75,7 @@ describe('PaymentsService', () => {
       notifyCommissionEarned: jest.fn(),
       notifyCommissionCredited: jest.fn(),
     };
+    invoicesService = { createFromOrder: jest.fn().mockResolvedValue(undefined) };
     service = new PaymentsService(
       prisma as unknown as PrismaService,
       gateway as unknown as RazorpayGateway,
@@ -76,6 +83,7 @@ describe('PaymentsService', () => {
       affiliateSettingsService as unknown as AffiliateSettingsService,
       commissionService as unknown as CommissionService,
       notificationsService as unknown as NotificationsService,
+      invoicesService as unknown as InvoicesService,
     );
   });
 
@@ -91,7 +99,10 @@ describe('PaymentsService', () => {
     };
     const updatedPayment = { ...payment, status: PaymentStatusEnum.SUCCESSFUL };
     prisma.payment.findFirst.mockResolvedValue(payment);
-    prisma.payment.update.mockResolvedValue(updatedPayment);
+    // finalizeSuccessfulPayment uses a conditional updateMany (the idempotency
+    // guard) followed by a re-fetch, rather than a plain update.
+    prisma.payment.updateMany.mockResolvedValue({ count: 1 });
+    prisma.payment.findUniqueOrThrow.mockResolvedValue(updatedPayment);
     // verifyPayment now uses an interactive transaction so the affiliate commission
     // can settle atomically alongside the payment/order writes.
     prisma.$transaction.mockImplementation(async (fn: any) => fn(prisma));

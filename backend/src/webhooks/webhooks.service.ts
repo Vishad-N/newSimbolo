@@ -2,9 +2,9 @@ import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 import { RazorpayGateway } from '../payments/razorpay.provider';
-import { InvoicesService } from '../invoices/invoices.service';
 import { CommissionService } from '../affiliate/services/commission.service';
-import { OrderStatusEnum, PaymentStatusEnum } from '@prisma/client';
+import { PaymentsService } from '../payments/payments.service';
+import { PaymentStatusEnum } from '@prisma/client';
 
 @Injectable()
 export class WebhooksService {
@@ -15,8 +15,8 @@ export class WebhooksService {
     private readonly prisma: PrismaService,
     private readonly razorpayGateway: RazorpayGateway,
     private readonly configService: ConfigService,
-    private readonly invoicesService: InvoicesService,
     private readonly commissionService: CommissionService,
+    private readonly paymentsService: PaymentsService,
   ) {
     this.webhookSecret = this.configService.get<string>('razorpay.webhookSecret', 'mock-razorpay-webhook-secret');
   }
@@ -78,7 +78,7 @@ export class WebhooksService {
     const razorpayPaymentId = entity.id;
     const razorpayOrderId = entity.order_id;
 
-    // Idempotency: check if already processed
+    // Idempotency: has this exact webhook event already been recorded?
     const existing = await this.prisma.transaction.findFirst({
       where: { transactionId: razorpayPaymentId },
     });
@@ -87,52 +87,19 @@ export class WebhooksService {
       return;
     }
 
-    const payment = await this.prisma.payment.findFirst({
-      where: { gatewayOrderId: razorpayOrderId },
-    });
+    const payment = await this.paymentsService.loadPaymentWithOrder(razorpayOrderId);
+    if (!payment) return;
 
-    if (payment) {
-      await this.prisma.$transaction([
-        this.prisma.payment.update({
-          where: { id: payment.id },
-          data: {
-            status: PaymentStatusEnum.SUCCESSFUL,
-            gatewayTransactionId: razorpayPaymentId,
-            paidAt: new Date(),
-          },
-        }),
-        this.prisma.transaction.create({
-          data: {
-            transactionId: razorpayPaymentId,
-            type: 'PAYMENT_CAPTURED',
-            amount: (entity.amount ?? 0) / 100,
-            currency: entity.currency ?? 'INR',
-            status: 'SUCCESS',
-            paymentId: payment.id,
-            metadata: JSON.stringify({ method: entity.method, email: entity.email }),
-          },
-        }),
-        ...(payment.orderId
-          ? [
-              this.prisma.order.update({
-                where: { id: payment.orderId },
-                data: { status: OrderStatusEnum.CONFIRMED },
-              }),
-            ]
-          : []),
-      ]);
-      this.logger.log(`✅ Webhook: Payment ${razorpayPaymentId} captured and recorded`);
-
-      // Automatically generate invoice if attached to an order
-      if (payment.orderId) {
-        try {
-          await this.invoicesService.createFromOrder(payment.orderId);
-          this.logger.log(`✅ Webhook: Invoice generated for Order ${payment.orderId}`);
-        } catch (error) {
-          this.logger.error(`❌ Webhook: Failed to generate invoice for Order ${payment.orderId}: ${error.message}`);
-        }
-      }
-    }
+    // Delegates to the same settlement path used by the client's own
+    // POST /payments/verify — whichever of the two reaches it first "wins" its
+    // atomic idempotency guard and runs subscription creation, commission
+    // settlement, notifications, and invoicing exactly once. Previously this
+    // webhook only recorded the payment/order and generated an invoice, so
+    // whenever it won that race (which it usually does — webhooks are faster
+    // than the browser round-trip), the client never got their subscription
+    // and the affiliate's commission was silently never settled.
+    await this.paymentsService.finalizeSuccessfulPayment(payment, razorpayPaymentId);
+    this.logger.log(`✅ Webhook: Payment ${razorpayPaymentId} captured and recorded`);
   }
 
   private async handlePaymentFailed(entity: any) {

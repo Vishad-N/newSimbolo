@@ -8,6 +8,7 @@ import { AffiliateService } from '../affiliate/services/affiliate.service';
 import { AffiliateSettingsService } from '../affiliate/services/affiliate-settings.service';
 import { CommissionService } from '../affiliate/services/commission.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { InvoicesService } from '../invoices/invoices.service';
 
 @Injectable()
 export class PaymentsService extends BaseService {
@@ -18,6 +19,7 @@ export class PaymentsService extends BaseService {
     private readonly affiliateSettingsService: AffiliateSettingsService,
     private readonly commissionService: CommissionService,
     private readonly notificationsService: NotificationsService,
+    private readonly invoicesService: InvoicesService,
   ) {
     super('PaymentsService');
   }
@@ -118,17 +120,18 @@ export class PaymentsService extends BaseService {
    * NEVER trusts client-side payment status.
    */
   async verifyPayment(dto: VerifyPaymentDto, verifiedBy?: string) {
-    const payment = await this.prisma.payment.findFirst({
-      where: { gatewayOrderId: dto.razorpayOrderId },
-      include: { order: { include: { client: true } } },
-    });
+    const payment = await this.loadPaymentWithOrder(dto.razorpayOrderId);
 
     if (!payment) {
       throw new NotFoundException(`No payment found for Razorpay order: ${dto.razorpayOrderId}`);
     }
 
     if (payment.status === PaymentStatusEnum.SUCCESSFUL) {
-      throw new BadRequestException('Payment already verified and recorded');
+      // Idempotent: the webhook may have already recorded this payment before the
+      // client's own verify call arrives. From the payer's perspective this IS a
+      // success, so return the payment rather than a 400 — an error here would
+      // make a successful payment look like a failure to the customer.
+      return payment;
     }
 
     const { isValid, transactionId } = this.razorpayGateway.verifyPaymentSignature(
@@ -157,35 +160,58 @@ export class PaymentsService extends BaseService {
       throw new ForbiddenException('Payment signature verification failed');
     }
 
-    // Program settings are read outside the transaction to keep it short.
+    return this.finalizeSuccessfulPayment(payment, transactionId, verifiedBy);
+  }
+
+  /**
+   * Records a captured payment exactly once, no matter which of the two
+   * independent paths gets there first: the client's own POST /payments/verify,
+   * or Razorpay's payment.captured webhook. Both call this same method instead
+   * of each running their own partial version, so subscription creation,
+   * commission settlement, notifications, and invoicing can never be skipped
+   * (if one path wins the race) or run twice (if both fire).
+   *
+   * Idempotency is enforced by the conditional update below — `updateMany` with
+   * `status: { not: SUCCESSFUL }` only affects a row for whichever caller gets
+   * there first, even under a genuine concurrent race, since Postgres resolves
+   * the two UPDATEs serially. The loser sees `count === 0` and just returns the
+   * already-settled payment instead of re-running any side effects.
+   */
+  async finalizeSuccessfulPayment(
+    payment: NonNullable<Awaited<ReturnType<PaymentsService['loadPaymentWithOrder']>>>,
+    gatewayTransactionId: string,
+    verifiedBy?: string,
+  ) {
     const affiliateSettings = await this.affiliateSettingsService.get();
 
-    // Successful payment — update records.
-    // Converted from a batched array transaction to an interactive one so the
-    // affiliate commission can settle inside the SAME transaction as the payment
-    // and order state changes. The set of writes below is otherwise unchanged.
-    const { updatedPayment, settledCommission } = await this.prisma.$transaction(async (tx) => {
-      const updated = await tx.payment.update({
-        where: { id: payment.id },
+    const result = await this.prisma.$transaction(async (tx) => {
+      const { count } = await tx.payment.updateMany({
+        where: { id: payment.id, status: { not: PaymentStatusEnum.SUCCESSFUL } },
         data: {
           status: PaymentStatusEnum.SUCCESSFUL,
-          gatewayTransactionId: transactionId,
+          gatewayTransactionId,
           paidAt: new Date(),
           updatedBy: verifiedBy ?? null,
         },
       });
 
+      if (count === 0) {
+        // Another caller (webhook or client verify) already finalized this
+        // payment concurrently — nothing left to do here.
+        return { alreadyFinalized: true as const };
+      }
+
       await tx.transaction.create({
         data: {
-          transactionId: this.generateTransactionId(),
+          transactionId: gatewayTransactionId,
           type: 'PAYMENT_CAPTURED',
           amount: payment.amount,
           currency: payment.currency,
           status: 'SUCCESS',
           paymentId: payment.id,
           metadata: JSON.stringify({
-            razorpayPaymentId: dto.razorpayPaymentId,
-            razorpayOrderId: dto.razorpayOrderId,
+            gatewayTransactionId,
+            gatewayOrderId: payment.gatewayOrderId,
           }),
         },
       });
@@ -226,11 +252,6 @@ export class PaymentsService extends BaseService {
         });
       }
 
-      // Affiliate commission settlement.
-      // Idempotency note: re-verifying an already-SUCCESSFUL payment is rejected by
-      // the early-exit check above ("Payment already verified and recorded"), so this
-      // block cannot run twice for the same payment. settleCommissionOnPaymentSuccess
-      // only matches PENDING commissions, giving a second layer of protection.
       let settled: Awaited<ReturnType<CommissionService['settleCommissionOnPaymentSuccess']>> = null;
       if (payment.orderId) {
         settled = await this.commissionService.settleCommissionOnPaymentSuccess(
@@ -240,8 +261,15 @@ export class PaymentsService extends BaseService {
         );
       }
 
-      return { updatedPayment: updated, settledCommission: settled };
+      const updated = await tx.payment.findUniqueOrThrow({ where: { id: payment.id } });
+      return { alreadyFinalized: false as const, updatedPayment: updated, settledCommission: settled };
     });
+
+    if (result.alreadyFinalized) {
+      return this.prisma.payment.findUniqueOrThrow({ where: { id: payment.id } });
+    }
+
+    const { updatedPayment, settledCommission } = result;
 
     // Notifications are fired after commit — never inside the transaction.
     if (settledCommission?.commission) {
@@ -271,8 +299,26 @@ export class PaymentsService extends BaseService {
       }
     }
 
+    // Invoice generation — after commit, best-effort, never fails the payment.
+    if (payment.orderId) {
+      try {
+        await this.invoicesService.createFromOrder(payment.orderId);
+        this.logger.log(`✅ Invoice generated for Order ${payment.orderId}`);
+      } catch (error) {
+        this.logger.error(`❌ Failed to generate invoice for Order ${payment.orderId}: ${(error as Error).message}`);
+      }
+    }
+
     this.logger.log(`✅ Payment verified: ${payment.paymentNumber} (₹${payment.amount})`);
     return updatedPayment;
+  }
+
+  /** Shared payment-with-relations loader so the webhook and verifyPayment fetch identically shaped records. */
+  async loadPaymentWithOrder(gatewayOrderId: string) {
+    return this.prisma.payment.findFirst({
+      where: { gatewayOrderId },
+      include: { order: { include: { client: true } } },
+    });
   }
 
   async findAll(clientId?: string, status?: PaymentStatusEnum, page = 1, limit = 20) {
