@@ -7,6 +7,17 @@ import { TaxService } from './tax.service';
 import { CreateInvoiceDto, UpdateInvoiceStatusDto } from './dto/invoice.dto';
 import { buildInvoicePdf } from './templates/invoice.pdf.builder';
 import { InvoiceStatusEnum } from '@prisma/client';
+import { UserRole } from '../common/constants/role.constant';
+
+const STAFF_ROLES: string[] = [
+  UserRole.ADMIN,
+  UserRole.SUPER_ADMIN,
+  UserRole.PROJECT_MANAGER,
+  UserRole.SUPPORT,
+  UserRole.CONTENT_MANAGER,
+  UserRole.MARKETING_MANAGER,
+  UserRole.EDITOR,
+];
 
 @Injectable()
 export class InvoicesService extends BaseService {
@@ -160,9 +171,10 @@ export class InvoicesService extends BaseService {
 
     const invoice = await this.create(dto, createdBy);
 
-    // Automatically generate PDF
-    await this.generatePdf(invoice.id);
-
+    // PDF generation (build + upload) is deliberately NOT done here — this method
+    // runs inline in the payment webhook/verify path, and generating the PDF is slow
+    // enough to risk that request timing out. The client requests the PDF on demand
+    // via GET /invoices/:id/pdf, which calls generatePdf() itself.
     return invoice;
   }
 
@@ -201,6 +213,21 @@ export class InvoicesService extends BaseService {
       },
     });
     if (!invoice) throw new NotFoundException(`Invoice ${id} not found`);
+    return invoice;
+  }
+
+  /**
+   * Same as findOne, but scoped to the requester: a client can only fetch their
+   * own invoices. Staff roles can fetch any invoice. Returns 404 (not 403) for a
+   * non-owned invoice so a client can't use this to confirm another client's
+   * invoice ID exists.
+   */
+  async findOneForRequester(id: string, requester: { sub?: string; role?: string }) {
+    const invoice = await this.findOne(id);
+    const isStaff = requester.role ? STAFF_ROLES.includes(requester.role) : false;
+    if (!isStaff && invoice.client.userId !== requester.sub) {
+      throw new NotFoundException(`Invoice ${id} not found`);
+    }
     return invoice;
   }
 

@@ -99,9 +99,47 @@ jobs:
       - name: Build backend Docker image
         run: docker build -f backend/Dockerfile -t simbolo-backend:ci .
 
-  deploy-placeholder:
+  # NOTE: Railway and Vercel currently also auto-deploy directly on push via their
+  # own GitHub integrations, independent of this workflow. These jobs are an
+  # ADDITIONAL, CI-gated deploy path (they only run after `verify` passes) — they
+  # do not replace or block the platforms' own auto-deploy. Until that auto-deploy
+  # is disabled on each platform, a failing test here does not prevent a bad
+  # deploy from going out via the platform's own git integration.
+  deploy-backend-railway:
     needs: verify
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
-      - run: echo "Deploy using the environment-specific runbook in docs/deployment/production-deployment.md"
+      - uses: actions/checkout@v4
+      - name: Deploy backend to Railway
+        if: ${{ secrets.RAILWAY_TOKEN != '' }}
+        # RAILWAY_TOKEN must be a PROJECT token (Railway dashboard → this project →
+        # Settings → Tokens), not a personal account token — a project token lets
+        # the CLI resolve the project/environment non-interactively in CI.
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          npm i -g @railway/cli
+          railway up --service "${{ vars.RAILWAY_BACKEND_SERVICE || '@simbolo/backend' }}" --detach --yes
+        working-directory: backend
+
+  deploy-frontend-vercel:
+    needs: verify
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        app: [admin, client, landing]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy ${{ matrix.app }} to Vercel
+        if: ${{ secrets.VERCEL_TOKEN != '' }}
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets[format('VERCEL_ORG_ID_{0}', matrix.app)] }}
+          VERCEL_PROJECT_ID: ${{ secrets[format('VERCEL_PROJECT_ID_{0}', matrix.app)] }}
+        run: |
+          npx vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+          npx vercel build --prod --token="$VERCEL_TOKEN"
+          npx vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"
+        working-directory: apps/${{ matrix.app }}

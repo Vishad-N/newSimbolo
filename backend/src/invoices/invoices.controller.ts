@@ -68,17 +68,17 @@ export class InvoicesController {
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Get invoice detail by ID' })
+  @ApiOperation({ summary: 'Get invoice detail by ID (own invoice for clients, any for staff)' })
   @ApiResponse({ status: 404, description: 'Invoice not found' })
-  findOne(@Param('id', ParseUUIDPipe) id: string) {
-    return this.invoicesService.findOne(id);
+  findOne(@Param('id', ParseUUIDPipe) id: string, @Request() req: any) {
+    return this.invoicesService.findOneForRequester(id, req.user ?? {});
   }
 
   @Get(':id/pdf')
-  @ApiOperation({ summary: 'Download invoice as PDF' })
+  @ApiOperation({ summary: 'Download invoice as PDF (own invoice for clients, any for staff)' })
   @ApiResponse({ status: 200, description: 'Invoice PDF binary', content: { 'application/pdf': {} } })
-  async downloadPdf(@Param('id', ParseUUIDPipe) id: string, @Res() res: Response) {
-    const invoice = await this.invoicesService.findOne(id);
+  async downloadPdf(@Param('id', ParseUUIDPipe) id: string, @Request() req: any, @Res() res: Response) {
+    const invoice = await this.invoicesService.findOneForRequester(id, req.user ?? {});
     const pdfBuffer = await this.invoicesService.generatePdf(id);
 
     res.set({

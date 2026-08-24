@@ -3,7 +3,7 @@
 > Auto-managed digest for Aider and other CLIs that `read:` this file. Your notes above the markers are safe.
 
 <!-- SKILLGOD:START v1.1 -->
-# SkillGod Project Memory (auto-generated — do not edit; updated 2026-08-22 16:07)
+# SkillGod Project Memory (auto-generated — do not edit; updated 2026-08-24 17:57)
 
 # SkillGod Active
 
@@ -22,20 +22,20 @@ After completing **meaningful** work (decisions, architecture, non-obvious fixes
 ## SkillGod health
 - version: 1.0.1+794a995
 - project_id: `visha-90fc8883`
-- last inject: 2026-08-22T16:07:50 (runtime)
+- last inject: 2026-08-24T17:57:40 (runtime)
 - last capture: never (-)
 - markers: SKILLGOD:START v1.1
 
 ## Project memory
 
 ## Decisions
-- {"filePath": "c:\\Users\\visha\\simbolonew\\backend\\src\\payments\\payments.service.ts", "oldString": " // Program settings are read outside the transaction to keep it short.\n co
-- {"questions": [{"question": "Want me to fix this now by unifying the webhook and client-verify payment paths into one shared settlement method?", "header": "Fix now?", "options": [
-- {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\client\\src\\app\\documents\\page.tsx", "oldString": " onUpload={async (files) => {\n // Mock upload\n await new Promise(r =>
-- {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\landing\\src\\components\\websiteDesign\\WebsiteDesignPage.tsx", "oldString": "import { PhoneNumberFields } from \"@/components/ui
-- {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\landing\\src\\components\\websiteDesign\\WebsiteDesignPage.tsx", "oldString": " <LeadForm title=\"Request Free Consultation\" desc
-- {"mode": "content", "numFiles": 0, "filenames": [], "content": "c:\\Users\\visha\\simbolonew\\apps\\landing\\src\\components\\websiteDesign\\WebsiteDesignPage.tsx:6:import { LeadFo
-- {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\client\\src\\components\\checkout\\RazorpayCheckout.tsx", "oldString": " setIsProcessing(true);\n setError(null);\n\n const mockKe
+- {"stdout": "Upload and deploy project from the current directory.\n\nIf you're not signed in, signs you in or creates a Railway account (single unified OAuth flow â€” new accounts 
+- {"questions": [{"question": "How do you want deploys to work going forward?", "header": "Deploy gating", "options": [{"label": "Add CI deploy step, keep auto-deploy too", "descript
+- {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\client\\src\\services\\api.ts", "oldString": " if (!res.ok) {\n throw new Error(`API error: ${res.status}`);\n }\n return res.json
+- {"filePath": "c:\\Users\\visha\\simbolonew\\backend\\src\\main.ts", "oldString": " const app = await NestFactory.create(AppModule, {\n bufferLogs: true,\n rawBody: true,\n });\n\n 
+- {"filePath": "c:\\Users\\visha\\simbolonew\\backend\\src\\config\\auth.config.ts", "oldString": "import { registerAs } from '@nestjs/config';\nimport { AuthConfig } from './configu
+- {"stdout": "Severity: high\nbrace-expansion: DoS via unbounded intermediate arrays, bypassing the CVE-2026-14257 mitigation - https://github.com/advisories/GHSA-rgw5-rvv9-x895\nfix
+- {"isAsync": true, "status": "async_launched", "agentId": "aa04c52963ba341dc", "description": "Production-readiness audit of backend", "resolvedModel": "claude-sonnet-5", "prompt": 
 
 ## Notes
 

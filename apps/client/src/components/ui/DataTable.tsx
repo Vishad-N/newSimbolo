@@ -9,13 +9,17 @@ interface DataTableProps<T> {
 }
 
 export function DataTable<T>({ columns, data, onRowClick }: DataTableProps<T>) {
+  // Backstop: a caller passing a non-array (e.g. an un-normalized API response)
+  // must render an empty table, never crash the whole page with "data.map is not
+  // a function".
+  const rows = Array.isArray(data) ? data : [];
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-left border-collapse">
         <thead>
           <tr className="border-b border-white/10">
             {columns.map((col, i) => (
-              <th 
+              <th
                 key={i}
                 className="py-4 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap"
               >
@@ -25,7 +29,7 @@ export function DataTable<T>({ columns, data, onRowClick }: DataTableProps<T>) {
           </tr>
         </thead>
         <tbody className="divide-y divide-white/5">
-          {data.map((item, rowIndex) => (
+          {rows.map((item, rowIndex) => (
             <tr 
               key={rowIndex}
               onClick={() => onRowClick?.(item)}
@@ -41,7 +45,7 @@ export function DataTable<T>({ columns, data, onRowClick }: DataTableProps<T>) {
               ))}
             </tr>
           ))}
-          {data.length === 0 && (
+          {rows.length === 0 && (
             <tr>
               <td colSpan={columns.length} className="py-8 text-center text-sm text-gray-500">
                 No records found.

@@ -89,7 +89,16 @@ const fetchProxy = async (path: string, options: RequestInit = {}) => {
   if (!res.ok) {
     throw new Error(`API error: ${res.status}`);
   }
-  return res.json();
+  const json = await res.json();
+  // The backend's global TransformInterceptor wraps every response in
+  // { success, message, data }. Unwrap it here, once, so every caller gets the
+  // real payload directly — otherwise a paginated endpoint's own { data, meta }
+  // shape ends up double-nested and callers' `res.data || res` unwrap a page
+  // object instead of the actual array.
+  if (json && typeof json === 'object' && 'success' in json && 'data' in json) {
+    return json.data;
+  }
+  return json;
 };
 
 /**

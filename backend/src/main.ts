@@ -17,6 +17,11 @@ async function bootstrap() {
     rawBody: true,
   });
 
+  // Without this, SIGTERM (sent by Railway on every redeploy/restart) kills the
+  // process immediately instead of draining in-flight requests and running
+  // lifecycle hooks like PrismaService.onModuleDestroy.
+  app.enableShutdownHooks();
+
   const logger = app.get(CustomLoggerService);
   app.useLogger(logger);
 

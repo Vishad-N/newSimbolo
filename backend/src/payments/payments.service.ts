@@ -299,13 +299,14 @@ export class PaymentsService extends BaseService {
       }
     }
 
-    // Invoice generation — after commit, best-effort, never fails the payment.
+    // Invoice record creation — after commit, best-effort, never fails the payment.
+    // The PDF itself is generated on demand (GET /invoices/:id/pdf), not here.
     if (payment.orderId) {
       try {
         await this.invoicesService.createFromOrder(payment.orderId);
-        this.logger.log(`✅ Invoice generated for Order ${payment.orderId}`);
+        this.logger.log(`✅ Invoice record created for Order ${payment.orderId}`);
       } catch (error) {
-        this.logger.error(`❌ Failed to generate invoice for Order ${payment.orderId}: ${(error as Error).message}`);
+        this.logger.error(`❌ Failed to create invoice for Order ${payment.orderId}: ${(error as Error).message}`);
       }
     }
 
