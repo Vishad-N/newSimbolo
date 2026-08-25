@@ -30,6 +30,15 @@ jobs:
           sudo apt-get install -y postgresql-common
           sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
           sudo apt-get install -y postgresql-client-17
+          # The runner image ships postgresql-client-16 pre-installed at
+          # /usr/bin/pg_dump, which takes priority over the new v17 install
+          # (update-alternatives only re-points psql, not pg_dump). Put v17's
+          # bin directory first on PATH for every later step in this job so the
+          # correct version actually gets invoked.
+          echo "/usr/lib/postgresql/17/bin" >> "$GITHUB_PATH"
+
+      - name: Verify pg_dump resolves to version 17
+        run: pg_dump --version
 
       - run: npm ci
 
