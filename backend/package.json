@@ -30,7 +30,8 @@
     "prisma:migrate": "node ./scripts/with-direct-url.js prisma migrate dev --schema ./prisma/schema.prisma",
     "prisma:deploy": "prisma migrate deploy --schema ./prisma/schema.prisma",
     "prisma:studio": "prisma studio",
-    "prisma:seed": "ts-node prisma/seed.ts"
+    "prisma:seed": "ts-node prisma/seed.ts",
+    "backup:database": "ts-node -r tsconfig-paths/register scripts/backup-database.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1098.0",
