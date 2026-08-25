@@ -1,17 +1,21 @@
 import { NotFoundException } from '@nestjs/common';
 import { DocumentsService } from './documents.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { StorageService } from '../storage/storage.service';
+import { BusinessException } from '../common/exceptions/custom.exceptions';
 
 describe('DocumentsService', () => {
   let service: DocumentsService;
   let prisma: any;
+  let storageService: { upload: jest.Mock };
 
   beforeEach(() => {
     prisma = {
-      document: { findMany: jest.fn(), count: jest.fn(), findFirst: jest.fn(), update: jest.fn() },
+      document: { findMany: jest.fn(), count: jest.fn(), findFirst: jest.fn(), update: jest.fn(), create: jest.fn() },
       clientProfile: { findFirst: jest.fn() },
     };
-    service = new DocumentsService(prisma as unknown as PrismaService);
+    storageService = { upload: jest.fn() };
+    service = new DocumentsService(prisma as unknown as PrismaService, storageService as unknown as StorageService);
   });
 
   describe('findMyDocuments', () => {
@@ -60,6 +64,75 @@ describe('DocumentsService', () => {
       await expect(
         service.findOneForRequester('doc-2', { sub: 'user-1', role: 'CLIENT' }),
       ).rejects.toBeInstanceOf(NotFoundException);
+    });
+  });
+
+  describe('uploadDocument', () => {
+    const file = { originalname: 'contract.pdf', mimetype: 'application/pdf', size: 1024 } as any;
+
+    it('rejects when no file is provided', async () => {
+      await expect(
+        service.uploadDocument(undefined, { title: 'X' } as any, { sub: 'user-1', role: 'CLIENT' }),
+      ).rejects.toBeInstanceOf(BusinessException);
+    });
+
+    it('forces a client caller onto their own ClientProfile, ignoring any clientId they pass', async () => {
+      prisma.clientProfile.findFirst.mockResolvedValue({ id: 'own-client-1' });
+      storageService.upload.mockResolvedValue({ url: 'https://cdn/x.pdf', storageKey: 'documents/x.pdf', provider: 'r2' });
+      prisma.document.create.mockResolvedValue({ id: 'doc-1' });
+
+      await service.uploadDocument(
+        file,
+        { title: 'Contract', clientId: 'someone-elses-client' } as any,
+        { sub: 'user-1', role: 'CLIENT' },
+      );
+
+      expect(prisma.document.create).toHaveBeenCalledWith(
+        expect.objectContaining({ data: expect.objectContaining({ clientId: 'own-client-1' }) }),
+      );
+    });
+
+    it('throws if a client caller has no ClientProfile yet', async () => {
+      prisma.clientProfile.findFirst.mockResolvedValue(null);
+      await expect(
+        service.uploadDocument(file, { title: 'X' } as any, { sub: 'user-1', role: 'CLIENT' }),
+      ).rejects.toBeInstanceOf(NotFoundException);
+    });
+
+    it('lets a staff caller upload to an arbitrary clientId', async () => {
+      storageService.upload.mockResolvedValue({ url: 'https://cdn/x.pdf', storageKey: 'documents/x.pdf', provider: 'r2' });
+      prisma.document.create.mockResolvedValue({ id: 'doc-1' });
+
+      await service.uploadDocument(
+        file,
+        { title: 'Contract', clientId: 'chosen-client' } as any,
+        { sub: 'admin-1', role: 'ADMIN' },
+      );
+
+      expect(prisma.clientProfile.findFirst).not.toHaveBeenCalled();
+      expect(prisma.document.create).toHaveBeenCalledWith(
+        expect.objectContaining({ data: expect.objectContaining({ clientId: 'chosen-client' }) }),
+      );
+    });
+
+    it('uploads the file to storage and stores the returned URL/size/mimeType', async () => {
+      prisma.clientProfile.findFirst.mockResolvedValue({ id: 'own-client-1' });
+      storageService.upload.mockResolvedValue({ url: 'https://cdn/contract.pdf', storageKey: 'documents/x.pdf', provider: 'r2' });
+      prisma.document.create.mockResolvedValue({ id: 'doc-1' });
+
+      await service.uploadDocument(file, { title: 'Contract' } as any, { sub: 'user-1', role: 'CLIENT' });
+
+      expect(storageService.upload).toHaveBeenCalledWith(file, expect.stringMatching(/^documents\/.+\.pdf$/));
+      expect(prisma.document.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            fileUrl: 'https://cdn/contract.pdf',
+            fileSize: 1024,
+            mimeType: 'application/pdf',
+            uploadedById: 'user-1',
+          }),
+        }),
+      );
     });
   });
 });

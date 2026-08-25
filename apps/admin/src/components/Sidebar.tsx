@@ -28,7 +28,8 @@ import {
   ChevronDown,
   Building2,
   BadgeIndianRupee,
-  Wallet
+  Wallet,
+  FileText
 } from "lucide-react";
 import { useState } from "react";
 
@@ -91,6 +92,7 @@ const navigation: NavItem[] = [
       { name: "Affiliate Settings", href: "/affiliate/settings", icon: Settings },
     ]
   },
+  { name: "Documents", href: "/documents", icon: FileText },
   { name: "Media Library", href: "/media", icon: ImageIcon },
   { name: "SEO Settings", href: "/seo", icon: Search },
   { name: "Users", href: "/users", icon: Users },

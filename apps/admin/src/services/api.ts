@@ -215,6 +215,41 @@ export interface AffiliateCommissionFilters {
   pageSize?: number;
 }
 
+export type DocumentCategory = 'CONTRACT' | 'NDA' | 'PROPOSAL' | 'REPORT' | 'BRIEF' | 'PROJECT_FILE' | 'OTHER';
+
+export interface AdminDocument {
+  id: string;
+  title: string;
+  description?: string | null;
+  category: DocumentCategory;
+  fileUrl: string;
+  fileSize?: number | null;
+  mimeType?: string | null;
+  downloadCount: number;
+  createdAt: string;
+  clientId?: string | null;
+  projectId?: string | null;
+  uploadedBy?: { id: string; firstName?: string; lastName?: string } | null;
+  client?: { id: string; user?: { id: string; firstName?: string; lastName?: string } } | null;
+  project?: { id: string; name: string } | null;
+}
+
+export interface DocumentFilters {
+  clientId?: string;
+  projectId?: string;
+  category?: DocumentCategory;
+  page?: number;
+  pageSize?: number;
+}
+
+export interface UploadDocumentPayload {
+  title: string;
+  description?: string;
+  category?: DocumentCategory;
+  clientId?: string;
+  projectId?: string;
+}
+
 export interface AffiliateSettings {
   defaultCommissionRate: number;
   commissionCalculationBasis: string;
@@ -447,6 +482,50 @@ export const api = {
     getAll: async () => fetchFromApi('/leads', { method: 'GET' }),
     update: async (id: string, data: any) => fetchFromApi(`/leads/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
     delete: async (id: string) => fetchFromApi(`/leads/${id}`, { method: 'DELETE' }),
+  },
+  documents: {
+    getAll: async (filters: DocumentFilters = {}) => {
+      const page = filters.page ?? 1;
+      const pageSize = filters.pageSize ?? 50;
+      const query = new URLSearchParams();
+      if (filters.clientId) query.set('clientId', filters.clientId);
+      if (filters.projectId) query.set('projectId', filters.projectId);
+      if (filters.category) query.set('category', filters.category);
+      query.set('page', String(page));
+      query.set('limit', String(pageSize));
+      return toPaginated<AdminDocument>(
+        await fetchFromApi(`/documents?${query.toString()}`, { method: 'GET' }, emptyPage<AdminDocument>(pageSize)),
+        page,
+        pageSize,
+      );
+    },
+    // Bypasses fetchFromApi: it always sets Content-Type: application/json, which
+    // would break the multipart boundary FormData needs — the browser sets the
+    // correct multipart Content-Type itself as long as we don't set one manually.
+    upload: async (file: File, payload: UploadDocumentPayload): Promise<AdminDocument> => {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('title', payload.title);
+      if (payload.description) formData.append('description', payload.description);
+      if (payload.category) formData.append('category', payload.category);
+      if (payload.clientId) formData.append('clientId', payload.clientId);
+      if (payload.projectId) formData.append('projectId', payload.projectId);
+
+      const res = await fetch(`${API_BASE_URL}/documents/upload`, {
+        method: 'POST',
+        body: formData,
+        headers: getAuthHeaders(),
+      });
+      if (!res.ok) {
+        const payloadJson = await res.json().catch(() => null);
+        throw new Error(payloadJson?.message || `Upload failed (${res.status})`);
+      }
+      const json = await res.json();
+      return json?.data ?? json;
+    },
+    update: async (id: string, data: Partial<UploadDocumentPayload> & { isPublic?: boolean }) =>
+      fetchFromApi<AdminDocument>(`/documents/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+    delete: async (id: string) => fetchFromApi(`/documents/${id}`, { method: 'DELETE' }),
   },
   affiliate: {
     getOverview: async () =>

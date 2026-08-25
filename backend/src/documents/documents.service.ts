@@ -1,9 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import * as path from 'path';
 import { PrismaService } from '../prisma/prisma.service';
 import { BaseService } from '../shared/abstractions/base.service';
-import { CreateDocumentDto, UpdateDocumentDto } from './dto/document.dto';
+import { StorageService } from '../storage/storage.service';
+import { CreateDocumentDto, UpdateDocumentDto, UploadDocumentDto } from './dto/document.dto';
 import { Document, DocumentCategoryEnum } from '@prisma/client';
 import { UserRole } from '../common/constants/role.constant';
+import { BusinessException } from '../common/exceptions/custom.exceptions';
 
 const STAFF_ROLES: string[] = [
   UserRole.ADMIN,
@@ -17,7 +20,10 @@ const STAFF_ROLES: string[] = [
 
 @Injectable()
 export class DocumentsService extends BaseService {
-  constructor(private readonly prisma: PrismaService) {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly storageService: StorageService,
+  ) {
     super('DocumentsService');
   }
 
@@ -81,6 +87,55 @@ export class DocumentsService extends BaseService {
       throw new NotFoundException(`Document ${id} not found`);
     }
     return doc;
+  }
+
+  /**
+   * Uploads a real file to storage and registers it as a Document in one step.
+   * A client caller always uploads to their OWN ClientProfile — any clientId in
+   * the DTO is ignored for non-staff requesters, same ownership rule as reads.
+   */
+  async uploadDocument(
+    file: Express.Multer.File | undefined,
+    dto: UploadDocumentDto,
+    requester: { sub?: string; role?: string },
+  ): Promise<Document> {
+    if (!file) {
+      throw new BusinessException('No file provided for upload');
+    }
+
+    const isStaff = requester.role ? STAFF_ROLES.includes(requester.role) : false;
+    let clientId: string | null = dto.clientId ?? null;
+
+    if (!isStaff) {
+      const client = await this.prisma.clientProfile.findFirst({
+        where: { userId: requester.sub, deletedAt: null },
+      });
+      if (!client) throw new NotFoundException('Client profile not found');
+      clientId = client.id;
+    }
+
+    const fileExtension = path.extname(file.originalname).toLowerCase().replace('.', '') || 'bin';
+    const storageKey = `documents/${Date.now()}-${Math.round(Math.random() * 1e9)}.${fileExtension}`;
+    const stored = await this.storageService.upload(file, storageKey);
+
+    return this.prisma.document.create({
+      data: {
+        title: dto.title,
+        description: dto.description ?? null,
+        category: dto.category ?? DocumentCategoryEnum.OTHER,
+        fileUrl: stored.url,
+        fileSize: file.size,
+        mimeType: file.mimetype,
+        clientId,
+        projectId: dto.projectId ?? null,
+        isPublic: false,
+        uploadedById: requester.sub ?? null,
+      },
+      include: {
+        uploadedBy: { select: { id: true, firstName: true, lastName: true } },
+        client: { include: { user: { select: { id: true, firstName: true, lastName: true } } } },
+      },
+    });
   }
 
   async create(dto: CreateDocumentDto, uploadedById?: string): Promise<Document> {

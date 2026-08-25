@@ -10,10 +10,13 @@ import {
   ParseUUIDPipe,
   ParseIntPipe,
   DefaultValuePipe,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
-import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse, ApiQuery, ApiConsumes, ApiBody } from '@nestjs/swagger';
 import { DocumentsService } from './documents.service';
-import { CreateDocumentDto, UpdateDocumentDto } from './dto/document.dto';
+import { CreateDocumentDto, UpdateDocumentDto, UploadDocumentDto } from './dto/document.dto';
 import { DocumentCategoryEnum } from '@prisma/client';
 import { Permissions } from '../common/decorators/permissions.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
@@ -76,9 +79,39 @@ export class DocumentsController {
     return this.documentsService.trackDownload(id);
   }
 
+  @Post('upload')
+  @Permissions('documents.upload')
+  @UseInterceptors(FileInterceptor('file'))
+  @ApiOperation({
+    summary: 'Upload a real file and register it as a document (own client only for non-staff callers)',
+  })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: { type: 'string', format: 'binary' },
+        title: { type: 'string' },
+        description: { type: 'string' },
+        category: { type: 'string', enum: Object.values(DocumentCategoryEnum) },
+        clientId: { type: 'string', format: 'uuid', description: 'Staff only — ignored for client callers' },
+        projectId: { type: 'string', format: 'uuid' },
+      },
+      required: ['file', 'title'],
+    },
+  })
+  @ApiResponse({ status: 201, description: 'File uploaded and document created' })
+  async upload(
+    @UploadedFile() file: Express.Multer.File,
+    @Body() dto: UploadDocumentDto,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    return this.documentsService.uploadDocument(file, dto, user);
+  }
+
   @Post()
   @Permissions('documents.manage')
-  @ApiOperation({ summary: 'Upload and register a new document' })
+  @ApiOperation({ summary: 'Register a document that is already hosted elsewhere (staff only, no file upload)' })
   @ApiResponse({ status: 201, description: 'Document created' })
   async create(@Body() dto: CreateDocumentDto, @CurrentUser() user: JwtPayload) {
     return this.documentsService.create(dto, user?.sub);

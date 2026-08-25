@@ -59,6 +59,39 @@ export class CreateDocumentDto {
   isPublic?: boolean;
 }
 
+export class UploadDocumentDto {
+  @ApiProperty({ example: 'Client NDA – Acme Corp 2026', description: 'Document title' })
+  @IsString()
+  @IsNotEmpty()
+  title!: string;
+
+  @ApiPropertyOptional({ description: 'Document description' })
+  @IsOptional()
+  @IsString()
+  description?: string;
+
+  @ApiPropertyOptional({
+    enum: DocumentCategoryEnum,
+    default: DocumentCategoryEnum.OTHER,
+    description: 'Document category',
+  })
+  @IsOptional()
+  @IsEnum(DocumentCategoryEnum)
+  category?: DocumentCategoryEnum;
+
+  @ApiPropertyOptional({
+    description: 'Client profile UUID to attach the document to. Staff-only — a client caller always uploads to their own profile regardless of this field.',
+  })
+  @IsOptional()
+  @IsUUID('4')
+  clientId?: string;
+
+  @ApiPropertyOptional({ description: 'Project UUID' })
+  @IsOptional()
+  @IsUUID('4')
+  projectId?: string;
+}
+
 export class UpdateDocumentDto {
   @ApiPropertyOptional({ description: 'Document title' })
   @IsOptional()

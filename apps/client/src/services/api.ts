@@ -390,6 +390,25 @@ export const mockApi = {
     trackDownload: async (documentId: string) => {
       await fetchProxy(`documents/${documentId}/download`, { method: 'POST' });
     },
+    upload: async (file: File, title: string) => {
+      // Deliberately bypasses fetchProxy: it always sets Content-Type: application/json,
+      // which would break the multipart boundary the browser needs to generate for
+      // FormData — the browser sets the correct multipart Content-Type itself as
+      // long as we don't set one manually here.
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('title', title);
+
+      const res = await fetch('/api/proxy/documents/upload', {
+        method: 'POST',
+        body: formData,
+      });
+      if (!res.ok) {
+        const payload = await res.json().catch(() => null);
+        throw new Error(payload?.message || 'Failed to upload document');
+      }
+      return res.json();
+    },
   },
 
   stats: {

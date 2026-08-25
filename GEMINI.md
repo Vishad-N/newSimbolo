@@ -1,5 +1,5 @@
 <!-- SKILLGOD:START v1.1 -->
-# SkillGod Project Memory (auto-generated — do not edit; updated 2026-08-25 17:51)
+# SkillGod Project Memory (auto-generated — do not edit; updated 2026-08-25 18:34)
 
 # SkillGod Active
 
@@ -18,20 +18,20 @@ After completing **meaningful** work (decisions, architecture, non-obvious fixes
 ## SkillGod health
 - version: 1.0.1+794a995
 - project_id: `visha-90fc8883`
-- last inject: 2026-08-25T17:50:49 (runtime)
+- last inject: 2026-08-25T18:33:44 (runtime)
 - last capture: never (-)
 - markers: SKILLGOD:START v1.1
 
 ## Project memory
 
 ## Decisions
+- {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\admin\\src\\services\\api.ts", "oldString": " affiliate: {", "newString": " documents: {\n getAll: async (filters: DocumentFilters
+- {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\admin\\src\\services\\api.ts", "oldString": "export interface AffiliateSettings {", "newString": "export type DocumentCategory = '
+- {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\client\\src\\app\\documents\\page.tsx", "oldString": " <UploadModal\n isOpen={isUploadModalOpen}\n onClose={() => setUploadModalOp
+- {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\client\\src\\services\\api.ts", "oldString": " documents: {\n getAll: async () => {\n // Documents for current user (own ClientPro
 - {"content":"---\ntitle: Public API\ndescription: Discover the Railway GraphQL Public API.\n---\n\nThe Railway public API is built with GraphQL and is the same API that powers the R
 - {"stdout": "3:SkillGod filesystem/git watcher â€” baseline memory capture for IDEs that have no\n4:hooks equivalent (Cursor, Windsurf, and any future IDE without a push mechanism).
 - {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\client\\src\\app\\documents\\page.tsx", "oldString": "api.documents.", "newString": "mockApi.documents.", "originalFile": "\"use c
-- {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\client\\src\\app\\documents\\page.tsx", "oldString": "import { api } from \"@/services/api\";", "newString": "import { mockApi } f
-- {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\client\\src\\services\\api.ts", "oldString": " document.body.removeChild(a);\n }\n },\n", "newString": " document.body.removeChild
-- {"stdout": "\u001b[33m[Nest] 29304 - \u001b[39m25/08/2026, 12:28:58 pm \u001b[33m WARN\u001b[39m \u001b[38;5;3m[OrdersService] \u001b[39m\u001b[33mOrder with identifier \"missing-i
-- {"isAsync": true, "status": "async_launched", "agentId": "a525eea760a7e12a5", "description": "Audit frontend for waterfalled API calls", "resolvedModel": "claude-sonnet-5", "prompt
 
 ## Notes
 

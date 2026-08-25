@@ -44,11 +44,13 @@ async function handleProxy(request: Request, pathArray: string[]) {
 
     const targetUrl = `${apiUrl}/${targetPath}${searchParams}`;
 
-    // Read body if it's not a GET or HEAD
-    let body;
+    // Read body if it's not a GET or HEAD. Uses arrayBuffer (not text) so binary
+    // bodies — e.g. multipart/form-data file uploads — aren't corrupted by a
+    // text decode/encode round trip; this is a safe superset of text bodies too.
+    let body: ArrayBuffer | undefined;
     if (request.method !== 'GET' && request.method !== 'HEAD') {
       try {
-        body = await request.text();
+        body = await request.arrayBuffer();
       } catch (e) {
         // Ignore body parsing errors
       }

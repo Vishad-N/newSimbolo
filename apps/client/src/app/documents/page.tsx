@@ -173,12 +173,14 @@ export default function DocumentsPage() {
       <UploadModal
         isOpen={isUploadModalOpen}
         onClose={() => setUploadModalOpen(false)}
-        onUpload={async () => {
-          // No client-facing upload endpoint exists yet — the backend's
-          // POST /documents requires staff-only `documents.manage` and expects
-          // an already-hosted fileUrl, not raw file bytes. Surface that honestly
-          // instead of faking success.
-          throw new Error("File uploads aren't available yet. Please contact your account manager to share files.");
+        onUpload={async (files) => {
+          // One document per file — the backend registers each upload as its
+          // own Document record, using the file's own name as the title since
+          // this modal doesn't collect one separately.
+          for (const file of files) {
+            await mockApi.documents.upload(file, file.name);
+          }
+          await fetchDocuments();
         }}
       />
     </div>
