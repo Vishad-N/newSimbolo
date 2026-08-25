@@ -127,8 +127,18 @@ jobs:
             exit 0
           fi
           npm i -g @railway/cli
-          railway up --service "${{ vars.RAILWAY_BACKEND_SERVICE || '@simbolo/backend' }}" --detach --yes
-        working-directory: backend
+          # No --detach: that only confirms the upload started, not that the
+          # build/deploy actually succeeded — a Dockerfile error like the
+          # "COPY backend ./backend: not found" one we just hit would still
+          # report this CI step as green. Block and stream logs instead so a
+          # real build failure fails this job too.
+          railway up --service "${{ vars.RAILWAY_BACKEND_SERVICE || '@simbolo/backend' }}" --yes
+        # Must run from the repo ROOT, not backend/ — backend/Dockerfile expects
+        # the whole monorepo as its build context (it does `COPY backend ./backend`,
+        # `COPY package.json ...`), matching how the "Build backend Docker image"
+        # step in the verify job already builds it (`docker build -f backend/Dockerfile .`
+        # from root). Running `railway up` from inside backend/ uploads only that
+        # subfolder, so the Dockerfile's COPY backend ./backend step finds nothing.
 
   deploy-frontend-vercel:
     needs: verify
@@ -143,6 +153,14 @@ jobs:
         # (The `secrets` context can't be used in a step's `if:` — GitHub Actions
         # rejects that at workflow-validation time — so the skip check happens
         # inside the shell instead.)
+        #
+        # Deliberately runs from the repo ROOT, not apps/<app> — each Vercel
+        # project already has its own `rootDirectory` (apps/admin, apps/client,
+        # apps/landing) configured on Vercel's side, same as its native git
+        # auto-deploy uses. cd-ing into the app folder here too made Vercel try
+        # to apply that rootDirectory a second time on top of an already-scoped
+        # path (apps/client/apps/client did not exist) — `vercel build` ignored
+        # the conflict with a warning, but `vercel deploy` hard-failed on it.
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets[format('VERCEL_ORG_ID_{0}', matrix.app)] }}
@@ -155,4 +173,3 @@ jobs:
           npx vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
           npx vercel build --prod --token="$VERCEL_TOKEN"
           npx vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"
-        working-directory: apps/${{ matrix.app }}
