@@ -183,6 +183,19 @@ async function main() {
       module: 'affiliate',
       description: 'Can approve, process and retry sales employee commission payouts',
     },
+    // Documents & contracts module
+    {
+      name: 'View Documents',
+      slug: 'documents.read',
+      module: 'documents',
+      description: 'Can view and download documents and contracts',
+    },
+    {
+      name: 'Manage Documents',
+      slug: 'documents.manage',
+      module: 'documents',
+      description: 'Can upload, edit, and delete documents and contracts',
+    },
   ];
 
   console.log(`Creating/updating ${permissionsData.length} permissions...`);
@@ -311,14 +324,16 @@ async function main() {
     'users.view',
     'media.view',
     'media.upload',
+    'documents.read',
+    'documents.manage',
   ];
   await prisma.role.update({
     where: { id: createdRoles['PROJECT_MANAGER'] },
     data: { permissions: { set: pmPermSlugs.map((s) => ({ id: createdPermissions[s] })) } },
   });
 
-  // Client gets basic read/create order perms
-  const clientPermSlugs = ['services.view', 'packages.view', 'orders.view', 'orders.create'];
+  // Client gets basic read/create order perms, plus read-only access to their own documents
+  const clientPermSlugs = ['services.view', 'packages.view', 'orders.view', 'orders.create', 'documents.read'];
   await prisma.role.update({
     where: { id: createdRoles['CLIENT'] },
     data: { permissions: { set: clientPermSlugs.map((s) => ({ id: createdPermissions[s] })) } },

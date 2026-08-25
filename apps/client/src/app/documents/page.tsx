@@ -1,26 +1,80 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/Card";
-import { FileText, Folder, File, FileImage, FileVideo, Download, Upload, FolderPlus, MoreVertical } from "lucide-react";
+import { FileText, Folder, File, FileImage, FileVideo, Download, Upload, MoreVertical, Loader2 } from "lucide-react";
 import { UploadModal } from "@/components/documents/UploadModal";
-import { CreateFolderModal } from "@/components/documents/CreateFolderModal";
+import { mockApi } from "@/services/api";
+
+interface DocumentRecord {
+  id: string;
+  title: string;
+  category: string;
+  mimeType?: string | null;
+  fileSize?: number | null;
+  fileUrl: string;
+  createdAt: string;
+}
+
+function formatFileSize(bytes?: number | null): string {
+  if (!bytes) return "—";
+  const mb = bytes / (1024 * 1024);
+  return mb >= 1 ? `${mb.toFixed(1)} MB` : `${(bytes / 1024).toFixed(0)} KB`;
+}
+
+function fileIconFor(mimeType?: string | null) {
+  if (mimeType?.startsWith("image/")) return <FileImage className="w-5 h-5 text-purple-400" />;
+  if (mimeType?.startsWith("video/")) return <FileVideo className="w-5 h-5 text-blue-400" />;
+  return <File className="w-5 h-5 text-red-400" />;
+}
+
+function categoryLabel(category: string): string {
+  return category
+    .toLowerCase()
+    .split("_")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+}
 
 export default function DocumentsPage() {
   const [isUploadModalOpen, setUploadModalOpen] = useState(false);
-  const [isCreateFolderModalOpen, setCreateFolderModalOpen] = useState(false);
+  const [documents, setDocuments] = useState<DocumentRecord[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const [folders, setFolders] = useState([
-    { name: "Contracts & Agreements", count: 3 },
-    { name: "Invoices", count: 12 },
-    { name: "Brand Assets", count: 45 },
-  ]);
+  const fetchDocuments = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const data = await mockApi.documents.getAll();
+      setDocuments(Array.isArray(data) ? data : []);
+    } catch (requestError) {
+      console.error("Failed to fetch documents", requestError);
+      setError("Failed to load documents.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-  const recentFiles = [
-    { name: "Q3_SEO_Strategy.pdf", type: "pdf", date: "Oct 12, 2026", size: "2.4 MB" },
-    { name: "Website_Wireframes.fig", type: "design", date: "Oct 10, 2026", size: "14 MB" },
-    { name: "Promo_Video_v2.mp4", type: "video", date: "Oct 05, 2026", size: "128 MB" },
-  ];
+  useEffect(() => {
+    fetchDocuments();
+  }, []);
+
+  const handleDownload = async (doc: DocumentRecord) => {
+    try {
+      await mockApi.documents.trackDownload(doc.id);
+    } catch (requestError) {
+      console.error("Failed to record download", requestError);
+    }
+    window.open(doc.fileUrl, "_blank", "noopener,noreferrer");
+  };
+
+  // Derived from real documents — there's no user-created "folder" concept on the
+  // backend, just a fixed category enum, so group by that instead of faking folders.
+  const categoryCounts = documents.reduce<Record<string, number>>((acc, doc) => {
+    acc[doc.category] = (acc[doc.category] ?? 0) + 1;
+    return acc;
+  }, {});
 
   return (
     <div className="space-y-8">
@@ -33,14 +87,7 @@ export default function DocumentsPage() {
           <p className="text-sm text-gray-400">Access your project deliverables, contracts, and assets.</p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <button 
-            onClick={() => setCreateFolderModalOpen(true)}
-            className="px-4 py-2 rounded-lg border border-white/10 text-white text-sm font-medium hover:bg-white/5 transition-colors flex items-center gap-2"
-          >
-            <FolderPlus className="w-4 h-4" />
-            New Folder
-          </button>
-          <button 
+          <button
             onClick={() => setUploadModalOpen(true)}
             className="px-4 py-2 rounded-[12px] bg-[var(--primary)] text-black text-sm font-bold hover:scale-105 hover:shadow-[0_8px_16px_var(--primary-glow)] transition-all flex items-center gap-2"
           >
@@ -50,72 +97,82 @@ export default function DocumentsPage() {
         </div>
       </div>
 
-      {/* Storage Usage Bar */}
-      <div className="bg-surface/40 border border-white/5 rounded-xl p-4 flex flex-col gap-2">
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-white font-medium">Storage Usage</span>
-          <span className="text-gray-400">2.4 GB / 10 GB</span>
+      {isLoading ? (
+        <div className="flex items-center justify-center py-16 text-gray-400">
+          <Loader2 className="w-6 h-6 animate-spin" />
         </div>
-        <div className="h-2 bg-white/5 rounded-full overflow-hidden">
-          <div className="h-full bg-[var(--primary)] w-[24%] rounded-full shadow-[0_0_10px_var(--primary-glow)]"></div>
-        </div>
-      </div>
-
-      <div>
-        <h2 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">Folders</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {folders.map((f, i) => (
-            <div key={i} className="flex items-center gap-4 p-4 bg-surface/60 backdrop-blur border border-white/10 rounded-xl cursor-pointer hover:bg-white/[0.05] transition-colors group">
-              <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400 group-hover:bg-blue-500 group-hover:text-white transition-colors">
-                <Folder className="w-5 h-5" />
-              </div>
-              <div>
-                <div className="font-medium text-white">{f.name}</div>
-                <div className="text-xs text-gray-500">{f.count} files</div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div>
-        <h2 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">Recent Files</h2>
-        <Card className="p-0 overflow-hidden">
-          <div className="divide-y divide-white/5">
-            {recentFiles.map((file, i) => (
-              <div key={i} className="flex items-center justify-between p-4 hover:bg-white/[0.02] transition-colors group">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-black/40 border border-white/5 flex items-center justify-center text-gray-400">
-                    {file.type === "pdf" ? <File className="w-5 h-5 text-red-400" /> :
-                     file.type === "design" ? <FileImage className="w-5 h-5 text-purple-400" /> :
-                     <FileVideo className="w-5 h-5 text-blue-400" />}
-                  </div>
-                  <div>
-                    <div className="font-medium text-white text-sm group-hover:text-primary transition-colors">{file.name}</div>
-                    <div className="text-xs text-gray-500 flex gap-2">
-                      <span>{file.date}</span>
-                      <span>•</span>
-                      <span>{file.size}</span>
+      ) : error ? (
+        <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-400">{error}</div>
+      ) : documents.length === 0 ? (
+        <Card className="p-12 text-center text-gray-400">
+          No documents yet. Files shared by your account manager will appear here.
+        </Card>
+      ) : (
+        <>
+          {Object.keys(categoryCounts).length > 0 && (
+            <div>
+              <h2 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">Categories</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {Object.entries(categoryCounts).map(([category, count]) => (
+                  <div
+                    key={category}
+                    className="flex items-center gap-4 p-4 bg-surface/60 backdrop-blur border border-white/10 rounded-xl"
+                  >
+                    <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400">
+                      <Folder className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="font-medium text-white">{categoryLabel(category)}</div>
+                      <div className="text-xs text-gray-500">{count} file{count === 1 ? "" : "s"}</div>
                     </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button className="p-2 text-gray-400 hover:text-white bg-white/5 rounded-lg opacity-0 group-hover:opacity-100 transition-all">
-                    <Download className="w-4 h-4" />
-                  </button>
-                  <button className="p-2 text-gray-400 hover:text-white bg-white/5 rounded-lg opacity-0 group-hover:opacity-100 transition-all">
-                    <MoreVertical className="w-4 h-4" />
-                  </button>
-                </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </Card>
-      </div>
+            </div>
+          )}
 
-      <UploadModal 
-        isOpen={isUploadModalOpen} 
-        onClose={() => setUploadModalOpen(false)} 
+          <div>
+            <h2 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">All Files</h2>
+            <Card className="p-0 overflow-hidden">
+              <div className="divide-y divide-white/5">
+                {documents.map((doc) => (
+                  <div key={doc.id} className="flex items-center justify-between p-4 hover:bg-white/[0.02] transition-colors group">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-lg bg-black/40 border border-white/5 flex items-center justify-center text-gray-400">
+                        {fileIconFor(doc.mimeType)}
+                      </div>
+                      <div>
+                        <div className="font-medium text-white text-sm group-hover:text-primary transition-colors">{doc.title}</div>
+                        <div className="text-xs text-gray-500 flex gap-2">
+                          <span>{new Date(doc.createdAt).toLocaleDateString()}</span>
+                          <span>•</span>
+                          <span>{formatFileSize(doc.fileSize)}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleDownload(doc)}
+                        className="p-2 text-gray-400 hover:text-white bg-white/5 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
+                        title="Download"
+                      >
+                        <Download className="w-4 h-4" />
+                      </button>
+                      <button className="p-2 text-gray-400 hover:text-white bg-white/5 rounded-lg opacity-0 group-hover:opacity-100 transition-all">
+                        <MoreVertical className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </div>
+        </>
+      )}
+
+      <UploadModal
+        isOpen={isUploadModalOpen}
+        onClose={() => setUploadModalOpen(false)}
         onUpload={async () => {
           // No client-facing upload endpoint exists yet — the backend's
           // POST /documents requires staff-only `documents.manage` and expects
@@ -123,13 +180,6 @@ export default function DocumentsPage() {
           // instead of faking success.
           throw new Error("File uploads aren't available yet. Please contact your account manager to share files.");
         }}
-      />
-      <CreateFolderModal 
-        isOpen={isCreateFolderModalOpen} 
-        onClose={() => setCreateFolderModalOpen(false)} 
-        onCreate={(name) => {
-          setFolders(prev => [...prev, { name, count: 0 }]);
-        }} 
       />
     </div>
   );

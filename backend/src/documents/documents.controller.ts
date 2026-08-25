@@ -26,8 +26,8 @@ export class DocumentsController {
   constructor(private readonly documentsService: DocumentsService) {}
 
   @Get()
-  @Permissions('documents.read', 'documents.manage')
-  @ApiOperation({ summary: 'List documents with optional filters (clientId, projectId, category)' })
+  @Permissions('documents.manage')
+  @ApiOperation({ summary: 'List documents with optional filters (clientId, projectId, category) — staff only' })
   @ApiQuery({ name: 'clientId', required: false })
   @ApiQuery({ name: 'projectId', required: false })
   @ApiQuery({ name: 'category', enum: DocumentCategoryEnum, required: false })
@@ -44,19 +44,35 @@ export class DocumentsController {
     return this.documentsService.findAll(clientId, projectId, category, page, limit);
   }
 
+  @Get('my')
+  @Permissions('documents.read')
+  @ApiOperation({ summary: "Get current client's own documents" })
+  @ApiQuery({ name: 'category', enum: DocumentCategoryEnum, required: false })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  async findMyDocuments(
+    @CurrentUser() user: JwtPayload,
+    @Query('category') category?: DocumentCategoryEnum,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page = 1,
+    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit = 20,
+  ) {
+    return this.documentsService.findMyDocuments(user.sub, category, page, limit);
+  }
+
   @Get(':id')
-  @Permissions('documents.read', 'documents.manage')
-  @ApiOperation({ summary: 'Get a single document by ID' })
+  @Permissions('documents.read')
+  @ApiOperation({ summary: 'Get a single document by ID (own document for clients, any for staff)' })
   @ApiResponse({ status: 200, description: 'Document returned' })
-  async findOne(@Param('id', ParseUUIDPipe) id: string) {
-    return this.documentsService.findOne(id);
+  async findOne(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: JwtPayload) {
+    return this.documentsService.findOneForRequester(id, user);
   }
 
   @Post(':id/download')
-  @Permissions('documents.read', 'documents.manage')
+  @Permissions('documents.read')
   @ApiOperation({ summary: 'Track a document download (increments download count)' })
   @ApiResponse({ status: 200, description: 'Download tracked' })
-  async trackDownload(@Param('id', ParseUUIDPipe) id: string) {
+  async trackDownload(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: JwtPayload) {
+    await this.documentsService.findOneForRequester(id, user);
     return this.documentsService.trackDownload(id);
   }
 

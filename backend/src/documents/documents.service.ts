@@ -3,6 +3,17 @@ import { PrismaService } from '../prisma/prisma.service';
 import { BaseService } from '../shared/abstractions/base.service';
 import { CreateDocumentDto, UpdateDocumentDto } from './dto/document.dto';
 import { Document, DocumentCategoryEnum } from '@prisma/client';
+import { UserRole } from '../common/constants/role.constant';
+
+const STAFF_ROLES: string[] = [
+  UserRole.ADMIN,
+  UserRole.SUPER_ADMIN,
+  UserRole.PROJECT_MANAGER,
+  UserRole.SUPPORT,
+  UserRole.CONTENT_MANAGER,
+  UserRole.MARKETING_MANAGER,
+  UserRole.EDITOR,
+];
 
 @Injectable()
 export class DocumentsService extends BaseService {
@@ -46,6 +57,30 @@ export class DocumentsService extends BaseService {
       },
     });
     return this.checkEntityExists(doc, 'Document', id);
+  }
+
+  /** Self-service listing: a client only ever sees their own documents, regardless of query params. */
+  async findMyDocuments(userId: string, category?: DocumentCategoryEnum, page = 1, limit = 20) {
+    const client = await this.prisma.clientProfile.findFirst({ where: { userId, deletedAt: null } });
+    if (!client) throw new NotFoundException('Client profile not found');
+    return this.findAll(client.id, undefined, category, page, limit);
+  }
+
+  /**
+   * Same as findOne, but scoped to the requester: a client can only fetch a
+   * document tied to their own ClientProfile (or one with no client at all is
+   * treated as staff-only). Staff roles can fetch any document. Returns 404 (not
+   * 403) for a non-owned document so a client can't use this to confirm another
+   * client's document ID exists.
+   */
+  async findOneForRequester(id: string, requester: { sub?: string; role?: string }): Promise<Document> {
+    const doc = await this.findOne(id);
+    const isStaff = requester.role ? STAFF_ROLES.includes(requester.role) : false;
+    const clientUserId = (doc as any).client?.user?.id;
+    if (!isStaff && clientUserId !== requester.sub) {
+      throw new NotFoundException(`Document ${id} not found`);
+    }
+    return doc;
   }
 
   async create(dto: CreateDocumentDto, uploadedById?: string): Promise<Document> {

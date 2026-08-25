@@ -381,6 +381,17 @@ export const mockApi = {
     }
   },
 
+  documents: {
+    getAll: async () => {
+      // Documents for current user (own ClientProfile only, enforced server-side)
+      const res = await fetchProxy(`documents/my`);
+      return res.data || res || [];
+    },
+    trackDownload: async (documentId: string) => {
+      await fetchProxy(`documents/${documentId}/download`, { method: 'POST' });
+    },
+  },
+
   stats: {
     getDashboard: async (clientId?: string) => {
       if (!clientId) return null;
