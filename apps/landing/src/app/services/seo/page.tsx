@@ -9,8 +9,10 @@ export const metadata: Metadata = {
 };
 
 export default async function Page() {
-  const livePackages = await fetchMappedPackages('seo', []);
-  const liveConfig = await landingApi.getServicePageConfig('seo', null);
+  const [livePackages, liveConfig] = await Promise.all([
+    fetchMappedPackages('seo', []),
+    landingApi.getServicePageConfig('seo', null),
+  ]);
   
   return <SeoPage livePackages={livePackages} liveConfig={liveConfig} />;
 }

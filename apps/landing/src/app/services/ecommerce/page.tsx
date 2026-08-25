@@ -69,8 +69,10 @@ const jsonLd = {
 };
 
 export default async function EcommerceRoute() {
-  const packagesToPass = await fetchMappedPackages('ecommerce', []);
-  const liveProjectsToPass = await fetchMappedPortfolioProjects('ecommerce', []);
+  const [packagesToPass, liveProjectsToPass] = await Promise.all([
+    fetchMappedPackages('ecommerce', []),
+    fetchMappedPortfolioProjects('ecommerce', []),
+  ]);
 
   return (
     <>

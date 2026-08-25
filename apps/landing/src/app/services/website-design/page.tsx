@@ -71,9 +71,11 @@ const jsonLd = {
 import { landingApi } from "@/lib/api";
 
 export default async function WebsiteDesignRoute() {
-  const livePackages = await fetchMappedPackages('website-design', []);
-  const liveProjectsToPass = await fetchMappedPortfolioProjects('website-design', []);
-  const liveConfig = await landingApi.getServicePageConfig('website-design', null);
+  const [livePackages, liveProjectsToPass, liveConfig] = await Promise.all([
+    fetchMappedPackages('website-design', []),
+    fetchMappedPortfolioProjects('website-design', []),
+    landingApi.getServicePageConfig('website-design', null),
+  ]);
 
   return (
     <>

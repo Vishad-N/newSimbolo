@@ -79,9 +79,13 @@ export class CmsService extends BaseService {
     sections: Record<string, any>,
     updatedBy?: string,
   ): Promise<Record<string, any>> {
-    for (const [key, content] of Object.entries(sections)) {
-      await this.updateSection(category, { sectionKey: key, content }, updatedBy);
-    }
+    // Each key is an independent upsert with no dependency on the others, so run
+    // them concurrently instead of one DB round trip at a time.
+    await Promise.all(
+      Object.entries(sections).map(([key, content]) =>
+        this.updateSection(category, { sectionKey: key, content }, updatedBy),
+      ),
+    );
     return this.getPageSections(category);
   }
 

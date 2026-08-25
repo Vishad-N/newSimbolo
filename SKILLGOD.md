@@ -3,7 +3,7 @@
 > Auto-managed digest for Aider and other CLIs that `read:` this file. Your notes above the markers are safe.
 
 <!-- SKILLGOD:START v1.1 -->
-# SkillGod Project Memory (auto-generated — do not edit; updated 2026-08-24 19:18)
+# SkillGod Project Memory (auto-generated — do not edit; updated 2026-08-25 12:16)
 
 # SkillGod Active
 
@@ -22,20 +22,20 @@ After completing **meaningful** work (decisions, architecture, non-obvious fixes
 ## SkillGod health
 - version: 1.0.1+794a995
 - project_id: `visha-90fc8883`
-- last inject: 2026-08-24T19:17:45 (runtime)
+- last inject: 2026-08-25T12:09:18 (runtime)
 - last capture: never (-)
 - markers: SKILLGOD:START v1.1
 
 ## Project memory
 
 ## Decisions
+- {"isAsync": true, "status": "async_launched", "agentId": "a525eea760a7e12a5", "description": "Audit frontend for waterfalled API calls", "resolvedModel": "claude-sonnet-5", "prompt
+- {"filePath": "c:\\Users\\visha\\simbolonew\\backend\\src\\cms\\cms.service.ts", "oldString": " for (const [key, content] of Object.entries(sections)) {\n await this.updateSection(c
+- {"isAsync": true, "status": "async_launched", "agentId": "ac99328ebfe322f35", "description": "Audit services for real N+1 query patterns", "resolvedModel": "claude-sonnet-5", "prom
+- {"filePath": "c:\\Users\\visha\\simbolonew\\backend\\src\\prisma\\prisma.service.ts", "oldString": "import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/commo
 - {"stdout": "added 8 packages, removed 1 package, changed 5 packages, and audited 1272 packages in 15s\n\n314 packages are looking for funding\n run `npm fund` for details\n\n# npm 
 - {"stdout": "npm warn config production Use `--omit=dev` instead.\n# npm audit report\n\nbrace-expansion 4.0.0 - 5.0.8\nSeverity: high\nbrace-expansion: DoS via unbounded intermedia
 - {"stdout": "Upload and deploy project from the current directory.\n\nIf you're not signed in, signs you in or creates a Railway account (single unified OAuth flow â€” new accounts 
-- {"questions": [{"question": "How do you want deploys to work going forward?", "header": "Deploy gating", "options": [{"label": "Add CI deploy step, keep auto-deploy too", "descript
-- {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\client\\src\\services\\api.ts", "oldString": " if (!res.ok) {\n throw new Error(`API error: ${res.status}`);\n }\n return res.json
-- {"filePath": "c:\\Users\\visha\\simbolonew\\backend\\src\\main.ts", "oldString": " const app = await NestFactory.create(AppModule, {\n bufferLogs: true,\n rawBody: true,\n });\n\n 
-- {"filePath": "c:\\Users\\visha\\simbolonew\\backend\\src\\config\\auth.config.ts", "oldString": "import { registerAs } from '@nestjs/config';\nimport { AuthConfig } from './configu
 
 ## Notes
 

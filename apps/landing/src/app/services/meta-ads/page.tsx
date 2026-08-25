@@ -38,8 +38,10 @@ import { fetchMappedPackages } from "@/lib/package-mapper";
 import { landingApi } from "@/lib/api";
 
 export default async function MetaAdsPage() {
-  const livePackages = await fetchMappedPackages('meta-ads', []);
-  const liveConfig = await landingApi.getServicePageConfig('meta-ads', null);
+  const [livePackages, liveConfig] = await Promise.all([
+    fetchMappedPackages('meta-ads', []),
+    landingApi.getServicePageConfig('meta-ads', null),
+  ]);
 
   return <MetaAdsClientPage livePackages={livePackages} liveConfig={liveConfig} />;
 }

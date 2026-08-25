@@ -111,23 +111,29 @@ export default function UsersPage() {
     setClientAccessMessage(null);
     setSubmitError(null);
 
-    try {
-      const packageResponse = await api.packages.getAll() as PackageRecord[] | PaginatedResponse<PackageRecord>;
-      setPackages(getDataArray(packageResponse));
-    } catch (requestError) {
+    // Neither call depends on the other's result — run them concurrently instead
+    // of one round trip after the other, keeping each error isolated via
+    // allSettled so one failing fetch doesn't block the other from rendering.
+    const [packagesResult, clientsResult] = await Promise.allSettled([
+      api.packages.getAll() as Promise<PackageRecord[] | PaginatedResponse<PackageRecord>>,
+      api.clients.getAll() as Promise<ClientRecord[] | PaginatedResponse<ClientRecord>>,
+    ]);
+
+    if (packagesResult.status === "fulfilled") {
+      setPackages(getDataArray(packagesResult.value));
+    } else {
       setPackages([]);
-      setPackageError(getRequestMessage(requestError, "Failed to load packages"));
+      setPackageError(getRequestMessage(packagesResult.reason, "Failed to load packages"));
     }
 
-    try {
-      const clientResponse = await api.clients.getAll() as ClientRecord[] | PaginatedResponse<ClientRecord>;
-      setClients(getDataArray(clientResponse));
-    } catch (requestError) {
+    if (clientsResult.status === "fulfilled") {
+      setClients(getDataArray(clientsResult.value));
+    } else {
       setClients([]);
-      setClientAccessMessage(getRequestMessage(requestError, "Failed to load clients"));
-    } finally {
-      setIsLoading(false);
+      setClientAccessMessage(getRequestMessage(clientsResult.reason, "Failed to load clients"));
     }
+
+    setIsLoading(false);
   };
 
   useEffect(() => {

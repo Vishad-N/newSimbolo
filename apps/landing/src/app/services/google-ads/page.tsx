@@ -9,8 +9,10 @@ export const metadata: Metadata = {
 };
 
 export default async function GoogleAdsRoute() {
-  const livePackages = await fetchMappedPackages('google-ads', []);
-  const liveConfig = await landingApi.getServicePageConfig('google-ads', null);
+  const [livePackages, liveConfig] = await Promise.all([
+    fetchMappedPackages('google-ads', []),
+    landingApi.getServicePageConfig('google-ads', null),
+  ]);
 
   return <GoogleAdsPage livePackages={livePackages} liveConfig={liveConfig} />;
 }
