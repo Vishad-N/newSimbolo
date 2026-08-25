@@ -21,8 +21,15 @@ jobs:
           node-version: 22
           cache: npm
 
-      - name: Install PostgreSQL client tools (for pg_dump)
-        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - name: Install PostgreSQL 17 client tools (for pg_dump)
+        # Ubuntu's default repo only ships postgresql-client 16, but Supabase runs
+        # Postgres 17 — pg_dump refuses to dump from a server newer than itself.
+        # Add the official PGDG apt repo to get a matching client version.
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-common
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install -y postgresql-client-17
 
       - run: npm ci
 
