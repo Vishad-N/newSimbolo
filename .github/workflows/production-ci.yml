@@ -4,6 +4,7 @@ on:
   push:
     branches: [main, develop]
   pull_request:
+  workflow_dispatch: {} # allows a manual "Run workflow" to test the pipeline on-demand
 
 jobs:
   verify:
