@@ -1,6 +1,18 @@
 import { landingApi } from "./api";
 import { CaseStudy } from "@/types/case-studies";
 
+function normalizeStatus(status: unknown): CaseStudy["status"] {
+  switch (String(status ?? "").toUpperCase()) {
+    case "DRAFT":
+      return "Draft";
+    case "ARCHIVED":
+      return "Archived";
+    case "PUBLISHED":
+    default:
+      return "Published";
+  }
+}
+
 export async function fetchMappedCaseStudies(mockFallback: CaseStudy[], isFeatured?: boolean): Promise<CaseStudy[]> {
   try {
     const response = await landingApi.getCaseStudies([], isFeatured) as any;
@@ -24,8 +36,8 @@ export async function fetchMappedCaseStudies(mockFallback: CaseStudy[], isFeatur
       services: cs.services || [],
       tags: cs.tags || [],
       challenge: cs.challenge || "",
-      strategy: cs.strategy || "",
-      execution: cs.execution || "",
+      strategy: cs.strategy || cs.solution || "",
+      execution: cs.execution || cs.results || "",
       metrics: cs.metrics ? cs.metrics.map((m: any) => ({
         id: m.id || Math.random().toString(),
         label: m.label,
@@ -42,7 +54,7 @@ export async function fetchMappedCaseStudies(mockFallback: CaseStudy[], isFeatur
       relatedStudies: [],
       featured: cs.featured || false,
       publishDate: cs.publishDate || new Date().toISOString(),
-      status: cs.status || "Published",
+      status: normalizeStatus(cs.status),
       readTime: cs.readTime || "5 min read"
     }));
   } catch (error) {
