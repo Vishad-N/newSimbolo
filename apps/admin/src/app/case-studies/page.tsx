@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { DataTable } from "@/components/DataTable";
-import { Plus, Briefcase, X, Save, RefreshCw, Trash } from "lucide-react";
+import { Plus, Briefcase, X, Save, RefreshCw, Trash, Upload, Loader2 } from "lucide-react";
 import { api, getDataArray } from "@/services/api";
 
 interface CaseStudyData {
@@ -31,6 +31,9 @@ export default function CaseStudiesManagerPage() {
     categoryId: "",
     status: "PUBLISHED"
   });
+  const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
+  const [coverImagePreview, setCoverImagePreview] = useState<string | null>(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -73,9 +76,31 @@ export default function CaseStudiesManagerPage() {
     }
   };
 
+  const resetForm = () => {
+    setNewCaseStudy({ title: "", summary: "", challenge: "", solution: "", results: "", clientName: "", industry: "", categoryId: "", status: "PUBLISHED" });
+    setCoverImageFile(null);
+    setCoverImagePreview(null);
+  };
+
+  const handleImageSelect = (file: File | null) => {
+    setCoverImageFile(file);
+    setCoverImagePreview(file ? URL.createObjectURL(file) : null);
+  };
+
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      let coverImageId: string | undefined;
+      if (coverImageFile) {
+        setIsUploadingImage(true);
+        const formData = new FormData();
+        formData.append("file", coverImageFile);
+        formData.append("folder", "case-studies");
+        const media = (await api.media.upload(formData)) as { id: string };
+        coverImageId = media.id;
+        setIsUploadingImage(false);
+      }
+
       await api.caseStudies.create({
         title: newCaseStudy.title,
         summary: newCaseStudy.summary,
@@ -85,12 +110,14 @@ export default function CaseStudiesManagerPage() {
         clientName: newCaseStudy.clientName,
         industry: newCaseStudy.industry,
         categoryId: newCaseStudy.categoryId || undefined,
-        status: newCaseStudy.status
+        status: newCaseStudy.status,
+        coverImageId,
       });
       setIsModalOpen(false);
-      setNewCaseStudy({ title: "", summary: "", challenge: "", solution: "", results: "", clientName: "", industry: "", categoryId: "", status: "PUBLISHED" });
+      resetForm();
       fetchData();
     } catch (err: any) {
+      setIsUploadingImage(false);
       alert("Failed to create case study: " + err.message);
     }
   };
@@ -179,14 +206,41 @@ export default function CaseStudiesManagerPage() {
           <div className="bg-[#0B0F19] border border-white/10 p-6 rounded-xl w-full max-w-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold text-white">Add Case Study</h2>
-              <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-white"><X className="w-5 h-5"/></button>
+              <button onClick={() => { setIsModalOpen(false); resetForm(); }} className="text-gray-400 hover:text-white"><X className="w-5 h-5"/></button>
             </div>
-            
+
             <form onSubmit={handleCreate} className="space-y-6">
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2">
                   <label className="block text-sm text-gray-400 mb-1">Title</label>
                   <input required type="text" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white" value={newCaseStudy.title} onChange={e => setNewCaseStudy({...newCaseStudy, title: e.target.value})} placeholder="e.g. Scaling FinTech by 400%" />
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-sm text-gray-400 mb-1">Cover Image</label>
+                  {coverImagePreview ? (
+                    <div className="relative w-full aspect-video rounded-lg overflow-hidden border border-white/10">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={coverImagePreview} alt="Cover preview" className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => handleImageSelect(null)}
+                        className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-white hover:bg-black/80"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <label className="flex flex-col items-center justify-center gap-2 w-full aspect-video rounded-lg border border-dashed border-white/20 bg-white/5 text-gray-400 hover:bg-white/10 cursor-pointer transition-colors">
+                      <Upload className="w-6 h-6" />
+                      <span className="text-sm">Click to upload a cover image</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={e => handleImageSelect(e.target.files?.[0] || null)}
+                      />
+                    </label>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm text-gray-400 mb-1">Client Name</label>
@@ -239,9 +293,14 @@ export default function CaseStudiesManagerPage() {
               </div>
 
               <div className="flex justify-end gap-3 mt-8">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors">Cancel</button>
-                <button type="submit" className="flex items-center gap-2 px-6 py-2 bg-primary hover:bg-primary-hover text-white text-sm font-medium rounded-lg transition-colors shadow-[0_0_15px_var(--primary-glow)]">
-                  <Save className="w-4 h-4" /> Save
+                <button type="button" onClick={() => { setIsModalOpen(false); resetForm(); }} className="px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors">Cancel</button>
+                <button
+                  disabled={isUploadingImage}
+                  type="submit"
+                  className="flex items-center gap-2 px-6 py-2 bg-primary hover:bg-primary-hover text-white text-sm font-medium rounded-lg transition-colors shadow-[0_0_15px_var(--primary-glow)] disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {isUploadingImage ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                  {isUploadingImage ? "Uploading image..." : "Save"}
                 </button>
               </div>
             </form>
