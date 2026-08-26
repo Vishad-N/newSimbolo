@@ -15,6 +15,7 @@ import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags, ApiQuery } from '@ne
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { CreateStaffUserDto } from './dto/create-staff-user.dto';
 import { Permissions } from '../common/decorators/permissions.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
@@ -70,6 +71,15 @@ export class UsersController {
     @Query('status') status?: UserStatusEnum,
   ) {
     return this.usersService.findAll(page, limit, search, roleId, status);
+  }
+
+  @Post()
+  @Permissions('users.manage')
+  @ApiOperation({ summary: 'Create a new internal team/staff user account (Admin)' })
+  @ApiResponse({ status: 201, description: 'Staff user created successfully.' })
+  @ApiResponse({ status: 409, description: 'Email address already exists.' })
+  async createStaffUser(@Body() dto: CreateStaffUserDto, @CurrentUser() user: JwtPayload) {
+    return this.usersService.createStaffUser(dto, user.sub);
   }
 
   @Get(':id')

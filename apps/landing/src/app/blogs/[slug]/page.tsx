@@ -5,6 +5,8 @@ import { landingApi } from "@/lib/api";
 import { mapBlogResponse } from "@/lib/blog-mapper";
 import { mockAuthors, mockBlogs, mockCategories } from "@/mock/blog";
 
+export const dynamic = "force-dynamic";
+
 type PageProps = {
   params: Promise<{ slug: string }>;
 };

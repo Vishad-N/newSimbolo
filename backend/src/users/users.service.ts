@@ -8,6 +8,8 @@ import * as bcrypt from 'bcrypt';
 import { CustomUnauthorizedException, BusinessException } from '../common/exceptions/custom.exceptions';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { CreateStaffUserDto } from './dto/create-staff-user.dto';
+import { CustomConflictException } from '../common/exceptions/custom.exceptions';
 
 @Injectable()
 export class UsersService extends BaseService {
@@ -71,6 +73,52 @@ export class UsersService extends BaseService {
         totalPages: Math.ceil(total / limit),
       },
     };
+  }
+
+  async createStaffUser(dto: CreateStaffUserDto, createdBy?: string) {
+    this.logger.debug(`Creating staff user account: ${dto.email}`);
+
+    const existing = await this.prisma.user.findUnique({ where: { email: dto.email } });
+    if (existing) {
+      throw new CustomConflictException(`A user with email "${dto.email}" already exists`);
+    }
+
+    const role = await this.prisma.role.findUnique({ where: { id: dto.roleId } });
+    if (!role) {
+      throw new BusinessException('Assigned role does not exist.');
+    }
+
+    const passwordHash = await bcrypt.hash(dto.password, 12);
+
+    const user = await this.prisma.user.create({
+      data: {
+        email: dto.email,
+        passwordHash,
+        firstName: dto.firstName,
+        lastName: dto.lastName,
+        roleId: dto.roleId,
+        status: UserStatusEnum.ACTIVE,
+        createdBy,
+      },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        status: true,
+        role: { select: { id: true, name: true, slug: true } },
+      },
+    });
+
+    await this.auditService.logEvent({
+      userId: createdBy,
+      action: 'STAFF_USER_CREATED',
+      entityType: 'User',
+      entityId: user.id,
+      newValue: { email: user.email, roleId: dto.roleId },
+    });
+
+    return user;
   }
 
   async findByEmail(email: string) {

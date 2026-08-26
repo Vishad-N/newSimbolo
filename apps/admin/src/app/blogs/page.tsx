@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { DataTable } from "@/components/DataTable";
-import { api, getDataArray } from "@/services/api";
+import { api, getDataArray, AdminRole, AdminUserSearchResult } from "@/services/api";
 import { FilePenLine, Plus, RefreshCw, Save, Trash, X } from "lucide-react";
 
 interface BlogCategory {
@@ -85,6 +85,15 @@ export default function BlogsManagerPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [form, setForm] = useState<BlogFormData>(defaultForm);
 
+  const [isAuthorModalOpen, setIsAuthorModalOpen] = useState(false);
+  const [authorMode, setAuthorMode] = useState<"search" | "create">("search");
+  const [authorSearch, setAuthorSearch] = useState("");
+  const [authorSearchResults, setAuthorSearchResults] = useState<AdminUserSearchResult[]>([]);
+  const [isSearchingUsers, setIsSearchingUsers] = useState(false);
+  const [isCreatingAuthor, setIsCreatingAuthor] = useState(false);
+  const [roles, setRoles] = useState<AdminRole[]>([]);
+  const [newStaffForm, setNewStaffForm] = useState({ firstName: "", lastName: "", email: "", password: "", roleId: "" });
+
   const hasAuthors = authors.length > 0;
 
   const totalPublished = useMemo(
@@ -123,6 +132,7 @@ export default function BlogsManagerPage() {
 
   useEffect(() => {
     fetchData();
+    api.roles.getAll().then(setRoles).catch(() => setRoles([]));
   }, []);
 
   const handleDelete = async (id: string) => {
@@ -132,6 +142,59 @@ export default function BlogsManagerPage() {
       fetchData();
     } catch (requestError) {
       alert(getRequestMessage(requestError, "Failed to delete blog"));
+    }
+  };
+
+  const handleSearchUsers = async (query: string) => {
+    setAuthorSearch(query);
+    if (query.trim().length < 2) {
+      setAuthorSearchResults([]);
+      return;
+    }
+    setIsSearchingUsers(true);
+    try {
+      const results = await api.affiliate.searchUsers(query);
+      setAuthorSearchResults(results);
+    } catch {
+      setAuthorSearchResults([]);
+    } finally {
+      setIsSearchingUsers(false);
+    }
+  };
+
+  const handleCreateAuthor = async (userId: string) => {
+    setIsCreatingAuthor(true);
+    try {
+      await api.blogs.createAuthor({ userId });
+      closeAuthorModal();
+      fetchData();
+    } catch (requestError) {
+      alert(getRequestMessage(requestError, "Failed to create author"));
+    } finally {
+      setIsCreatingAuthor(false);
+    }
+  };
+
+  const closeAuthorModal = () => {
+    setIsAuthorModalOpen(false);
+    setAuthorMode("search");
+    setAuthorSearch("");
+    setAuthorSearchResults([]);
+    setNewStaffForm({ firstName: "", lastName: "", email: "", password: "", roleId: "" });
+  };
+
+  const handleCreateStaffUser = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setIsCreatingAuthor(true);
+    try {
+      const newUser = (await api.users.create(newStaffForm)) as { id: string };
+      await api.blogs.createAuthor({ userId: newUser.id });
+      closeAuthorModal();
+      fetchData();
+    } catch (requestError) {
+      alert(getRequestMessage(requestError, "Failed to create team account"));
+    } finally {
+      setIsCreatingAuthor(false);
     }
   };
 
@@ -214,6 +277,13 @@ export default function BlogsManagerPage() {
           <button onClick={fetchData} className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-white/10">
             <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
             Refresh
+          </button>
+          <button
+            onClick={() => setIsAuthorModalOpen(true)}
+            className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-white/10"
+          >
+            <Plus className="h-4 w-4" />
+            Add Author
           </button>
           <button
             onClick={() => setIsModalOpen(true)}
@@ -316,6 +386,152 @@ export default function BlogsManagerPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {isAuthorModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+          <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-xl border border-white/10 bg-[#0B0F19] p-6 shadow-2xl">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-white">Add Blog Author</h2>
+              <button onClick={closeAuthorModal} className="text-gray-400 hover:text-white">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="mb-5 flex gap-2 rounded-lg border border-white/10 bg-white/5 p-1">
+              <button
+                type="button"
+                onClick={() => setAuthorMode("search")}
+                className={`flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                  authorMode === "search" ? "bg-primary text-white" : "text-gray-400 hover:text-white"
+                }`}
+              >
+                Existing Account
+              </button>
+              <button
+                type="button"
+                onClick={() => setAuthorMode("create")}
+                className={`flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                  authorMode === "create" ? "bg-primary text-white" : "text-gray-400 hover:text-white"
+                }`}
+              >
+                New Team Account
+              </button>
+            </div>
+
+            {authorMode === "search" ? (
+              <>
+                <p className="mb-4 text-sm text-gray-400">
+                  Search for an existing account to attribute blog posts to.
+                </p>
+
+                <input
+                  autoFocus
+                  value={authorSearch}
+                  onChange={(event) => handleSearchUsers(event.target.value)}
+                  placeholder="Search by name or email..."
+                  className="mb-4 w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-white"
+                />
+
+                {isSearchingUsers ? (
+                  <div className="py-6 text-center text-sm text-gray-400">Searching...</div>
+                ) : authorSearch.trim().length >= 2 && authorSearchResults.length === 0 ? (
+                  <div className="py-6 text-center text-sm text-gray-400">No matching users found.</div>
+                ) : (
+                  <div className="space-y-2">
+                    {authorSearchResults.map((user) => (
+                      <button
+                        key={user.id}
+                        type="button"
+                        disabled={isCreatingAuthor}
+                        onClick={() => handleCreateAuthor(user.id)}
+                        className="flex w-full items-center justify-between rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-left text-sm text-white transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        <span>
+                          {[user.firstName, user.lastName].filter(Boolean).join(" ") || user.email}
+                          <span className="ml-2 text-xs text-gray-500">{user.email}</span>
+                        </span>
+                        <Plus className="h-4 w-4 text-primary" />
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </>
+            ) : (
+              <form onSubmit={handleCreateStaffUser} className="space-y-4">
+                <p className="text-sm text-gray-400">
+                  Create a new team account and attribute blog posts to it.
+                </p>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <div>
+                    <label className="mb-1 block text-sm text-gray-400">First Name</label>
+                    <input
+                      required
+                      value={newStaffForm.firstName}
+                      onChange={(event) => setNewStaffForm({ ...newStaffForm, firstName: event.target.value })}
+                      className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-sm text-gray-400">Last Name</label>
+                    <input
+                      required
+                      value={newStaffForm.lastName}
+                      onChange={(event) => setNewStaffForm({ ...newStaffForm, lastName: event.target.value })}
+                      className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-white"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm text-gray-400">Email</label>
+                  <input
+                    required
+                    type="email"
+                    value={newStaffForm.email}
+                    onChange={(event) => setNewStaffForm({ ...newStaffForm, email: event.target.value })}
+                    className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-white"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm text-gray-400">Password</label>
+                  <input
+                    required
+                    type="password"
+                    minLength={8}
+                    value={newStaffForm.password}
+                    onChange={(event) => setNewStaffForm({ ...newStaffForm, password: event.target.value })}
+                    className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-white"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm text-gray-400">Role</label>
+                  <select
+                    required
+                    value={newStaffForm.roleId}
+                    onChange={(event) => setNewStaffForm({ ...newStaffForm, roleId: event.target.value })}
+                    className="w-full appearance-none rounded-lg border border-white/10 bg-[#1A1F2E] px-4 py-2 text-white"
+                  >
+                    <option value="">Select Role</option>
+                    {roles.map((role) => (
+                      <option key={role.id} value={role.id}>{role.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex justify-end gap-3 pt-2">
+                  <button type="button" onClick={closeAuthorModal} className="px-4 py-2 text-sm text-gray-400 transition-colors hover:text-white">Cancel</button>
+                  <button
+                    disabled={isCreatingAuthor}
+                    type="submit"
+                    className="flex items-center gap-2 rounded-lg bg-primary px-6 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <Save className="h-4 w-4" />
+                    Create & Assign
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       )}

@@ -197,6 +197,20 @@ export interface AdminUserSearchResult {
   role?: { id: string; name: string; slug: string };
 }
 
+export interface AdminRole {
+  id: string;
+  name: string;
+  slug: string;
+}
+
+export interface CreateStaffUserPayload {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  roleId: string;
+}
+
 export interface CreateAffiliateEmployeePayload {
   userId?: string;
   email?: string;
@@ -398,11 +412,25 @@ export const api = {
       fetchFromApi('/clients/manual', { method: 'POST', body: JSON.stringify(data) }),
   },
 
+  roles: {
+    getAll: async (): Promise<AdminRole[]> => {
+      const res = await fetchFromApi<{ data?: AdminRole[] } | AdminRole[]>('/roles', { method: 'GET' }, []);
+      return Array.isArray(res) ? res : res.data ?? [];
+    },
+  },
+
+  users: {
+    create: async (data: CreateStaffUserPayload) =>
+      fetchFromApi('/users', { method: 'POST', body: JSON.stringify(data) }),
+  },
+
   // Content & Showcase Modules
   blogs: {
     getAll: async () => fetchFromApi('/blogs', { method: 'GET' }),
     getCategories: async () => fetchFromApi('/blogs/categories', { method: 'GET' }),
     getAuthors: async () => fetchFromApi('/blogs/authors', { method: 'GET' }),
+    createAuthor: async (data: { userId: string; bio?: string; avatarUrl?: string; twitterUrl?: string; linkedinUrl?: string }) =>
+      fetchFromApi('/blogs/authors', { method: 'POST', body: JSON.stringify(data) }),
     create: async (data: any) => fetchFromApi('/blogs', { method: 'POST', body: JSON.stringify(data) }),
     update: async (id: string, data: any) => fetchFromApi(`/blogs/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
     delete: async (id: string) => fetchFromApi(`/blogs/${id}`, { method: 'DELETE' }),

@@ -42,3 +42,6 @@ next-env.d.ts
 .history/
 AGENTS.md
 .agents/
+
+.vercel
+.env*

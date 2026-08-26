@@ -3,7 +3,8 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**"]
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"],
+      "env": ["NEXT_PUBLIC_API_URL", "NEXT_PUBLIC_WEBSITE_URL", "ADMIN_USERNAME", "ADMIN_PASSWORD", "NEXT_PUBLIC_DASHBOARD_URL", "NEXT_PUBLIC_RAZORPAY_KEY_ID", "NEXT_PUBLIC_LANDING_URL"]
     },
     "lint": {
       "dependsOn": ["^lint"]

@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { CaseStudyClientPage } from "./client-page";
 import { fetchMappedCaseStudies } from "@/lib/case-studies-mapper";
 
+export const dynamic = "force-dynamic";
+
 type PageProps = {
   params: Promise<{ slug: string }>;
 };

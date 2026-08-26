@@ -5,6 +5,8 @@ import { landingApi } from "@/lib/api";
 import { mapBlogResponse } from "@/lib/blog-mapper";
 import { mockAuthors, mockBlogs, mockCategories } from "@/mock/blog";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Digital Marketing Blog | The Simbolo",
   description: "Read digital marketing, SEO, paid ads, AI marketing, and website growth insights from The Simbolo.",

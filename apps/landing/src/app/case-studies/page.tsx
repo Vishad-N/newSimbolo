@@ -3,6 +3,8 @@ import { CaseStudiesClientPage } from "./client-page";
 import { caseStudies as mockCaseStudies } from "@/mock/case-studies";
 import { fetchMappedCaseStudies } from "@/lib/case-studies-mapper";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Case Studies & Results | The Simbolo",
   description: "Explore our digital marketing case studies. See how we've helped businesses achieve 300% ROI, scale E-commerce sales, and generate high-quality B2B leads.",
