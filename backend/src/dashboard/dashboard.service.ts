@@ -1,11 +1,31 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { BaseService } from '../shared/abstractions/base.service';
+import { CustomForbiddenException } from '../common/exceptions/custom.exceptions';
+import { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
 
 @Injectable()
 export class DashboardService extends BaseService {
   constructor(private readonly prisma: PrismaService) {
     super('DashboardService');
+  }
+
+  /**
+   * A client user only has `dashboard.view`, not `clients.read`, so they can
+   * only ever reach these endpoints for their own ClientProfile. Staff with
+   * `clients.read` can look up any client's dashboard.
+   */
+  async assertClientAccess(clientId: string, user: JwtPayload): Promise<void> {
+    if (user.permissions?.includes('clients.read') || user.role === 'SUPER_ADMIN') {
+      return;
+    }
+    const ownProfile = await this.prisma.clientProfile.findUnique({
+      where: { userId: user.sub },
+      select: { id: true },
+    });
+    if (!ownProfile || ownProfile.id !== clientId) {
+      throw new CustomForbiddenException('You do not have access to this client dashboard.');
+    }
   }
 
   async getAdminOverview() {

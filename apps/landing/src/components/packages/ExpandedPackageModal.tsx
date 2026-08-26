@@ -163,7 +163,7 @@ export function ExpandedPackageModal({ pkg, isOpen, onClose, defaultBilling = "m
                   href={pkg.buttonLink}
                   className="animate-heartbeat hover:animate-none flex h-12 w-full items-center justify-center gap-2 rounded-[8px] bg-[var(--accent)] text-[0.95rem] font-bold text-black transition-transform hover:scale-[1.02] hover:bg-[var(--accent-hover)] shadow-[0_0_20px_var(--accent-glow)]"
                 >
-                  {pkg.buttonText}
+                  Buy Now
                   <ArrowRight className="h-4 w-4" />
                 </Link>
                 <Link

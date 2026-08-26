@@ -6,8 +6,10 @@ import { StorageService } from '../storage/storage.service';
 import { TaxService } from './tax.service';
 import { CreateInvoiceDto, UpdateInvoiceStatusDto } from './dto/invoice.dto';
 import { buildInvoicePdf } from './templates/invoice.pdf.builder';
-import { InvoiceStatusEnum } from '@prisma/client';
+import { InvoiceStatusEnum, Prisma } from '@prisma/client';
 import { UserRole } from '../common/constants/role.constant';
+
+const MAX_INVOICE_NUMBER_RETRIES = 5;
 
 const STAFF_ROLES: string[] = [
   UserRole.ADMIN,
@@ -72,63 +74,86 @@ export class InvoicesService extends BaseService {
       customerStateCode,
       items: dto.items.map((item) => ({
         description: item.name + (item.description ? ` - ${item.description}` : ''),
+        sacCode: item.sacCode,
         quantity: item.quantity,
         unitPrice: item.unitPrice,
-        gstRate: dto.taxPercentage ?? 18,
+        gstRate: item.gstRate ?? dto.taxPercentage ?? 18,
       })),
     };
 
     const taxResult = this.taxService.calculateTax(taxParams);
-    const { number: invoiceNumber, fy } = await this.generateInvoiceNumber();
 
-    const invoice = await this.prisma.invoice.create({
-      data: {
-        invoiceNumber,
-        financialYear: fy,
-        status: InvoiceStatusEnum.DRAFT,
-        supplyType: hasGstin ? 'B2B' : 'B2C',
-        taxTreatment: 'STANDARD',
-        taxType: taxResult.isInterState ? 'IGST' : 'CGST_SGST',
-        issueDate: new Date(),
-        dueDate: new Date(dto.dueDate),
-        subtotal: taxResult.subtotal,
-        taxAmount: taxResult.totalTax,
-        cgstAmount: taxResult.totalCgst,
-        sgstAmount: taxResult.totalSgst,
-        igstAmount: taxResult.totalIgst,
-        totalTax: taxResult.totalTax,
-        totalAmount: taxResult.totalAmount,
-        currency: dto.currency ?? 'INR',
-        clientId: dto.clientId,
-        orderId: dto.orderId ?? null,
-        subscriptionId: dto.subscriptionId ?? null,
-        createdBy: createdBy ?? null,
-        items: {
-          create: taxResult.items.map((item) => ({
-            description: item.description,
-            sacCode: item.sacCode,
-            quantity: item.quantity,
-            unitPrice: item.unitPrice,
-            discount: item.discount,
-            taxableAmount: item.taxableAmount,
-            gstRate: item.gstRate,
-            cgstAmount: item.cgstAmount,
-            sgstAmount: item.sgstAmount,
-            igstAmount: item.igstAmount,
-            totalAmount: item.totalAmount,
-          })),
-        },
-      },
-      include: {
-        client: { include: { user: true, company: true } },
-        order: { select: { orderNumber: true } },
-        items: true,
-      },
-    });
+    // generateInvoiceNumber() reads the current max and adds 1 with no row lock, so two
+    // concurrent invoice creations (e.g. a Razorpay webhook and the client-side verify
+    // call racing for the same payment) can compute the same number. invoiceNumber is
+    // unique, so the loser's insert throws P2002 — retry with a freshly-read number
+    // instead of losing the invoice silently.
+    let invoice;
+    let lastError: unknown;
+    for (let attempt = 0; attempt < MAX_INVOICE_NUMBER_RETRIES; attempt++) {
+      const { number: invoiceNumber, fy } = await this.generateInvoiceNumber();
+      try {
+        invoice = await this.prisma.invoice.create({
+          data: {
+            invoiceNumber,
+            financialYear: fy,
+            status: InvoiceStatusEnum.DRAFT,
+            supplyType: hasGstin ? 'B2B' : 'B2C',
+            taxTreatment: 'STANDARD',
+            taxType: taxResult.isInterState ? 'IGST' : 'CGST_SGST',
+            issueDate: new Date(),
+            dueDate: new Date(dto.dueDate),
+            subtotal: taxResult.subtotal,
+            taxAmount: taxResult.totalTax,
+            cgstAmount: taxResult.totalCgst,
+            sgstAmount: taxResult.totalSgst,
+            igstAmount: taxResult.totalIgst,
+            totalTax: taxResult.totalTax,
+            totalAmount: taxResult.totalAmount,
+            currency: dto.currency ?? 'INR',
+            clientId: dto.clientId,
+            orderId: dto.orderId ?? null,
+            subscriptionId: dto.subscriptionId ?? null,
+            createdBy: createdBy ?? null,
+            items: {
+              create: taxResult.items.map((item) => ({
+                description: item.description,
+                sacCode: item.sacCode,
+                quantity: item.quantity,
+                unitPrice: item.unitPrice,
+                discount: item.discount,
+                taxableAmount: item.taxableAmount,
+                gstRate: item.gstRate,
+                cgstAmount: item.cgstAmount,
+                sgstAmount: item.sgstAmount,
+                igstAmount: item.igstAmount,
+                totalAmount: item.totalAmount,
+              })),
+            },
+          },
+          include: {
+            client: { include: { user: true, company: true } },
+            order: { select: { orderNumber: true } },
+            items: true,
+          },
+        });
+        lastError = undefined;
+        break;
+      } catch (error) {
+        const isDuplicateInvoiceNumber =
+          error instanceof Prisma.PrismaClientKnownRequestError &&
+          error.code === 'P2002' &&
+          (error.meta?.target as string[] | undefined)?.includes('invoiceNumber');
+        if (!isDuplicateInvoiceNumber) throw error;
+        lastError = error;
+        this.logger.warn(`Invoice number ${invoiceNumber} collided, retrying (attempt ${attempt + 1})`);
+      }
+    }
+    if (!invoice) throw lastError;
 
     await this.prisma.timeline.create({
       data: {
-        title: `Tax Invoice ${invoiceNumber} generated`,
+        title: `Tax Invoice ${invoice.invoiceNumber} generated`,
         description: `Invoice for ₹${taxResult.totalAmount} generated for ${client.user.firstName} ${client.user.lastName}`,
         eventType: 'INVOICE_GENERATED',
         clientId: dto.clientId,
@@ -166,7 +191,7 @@ export class InvoicesService extends BaseService {
         unitPrice: item.unitPrice,
         sacCode: item.service?.sacCode ?? item.package?.sacCode ?? undefined,
         gstRate: item.service?.gstRate ?? item.package?.gstRate ?? 18,
-      })) as any,
+      })),
     };
 
     const invoice = await this.create(dto, createdBy);
@@ -281,6 +306,7 @@ export class InvoicesService extends BaseService {
       totalAmount: invoice.totalAmount,
       currency: invoice.currency,
       supplierStateCode: process.env.SUPPLIER_STATE_CODE || '23',
+      supplierGstin: process.env.SUPPLIER_GSTIN || undefined,
     };
 
     const pdfBuffer = await buildInvoicePdf(pdfData);

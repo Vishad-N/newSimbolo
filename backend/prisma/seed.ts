@@ -202,6 +202,20 @@ async function main() {
       module: 'documents',
       description: 'Can upload a file and register it as a document (own client only, for non-staff)',
     },
+    // Dashboard module
+    {
+      name: 'View Dashboard',
+      slug: 'dashboard.view',
+      module: 'dashboard',
+      description: 'Can view dashboard overview, KPIs, and widgets',
+    },
+    // Clients module
+    {
+      name: 'View Clients',
+      slug: 'clients.read',
+      module: 'clients',
+      description: "Can view any client's profile and dashboard (staff only)",
+    },
   ];
 
   console.log(`Creating/updating ${permissionsData.length} permissions...`);
@@ -333,6 +347,8 @@ async function main() {
     'documents.read',
     'documents.manage',
     'documents.upload',
+    'dashboard.view',
+    'clients.read',
   ];
   await prisma.role.update({
     where: { id: createdRoles['PROJECT_MANAGER'] },
@@ -347,6 +363,7 @@ async function main() {
     'orders.create',
     'documents.read',
     'documents.upload',
+    'dashboard.view',
   ];
   await prisma.role.update({
     where: { id: createdRoles['CLIENT'] },

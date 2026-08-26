@@ -71,4 +71,49 @@ describe('InvoicesService', () => {
       include: expect.objectContaining({}),
     });
   });
+
+  it("taxes each line item at its own gstRate, not a single invoice-wide rate", async () => {
+    const prisma: InvoicesPrismaMock = {
+      clientProfile: {
+        findFirst: jest.fn().mockResolvedValue({
+          id: 'client-id',
+          user: { firstName: 'Asha', lastName: 'Mehta' },
+          company: null,
+        }),
+      },
+      invoice: {
+        findFirst: jest.fn().mockResolvedValue(null),
+        create: jest.fn().mockImplementation(({ data }) => ({
+          id: 'invoice-id',
+          ...data,
+        })),
+      },
+      timeline: {
+        create: jest.fn().mockResolvedValue({}),
+      },
+    };
+
+    const taxService = new TaxService();
+
+    const service = new InvoicesService(
+      prisma as unknown as PrismaService,
+      {} as unknown as EmailService,
+      taxService,
+      {} as unknown as StorageService,
+    );
+
+    await service.create({
+      clientId: 'client-id',
+      dueDate: '2026-08-31T00:00:00.000Z',
+      currency: 'INR',
+      items: [
+        { name: 'Zero-rated export service', quantity: 1, unitPrice: 10000, gstRate: 0 },
+        { name: 'Standard SEO retainer', quantity: 1, unitPrice: 10000, gstRate: 18 },
+      ],
+    });
+
+    const createdItems = (prisma.invoice.create.mock.calls[0][0] as any).data.items.create;
+    expect(createdItems[0]).toMatchObject({ gstRate: 0, totalAmount: 10000 });
+    expect(createdItems[1]).toMatchObject({ gstRate: 18, totalAmount: 11800 });
+  });
 });

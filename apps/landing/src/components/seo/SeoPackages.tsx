@@ -1,10 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { Check } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { ExpandedPackageModal } from "@/components/packages/ExpandedPackageModal";
+import { sharedPackageToMarketingPackage } from "@/lib/package-adapter";
 import type { BillingCycle, SeoPackage } from "@/types/seo";
 
 import { Box } from "lucide-react";
@@ -25,6 +26,7 @@ function formatPackagePrice(item: SeoPackage, billing: BillingCycle) {
 
 export function SeoPackages({ packages }: SeoPackagesProps) {
   const [billing, setBilling] = useState<BillingCycle>("monthly");
+  const [selectedPackage, setSelectedPackage] = useState<SeoPackage | null>(null);
 
   return (
     <section>
@@ -57,8 +59,9 @@ export function SeoPackages({ packages }: SeoPackagesProps) {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.07, duration: 0.46 }}
               whileHover={{ y: -7 }}
+              onClick={() => setSelectedPackage(item)}
               className={cn(
-                "relative flex min-h-[330px] flex-col rounded-[8px] border bg-[color-mix(in_srgb,var(--card)_76%,transparent)] p-4 pt-6 shadow-[0_18px_48px_rgba(0,0,0,0.24)] mt-4",
+                "relative flex min-h-[330px] cursor-pointer flex-col rounded-[8px] border bg-[color-mix(in_srgb,var(--card)_76%,transparent)] p-4 pt-6 shadow-[0_18px_48px_rgba(0,0,0,0.24)] mt-4",
                 item.isPopular ? "border-[var(--primary)] shadow-[0_0_38px_var(--accent-glow)]" : "border-white/10",
               )}
             >
@@ -87,13 +90,23 @@ export function SeoPackages({ packages }: SeoPackagesProps) {
                   </li>
                 ))}
               </ul>
- <Link href={item.buttonLink} className={cn("mt-6 grid h-11 place-items-center rounded-[8px] border text-[0.86rem] font-black transition duration-300", item.isPopular ? "border-[var(--primary)] bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] hover:-translate-y-[2px] hover:shadow-[0_12px_28px_var(--primary-glow)] active:bg-[var(--primary-active)]" : "border-[var(--accent)]/6030 text-[var(--accent)] hover:bg-[var(--accent-glow)]")}>
+ <button
+                type="button"
+                onClick={() => setSelectedPackage(item)}
+                className={cn("mt-6 grid h-11 place-items-center rounded-[8px] border text-[0.86rem] font-black transition duration-300", item.isPopular ? "border-[var(--primary)] bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] hover:-translate-y-[2px] hover:shadow-[0_12px_28px_var(--primary-glow)] active:bg-[var(--primary-active)]" : "border-[var(--accent)]/6030 text-[var(--accent)] hover:bg-[var(--accent-glow)]")}
+              >
                 {item.buttonText}
-              </Link>
+              </button>
             </motion.article>
           );
         })}
       </div>
+      <ExpandedPackageModal
+        pkg={selectedPackage ? sharedPackageToMarketingPackage(selectedPackage) : null}
+        isOpen={!!selectedPackage}
+        onClose={() => setSelectedPackage(null)}
+        defaultBilling={billing}
+      />
     </section>
   );
 }

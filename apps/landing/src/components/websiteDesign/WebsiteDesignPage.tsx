@@ -69,7 +69,7 @@ export function WebsiteDesignPage({ livePackages, liveProjects, liveConfig }: We
             </SectionCard>
 
             <div className="grid gap-4 xl:grid-cols-[2.5fr_0.9fr]">
-              <PricingSection title="Website Maintenance Packages" packages={packages}  />
+              <PricingSection title="Website Maintenance + SEO Packages" packages={packages}  />
               <div className="h-full">
                 <LeadForm
                   title="Request Free Consultation"

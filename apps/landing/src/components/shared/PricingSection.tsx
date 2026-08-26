@@ -1,11 +1,12 @@
 "use client";
 
-import Link from "next/link";
 import { Check } from "lucide-react";
 import { motion } from "framer-motion";
 import { SectionCard } from "@/components/seo/SectionCard";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { ExpandedPackageModal } from "@/components/packages/ExpandedPackageModal";
+import { sharedPackageToMarketingPackage } from "@/lib/package-adapter";
 import type { BillingCycle, SharedPackage } from "@/types/shared";
 
 type PricingSectionProps = {
@@ -25,6 +26,7 @@ function formatPrice(item: SharedPackage, billing: BillingCycle) {
 
 export function PricingSection({ title = "Packages", packages }: PricingSectionProps) {
   const [billing, setBilling] = useState<BillingCycle>("monthly");
+  const [selectedPackage, setSelectedPackage] = useState<SharedPackage | null>(null);
 
   return (
     <SectionCard className="p-4">
@@ -51,7 +53,8 @@ export function PricingSection({ title = "Packages", packages }: PricingSectionP
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.06, duration: 0.4 }}
               whileHover={{ y: -6 }}
-              className={cn("relative flex min-h-[395px] flex-col rounded-[8px] border bg-[var(--background)]/34 p-4 pt-6 mt-4", item.isPopular ? "border-[var(--primary)] shadow-[0_0_30px_var(--accent-glow)]" : "border-white/10")}
+              onClick={() => setSelectedPackage(item)}
+              className={cn("relative flex min-h-[395px] cursor-pointer flex-col rounded-[8px] border bg-[var(--background)]/34 p-4 pt-6 mt-4", item.isPopular ? "border-[var(--primary)] shadow-[0_0_30px_var(--accent-glow)]" : "border-white/10")}
             >
               {item.badge && <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-[var(--primary)] px-4 py-1.5 text-[0.68rem] font-black text-[#ffffff]">{item.badge}</div>}
               <h3 className="text-[1.25rem] font-black text-white">{item.name}</h3>
@@ -68,13 +71,23 @@ export function PricingSection({ title = "Packages", packages }: PricingSectionP
                   </li>
                 ))}
               </ul>
- <Link href={item.buttonLink} className={cn("mt-5 grid h-10 place-items-center rounded-[8px] border text-[0.82rem] font-heading font-semibold tracking-[0.2px] normal-case transition", item.isPopular ? "border-[var(--primary)] bg-[var(--primary)] text-white transition-all duration-300 hover:bg-[var(--primary-hover)] hover:-translate-y-[2px] hover:shadow-[0_12px_28px_var(--primary-glow)] active:bg-[var(--primary-active)]" : "border-[var(--accent)]/55 text-[var(--accent)] hover:bg-[var(--accent-glow)]")}>
+ <button
+                type="button"
+                onClick={() => setSelectedPackage(item)}
+                className={cn("mt-5 grid h-10 place-items-center rounded-[8px] border text-[0.82rem] font-heading font-semibold tracking-[0.2px] normal-case transition", item.isPopular ? "border-[var(--primary)] bg-[var(--primary)] text-white transition-all duration-300 hover:bg-[var(--primary-hover)] hover:-translate-y-[2px] hover:shadow-[0_12px_28px_var(--primary-glow)] active:bg-[var(--primary-active)]" : "border-[var(--accent)]/55 text-[var(--accent)] hover:bg-[var(--accent-glow)]")}
+              >
                 {item.buttonText}
-              </Link>
+              </button>
             </motion.article>
           );
         })}
       </div>
+      <ExpandedPackageModal
+        pkg={selectedPackage ? sharedPackageToMarketingPackage(selectedPackage) : null}
+        isOpen={!!selectedPackage}
+        onClose={() => setSelectedPackage(null)}
+        defaultBilling={billing}
+      />
     </SectionCard>
   );
 }

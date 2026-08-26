@@ -62,23 +62,27 @@ export class DashboardController {
   }
 
   @Get('client/:clientId')
-  @Permissions('dashboard.view', 'clients.read')
+  @Permissions('dashboard.view')
   @ApiOperation({ summary: 'Client dashboard – active projects, pending deliverables, meetings, tickets' })
   @ApiResponse({ status: 200, description: 'Client dashboard returned' })
-  async getClientDashboard(@Param('clientId', ParseUUIDPipe) clientId: string) {
+  async getClientDashboard(@Param('clientId', ParseUUIDPipe) clientId: string, @CurrentUser() user: JwtPayload) {
+    await this.dashboardService.assertClientAccess(clientId, user);
     return this.dashboardService.getClientDashboard(clientId);
   }
 
   @Get('client/:clientId/billing')
+  @Permissions('dashboard.view')
   @ApiOperation({ summary: 'Client billing dashboard – payments, invoices, subscriptions, notifications' })
-  async getClientBillingDashboard(@Param('clientId', ParseUUIDPipe) clientId: string) {
+  async getClientBillingDashboard(@Param('clientId', ParseUUIDPipe) clientId: string, @CurrentUser() user: JwtPayload) {
+    await this.dashboardService.assertClientAccess(clientId, user);
     return this.dashboardService.getClientBillingDashboard(clientId);
   }
 
   @Get('client/:clientId/widgets')
-  @Permissions('dashboard.view', 'clients.read')
+  @Permissions('dashboard.view')
   @ApiOperation({ summary: 'Client dashboard widget data for Phase 9 BI dashboard' })
-  async getClientWidgets(@Param('clientId', ParseUUIDPipe) clientId: string) {
+  async getClientWidgets(@Param('clientId', ParseUUIDPipe) clientId: string, @CurrentUser() user: JwtPayload) {
+    await this.dashboardService.assertClientAccess(clientId, user);
     return this.dashboardService.getClientWidgets(clientId);
   }
 

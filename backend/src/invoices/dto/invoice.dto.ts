@@ -34,6 +34,17 @@ export class InvoiceItemDto {
   @IsNumber()
   @IsPositive()
   unitPrice: number;
+
+  @ApiPropertyOptional({ description: 'SAC (Services Accounting Code) for this line item', example: '998314' })
+  @IsOptional()
+  @IsString()
+  sacCode?: string;
+
+  @ApiPropertyOptional({ description: "This line item's GST rate; falls back to the invoice-level taxPercentage, then 18", example: 18 })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  gstRate?: number;
 }
 
 export class CreateInvoiceDto {
