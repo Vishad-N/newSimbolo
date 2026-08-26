@@ -15,23 +15,44 @@ export default function DashboardPage() {
   const [subscription, setSubscription] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [orders, setOrders] = useState<any[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
+    setError(null);
     mockApi.profile.get()
       .then(profileData => {
         setProfile(profileData);
         const clientId = profileData?.clientId || profileData?.id;
         if (clientId) {
-          mockApi.stats.getDashboard(clientId).then(setStats);
-          mockApi.projects.getAll(clientId).then(setProjects);
-          mockApi.subscription.get(clientId).then(setSubscription);
-          mockApi.orders.getAll(clientId).then(setOrders);
-        } else {
-          setStats({ activeProjects: 0, pendingTasks: 0, invoicesDue: 0, upcomingMeetings: 0 });
+          return Promise.all([
+            mockApi.stats.getDashboard(clientId).then(setStats),
+            mockApi.projects.getAll(clientId).then(setProjects),
+            mockApi.subscription.get(clientId).then(setSubscription),
+            mockApi.orders.getAll(clientId).then(setOrders),
+          ]);
         }
+        setStats({ activeProjects: 0, pendingTasks: 0, invoicesDue: 0, upcomingMeetings: 0 });
       })
-      .catch(console.error);
-  }, []);
+      .catch((err) => {
+        console.error(err);
+        setError(err instanceof Error ? err.message : "Failed to load dashboard.");
+      });
+  }, [reloadKey]);
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-4 p-12 text-center">
+        <p className="text-red-400">{error}</p>
+        <button
+          onClick={() => setReloadKey((key) => key + 1)}
+          className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-hover"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
 
   if (!stats) return <div className="text-white animate-pulse p-4">Loading dashboard...</div>;
 
