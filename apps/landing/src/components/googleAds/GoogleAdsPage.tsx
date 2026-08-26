@@ -7,10 +7,9 @@ import { LeadForm } from "@/components/shared/LeadForm";
 import { PricingSection } from "@/components/shared/PricingSection";
 import { ProcessTimeline } from "@/components/googleAds/ProcessTimeline";
 import { ResultsSection } from "@/components/shared/ResultsSection";
-import { ServiceList } from "@/components/shared/ServiceList";
 import { StatsBar } from "@/components/shared/StatsBar";
 import { WhyChooseUs } from "@/components/googleAds/WhyChooseUs";
-import { googleAdsBenefits, googleAdsProcess, googleAdsResults, googleAdsServices, googleAdsStats, whyChooseItems } from "@/mock/googleAds";
+import { googleAdsBenefits, googleAdsProcess, googleAdsResults, googleAdsStats, whyChooseItems } from "@/mock/googleAds";
 import { googleAdsFaqs } from "@/mock/googleAdsFaq";
 import { googleAdsPackages } from "@/mock/googleAdsPackages";
 import { googleAdsTestimonials } from "@/mock/googleAdsTestimonials";
@@ -32,13 +31,6 @@ export function GoogleAdsPage({ livePackages, liveConfig }: GoogleAdsPageProps) 
     icon: (props: any) => <DynamicIcon name={s.iconName} {...props} />
   })) : googleAdsStats;
 
-  const services = liveConfig?.servicesList?.length > 0 ? liveConfig.servicesList.map((s: any, i: number) => ({
-    id: `svc-${i}`,
-    title: s.title,
-    description: s.description,
-    icon: (props: any) => <DynamicIcon name={s.iconName} {...props} />
-  })) : googleAdsServices;
-
   const results = liveConfig?.resultMetrics?.length > 0 ? liveConfig.resultMetrics.map((r: any, i: number) => ({
     id: `res-${i}`,
     value: r.value,
@@ -50,9 +42,10 @@ export function GoogleAdsPage({ livePackages, liveConfig }: GoogleAdsPageProps) 
         <div className="px-4 pb-8 pt-4 sm:px-8 lg:px-10">
           <div className="mx-auto max-w-[1320px] space-y-4">
             <GoogleAdsHero benefits={benefits} />
-            <StatsBar stats={stats} />
-            <div className="grid gap-4 xl:grid-cols-[0.66fr_1.92fr_0.78fr]">
-              <ServiceList services={services} />
+            <div className="hidden sm:block">
+              <StatsBar stats={stats} />
+            </div>
+            <div className="grid gap-4 xl:grid-cols-[2.6fr_1fr]">
               <PricingSection packages={packages}  />
               <div className="space-y-4">
                 <LeadForm />

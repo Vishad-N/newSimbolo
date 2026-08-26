@@ -41,15 +41,17 @@ export function GraphicDesignPage({ liveConfig }: { liveConfig?: any }) {
         <div className="px-4 pb-8 pt-4 sm:px-8 lg:px-10">
           <div className="mx-auto max-w-[1320px] space-y-4">
             <GraphicDesignHero benefits={benefits} />
-            <StatsBar stats={stats} />
-            
+            <div className="hidden sm:block">
+              <StatsBar stats={stats} />
+            </div>
+
             <SectionCard className="p-5">
                <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                  <h2 className="text-[1.15rem] font-black text-white">Our Graphic Design Services</h2>
                </div>
                <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 lg:grid-cols-4">
                  {services.map((service: any, index: number) => (
-                   <ServiceCard key={service.id} service={service} index={index} />
+                   <ServiceCard key={service.id} service={service} index={index} whatsappNumber="918982948199" />
                  ))}
                </div>
             </SectionCard>

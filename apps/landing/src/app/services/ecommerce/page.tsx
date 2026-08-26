@@ -68,6 +68,8 @@ const jsonLd = {
   },
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function EcommerceRoute() {
   const [packagesToPass, liveProjectsToPass] = await Promise.all([
     fetchMappedPackages('ecommerce', []),

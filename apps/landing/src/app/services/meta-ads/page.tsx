@@ -34,6 +34,8 @@ export const metadata: Metadata = {
   category: "Marketing",
 };
 
+export const dynamic = "force-dynamic";
+
 import { fetchMappedPackages } from "@/lib/package-mapper";
 import { landingApi } from "@/lib/api";
 

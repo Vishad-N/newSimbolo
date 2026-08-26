@@ -6,13 +6,11 @@ import { VideoEditingHero } from "@/components/videoEditing/VideoEditingHero";
 import { VideoServiceCatalog } from "@/components/videoEditing/VideoServiceCatalog";
 import { StatsBar } from "@/components/shared/StatsBar";
 import { TestimonialSection } from "@/components/shared/TestimonialSection";
-import { RecentWorks } from "@/components/videoEditing/RecentWorks";
 import { TechStack } from "@/components/websiteDesign/TechStack";
 import { SectionCard } from "@/components/seo/SectionCard";
 import {
   videoEditingBenefits,
   videoEditingStats,
-  portfolioWorks,
   videoEditingTestimonials,
   videoEditingTech,
   toolsStats,
@@ -42,13 +40,13 @@ export function VideoEditingPage({ liveConfig }: { liveConfig?: any }) {
         <div className="px-4 pb-8 pt-4 sm:px-8 lg:px-10">
           <div className="mx-auto max-w-[1320px] space-y-4">
             <VideoEditingHero benefits={benefits} />
-            <StatsBar stats={stats} />
-            
+            <div className="hidden sm:block">
+              <StatsBar stats={stats} />
+            </div>
+
             <div className="mt-8">
               <VideoServiceCatalog liveServices={liveConfig?.servicesList} />
             </div>
-
-            <RecentWorks works={portfolioWorks} />
 
             <div className="mt-8">
               <TechStack title="TOOLS WE USE" technologies={videoEditingTech} />

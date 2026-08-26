@@ -14,9 +14,11 @@ export type ServiceCardData = {
 type ServiceCardProps = {
   service: ServiceCardData;
   index: number;
+  /** When set, shows a "Connect" WhatsApp link instead of the price block. */
+  whatsappNumber?: string;
 };
 
-export function ServiceCard({ service, index }: ServiceCardProps) {
+export function ServiceCard({ service, index, whatsappNumber }: ServiceCardProps) {
   const Icon = service.icon;
 
   return (
@@ -35,11 +37,22 @@ export function ServiceCard({ service, index }: ServiceCardProps) {
         <h3 className="relative mt-5 text-[1rem] font-extrabold text-white">{service.title}</h3>
         <p className="relative mt-2 text-[0.8rem] leading-5 text-white/74">{service.description}</p>
       </div>
-      {service.startingPrice && (
-        <div className="relative mt-5 border-t border-white/10 pt-3">
-          <div className="text-[0.7rem] font-semibold text-white/60">Starting at</div>
-          <div className="font-heading text-[1.15rem] font-bold text-white">₹{service.startingPrice}</div>
-        </div>
+      {whatsappNumber ? (
+        <a
+          href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(`Hi, I'm interested in ${service.title}.`)}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="relative mt-5 flex items-center justify-center rounded-lg border border-[var(--accent)]/50 bg-[var(--accent)]/10 py-2 text-[0.85rem] font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-black"
+        >
+          Connect
+        </a>
+      ) : (
+        service.startingPrice && (
+          <div className="relative mt-5 border-t border-white/10 pt-3">
+            <div className="text-[0.7rem] font-semibold text-white/60">Starting at</div>
+            <div className="font-heading text-[1.15rem] font-bold text-white">₹{service.startingPrice}</div>
+          </div>
+        )
       )}
     </motion.article>
   );

@@ -5,11 +5,10 @@ import { MetaAdsHero } from "@/components/metaAds/MetaAdsHero";
 import { LeadForm } from "@/components/shared/LeadForm";
 import { PricingSection } from "@/components/shared/PricingSection";
 import { ResultsSection } from "@/components/shared/ResultsSection";
-import { ServiceList } from "@/components/shared/ServiceList";
 import { StatsBar } from "@/components/shared/StatsBar";
 import { TestimonialSection } from "@/components/shared/TestimonialSection";
 import { FAQSection } from "@/components/shared/FAQSection";
-import { metaAdsBenefits, metaAdsResults, metaAdsServices, metaAdsStats } from "@/mock/metaAds";
+import { metaAdsBenefits, metaAdsResults, metaAdsStats } from "@/mock/metaAds";
 import { metaAdsFaqs } from "@/mock/metaAdsFaq";
 import { metaAdsPackages } from "@/mock/metaAdsPackages";
 import { metaAdsTestimonials } from "@/mock/metaAdsTestimonials";
@@ -32,13 +31,6 @@ export function MetaAdsClientPage({ livePackages, liveConfig }: MetaAdsClientPag
     icon: (props: any) => <DynamicIcon name={s.iconName} {...props} />
   })) : metaAdsStats;
 
-  const services = liveConfig?.servicesList?.length > 0 ? liveConfig.servicesList.map((s: any, i: number) => ({
-    id: `svc-${i}`,
-    title: s.title,
-    description: s.description,
-    icon: (props: any) => <DynamicIcon name={s.iconName} {...props} />
-  })) : metaAdsServices;
-
   const results = liveConfig?.resultMetrics?.length > 0 ? liveConfig.resultMetrics.map((r: any, i: number) => ({
     id: `res-${i}`,
     value: r.value,
@@ -51,8 +43,7 @@ export function MetaAdsClientPage({ livePackages, liveConfig }: MetaAdsClientPag
           <div className="mx-auto max-w-[1320px] space-y-4">
             <MetaAdsHero benefits={benefits} />
             <StatsBar stats={stats} />
-            <div className="grid gap-4 xl:grid-cols-[0.66fr_1.92fr_0.78fr]">
-              <ServiceList services={services} title="What We Do" />
+            <div className="grid gap-4 xl:grid-cols-[2.6fr_1fr]">
               <PricingSection packages={packages} title="Meta Ads Packages" />
               <div className="space-y-4">
                 <LeadForm title="Get Your Free Meta Ads Audit" />

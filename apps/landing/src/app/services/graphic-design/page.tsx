@@ -66,6 +66,8 @@ const jsonLd = {
 
 import { landingApi } from "@/lib/api";
 
+export const dynamic = "force-dynamic";
+
 export default async function Page() {
   const liveConfig = await landingApi.getServicePageConfig('graphic-design', null);
 

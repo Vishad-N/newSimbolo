@@ -1,5 +1,5 @@
 <!-- SKILLGOD:START v1.1 -->
-# SkillGod Project Memory (auto-generated — do not edit; updated 2026-08-25 18:34)
+# SkillGod Project Memory (auto-generated — do not edit; updated 2026-08-26 17:15)
 
 # SkillGod Active
 
@@ -18,20 +18,20 @@ After completing **meaningful** work (decisions, architecture, non-obvious fixes
 ## SkillGod health
 - version: 1.0.1+794a995
 - project_id: `visha-90fc8883`
-- last inject: 2026-08-25T18:33:44 (runtime)
+- last inject: 2026-08-26T17:15:30 (runtime)
 - last capture: never (-)
 - markers: SKILLGOD:START v1.1
 
 ## Project memory
 
 ## Decisions
-- {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\admin\\src\\services\\api.ts", "oldString": " affiliate: {", "newString": " documents: {\n getAll: async (filters: DocumentFilters
-- {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\admin\\src\\services\\api.ts", "oldString": "export interface AffiliateSettings {", "newString": "export type DocumentCategory = '
-- {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\client\\src\\app\\documents\\page.tsx", "oldString": " <UploadModal\n isOpen={isUploadModalOpen}\n onClose={() => setUploadModalOp
-- {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\client\\src\\services\\api.ts", "oldString": " documents: {\n getAll: async () => {\n // Documents for current user (own ClientPro
-- {"content":"---\ntitle: Public API\ndescription: Discover the Railway GraphQL Public API.\n---\n\nThe Railway public API is built with GraphQL and is the same API that powers the R
-- {"stdout": "3:SkillGod filesystem/git watcher â€” baseline memory capture for IDEs that have no\n4:hooks equivalent (Cursor, Windsurf, and any future IDE without a push mechanism).
-- {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\client\\src\\app\\documents\\page.tsx", "oldString": "api.documents.", "newString": "mockApi.documents.", "originalFile": "\"use c
+- {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\landing\\src\\components\\shared\\ServiceCard.tsx", "oldString": " {service.startingPrice && (\n <div className=\"relative mt-5 bo
+- {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\landing\\src\\components\\shared\\ServiceCard.tsx", "oldString": "export type ServiceCardData = {\n id: string;\n title: string;\n
+- {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\admin\\src\\services\\api.ts", "oldString": " getCategories: async () => fetchFromApi('/blogs/categories', { method: 'GET' }),", "
+- {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\admin\\src\\services\\api.ts", "oldString": " clients: {\n getAll: async () => fetchFromApi('/clients', { method: 'GET' }),\n crea
+- {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\admin\\src\\services\\api.ts", "oldString": "export interface AdminUserSearchResult {\n id: string;\n email: string;\n firstName?:
+- {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\admin\\src\\services\\api.ts", "oldString": " getAuthors: async () => fetchFromApi('/blogs/authors', { method: 'GET' }),\n create:
+- {"stdout": "\nVercel CLI 59.5.0 (Node.js 22.18.0)\nDeploying simbolo-admin\nUploading [--------------------] (0.0B/6.9MB)\nUploading [=====---------------] (1.7MB/6.9MB)\nUploading
 
 ## Notes
 

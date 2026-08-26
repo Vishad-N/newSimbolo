@@ -70,6 +70,8 @@ const jsonLd = {
 
 import { landingApi } from "@/lib/api";
 
+export const dynamic = "force-dynamic";
+
 export default async function WebsiteDesignRoute() {
   const [livePackages, liveProjectsToPass, liveConfig] = await Promise.all([
     fetchMappedPackages('website-design', []),

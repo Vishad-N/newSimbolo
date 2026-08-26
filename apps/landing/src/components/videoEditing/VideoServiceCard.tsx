@@ -90,7 +90,7 @@ export function VideoServiceCard({ service, onPreview, index }: VideoServiceCard
               href={service.ctaLink || `/contact?service=${service.slug}`}
               className="font-heading rounded-[6px] bg-white/10 px-4 py-2 text-[0.8rem] font-bold text-white transition hover:bg-[var(--accent)] hover:text-black"
             >
-              {service.ctaText || "Request Quote"}
+              Connect to Team
             </Link>
           </div>
         </div>
