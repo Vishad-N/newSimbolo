@@ -428,6 +428,8 @@ export const api = {
   blogs: {
     getAll: async () => fetchFromApi('/blogs', { method: 'GET' }),
     getCategories: async () => fetchFromApi('/blogs/categories', { method: 'GET' }),
+    createCategory: async (data: { name: string; description?: string }) =>
+      fetchFromApi('/blogs/categories', { method: 'POST', body: JSON.stringify(data) }),
     getAuthors: async () => fetchFromApi('/blogs/authors', { method: 'GET' }),
     createAuthor: async (data: { userId: string; bio?: string; avatarUrl?: string; twitterUrl?: string; linkedinUrl?: string }) =>
       fetchFromApi('/blogs/authors', { method: 'POST', body: JSON.stringify(data) }),

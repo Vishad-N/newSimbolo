@@ -94,6 +94,10 @@ export default function BlogsManagerPage() {
   const [roles, setRoles] = useState<AdminRole[]>([]);
   const [newStaffForm, setNewStaffForm] = useState({ firstName: "", lastName: "", email: "", password: "", roleId: "" });
 
+  const [isAddingCategory, setIsAddingCategory] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [isCreatingCategory, setIsCreatingCategory] = useState(false);
+
   const hasAuthors = authors.length > 0;
 
   const totalPublished = useMemo(
@@ -195,6 +199,22 @@ export default function BlogsManagerPage() {
       alert(getRequestMessage(requestError, "Failed to create team account"));
     } finally {
       setIsCreatingAuthor(false);
+    }
+  };
+
+  const handleCreateCategory = async () => {
+    if (!newCategoryName.trim()) return;
+    setIsCreatingCategory(true);
+    try {
+      const category = (await api.blogs.createCategory({ name: newCategoryName.trim() })) as BlogCategory;
+      setCategories((prev) => [...prev, category]);
+      setForm((prev) => ({ ...prev, categoryId: category.id }));
+      setIsAddingCategory(false);
+      setNewCategoryName("");
+    } catch (requestError) {
+      alert(getRequestMessage(requestError, "Failed to create category"));
+    } finally {
+      setIsCreatingCategory(false);
     }
   };
 
@@ -357,12 +377,56 @@ export default function BlogsManagerPage() {
                 </div>
                 <div>
                   <label className="mb-1 block text-sm text-gray-400">Category</label>
-                  <select value={form.categoryId} onChange={(event) => setForm({ ...form, categoryId: event.target.value })} className="w-full appearance-none rounded-lg border border-white/10 bg-[#1A1F2E] px-4 py-2 text-white">
-                    <option value="">Uncategorized</option>
-                    {categories.map((category) => (
-                      <option key={category.id} value={category.id}>{category.name}</option>
-                    ))}
-                  </select>
+                  {isAddingCategory ? (
+                    <div className="flex gap-2">
+                      <input
+                        autoFocus
+                        value={newCategoryName}
+                        onChange={(event) => setNewCategoryName(event.target.value)}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter") {
+                            event.preventDefault();
+                            handleCreateCategory();
+                          }
+                        }}
+                        placeholder="New category name"
+                        className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-white"
+                      />
+                      <button
+                        type="button"
+                        disabled={isCreatingCategory}
+                        onClick={handleCreateCategory}
+                        className="shrink-0 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        Add
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setIsAddingCategory(false); setNewCategoryName(""); }}
+                        className="shrink-0 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-gray-400 hover:text-white"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <select
+                      value={form.categoryId}
+                      onChange={(event) => {
+                        if (event.target.value === "__new__") {
+                          setIsAddingCategory(true);
+                          return;
+                        }
+                        setForm({ ...form, categoryId: event.target.value });
+                      }}
+                      className="w-full appearance-none rounded-lg border border-white/10 bg-[#1A1F2E] px-4 py-2 text-white"
+                    >
+                      <option value="">Uncategorized</option>
+                      {categories.map((category) => (
+                        <option key={category.id} value={category.id}>{category.name}</option>
+                      ))}
+                      <option value="__new__">+ Add new category...</option>
+                    </select>
+                  )}
                 </div>
               </div>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
