@@ -1,5 +1,5 @@
 <!-- SKILLGOD:START v1.1 -->
-# SkillGod Project Memory (auto-generated — do not edit; updated 2026-08-26 18:16)
+# SkillGod Project Memory (auto-generated — do not edit; updated 2026-08-27 11:11)
 
 # SkillGod Active
 
@@ -18,20 +18,20 @@ After completing **meaningful** work (decisions, architecture, non-obvious fixes
 ## SkillGod health
 - version: 1.0.1+794a995
 - project_id: `visha-90fc8883`
-- last inject: 2026-08-26T18:16:55 (runtime)
+- last inject: 2026-08-27T11:11:48 (runtime)
 - last capture: never (-)
 - markers: SKILLGOD:START v1.1
 
 ## Project memory
 
 ## Decisions
+- {"stdout": "Sign in to Railway â€” also creates a new account if you don't have one.\n\nUses a single OAuth flow for both sign-in and sign-up. Brand-new accounts are detected autom
+- {"stdout": "Upload and deploy project from the current directory.\n\nIf you're not signed in, signs you in or creates a Railway account (single unified OAuth flow â€” new accounts 
+- {"filePath": "c:\\Users\\visha\\simbolonew\\backend\\src\\invoices\\invoices.service.ts", "oldString": " supplierStateCode: process.env.SUPPLIER_STATE_CODE || '23',\n };", "newStri
+- {"filePath": "c:\\Users\\visha\\simbolonew\\backend\\src\\invoices\\invoices.service.ts", "oldString": " title: `Tax Invoice ${invoiceNumber} generated`,", "newString": " title: `T
 - {"filePath": "c:\\Users\\visha\\simbolonew\\backend\\src\\invoices\\invoices.service.ts", "oldString": " const taxResult = this.taxService.calculateTax(taxParams);\n const { number
 - {"mode": "content", "numFiles": 0, "filenames": [], "content": "90- featured: Boolean(pkg.isPopular),\n91- status: \"published\",\n92- displayOrder: index,\n93: buttonText: \"Choos
 - {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\landing\\src\\components\\websiteDesign\\WebsiteDesignPage.tsx", "oldString": " <PricingSection title=\"Website Maintenance Packag
-- {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\landing\\src\\components\\shared\\ServiceCard.tsx", "oldString": " {service.startingPrice && (\n <div className=\"relative mt-5 bo
-- {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\landing\\src\\components\\shared\\ServiceCard.tsx", "oldString": "export type ServiceCardData = {\n id: string;\n title: string;\n
-- {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\admin\\src\\services\\api.ts", "oldString": " getCategories: async () => fetchFromApi('/blogs/categories', { method: 'GET' }),", "
-- {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\admin\\src\\services\\api.ts", "oldString": " clients: {\n getAll: async () => fetchFromApi('/clients', { method: 'GET' }),\n crea
 
 ## Notes
 

@@ -4,6 +4,10 @@ import { MapPin, Phone, Mail, Clock, CheckCircle2 } from "lucide-react";
 import { SectionCard } from "@/components/seo/SectionCard";
 import { motion } from "framer-motion";
 
+const OFFICE_ADDRESS =
+  "1st Floor, The Simbolo Multimedia, Plot No. ED/149, Ring Rd, near Khajrana square, IDA, Scheme, Scheme 94 Sector ED, Indore, Madhya Pradesh 452016";
+const OFFICE_ADDRESS_QUERY = encodeURIComponent(OFFICE_ADDRESS);
+
 export function TrustLocation() {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -21,7 +25,7 @@ export function TrustLocation() {
             </div>
             <div>
               <h4 className="text-[0.85rem] font-bold text-white mb-1">Office Address</h4>
-              <p className="text-[0.85rem] text-white/60 leading-relaxed">123 Innovation Drive, Tech Park<br/>Mumbai, MH 400001, India</p>
+              <p className="text-[0.85rem] text-white/60 leading-relaxed">{OFFICE_ADDRESS}</p>
             </div>
           </div>
 
@@ -31,7 +35,7 @@ export function TrustLocation() {
             </div>
             <div>
               <h4 className="text-[0.85rem] font-bold text-white mb-1">Phone Number</h4>
-              <p className="text-[0.85rem] text-white/60">+91 8982948199</p>
+              <p className="text-[0.85rem] text-white/60">+91 89829 11880</p>
             </div>
           </div>
 
@@ -57,9 +61,14 @@ export function TrustLocation() {
         </div>
 
         <div className="mt-8">
-          <button className="h-12 rounded-[8px] bg-[var(--accent)] px-8 text-[0.95rem] font-bold text-black transition hover:bg-[var(--accent-hover)] hover:shadow-[0_0_20px_var(--accent-glow)]">
+          <a
+            href={`https://www.google.com/maps/search/?api=1&query=${OFFICE_ADDRESS_QUERY}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex h-12 items-center rounded-[8px] bg-[var(--accent)] px-8 text-[0.95rem] font-bold text-black transition hover:bg-[var(--accent-hover)] hover:shadow-[0_0_20px_var(--accent-glow)]"
+          >
             Get Directions
-          </button>
+          </a>
         </div>
       </SectionCard>
 
@@ -69,7 +78,7 @@ export function TrustLocation() {
           {/* Glowing Map Border Effect */}
           <div className="absolute inset-0 rounded-[12px] border-2 border-[var(--accent)]/20 shadow-[inset_0_0_30px_rgba(34,211,238,0.1)] pointer-events-none z-10" />
           <iframe
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d120562.1528659123!2d72.80208221808752!3d19.082502006709867!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3be7c6306644edc1%3A0x5da4ed8f8d648c69!2sMumbai%2C%20Maharashtra!5e0!3m2!1sen!2sin!4v1689234567890!5m2!1sen!2sin"
+            src={`https://www.google.com/maps?q=${OFFICE_ADDRESS_QUERY}&output=embed`}
             width="100%"
             height="100%"
             style={{ border: 0, borderRadius: "10px", minHeight: "300px" }}

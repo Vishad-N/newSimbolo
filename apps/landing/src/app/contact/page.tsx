@@ -41,16 +41,16 @@ export default function ContactPage() {
                 </div>
                 <div className="group">
                   <p className="text-[0.85rem] font-bold text-white/50 uppercase tracking-wider mb-2">Call Us</p>
-                  <a href="tel:+919876543210" className="text-white font-medium hover:text-[var(--primary)] transition-colors inline-block group-hover:translate-x-1 duration-300">
-                    +91 98765 43210
+                  <a href="tel:+918982911880" className="text-white font-medium hover:text-[var(--primary)] transition-colors inline-block group-hover:translate-x-1 duration-300">
+                    +91 89829 11880
                   </a>
                 </div>
                 <div className="group">
                   <p className="text-[0.85rem] font-bold text-white/50 uppercase tracking-wider mb-2">Visit Us</p>
                   <p className="text-white/90 font-medium leading-relaxed group-hover:text-white transition-colors duration-300">
-                    123 Business Avenue, Tech Hub<br />
-                    Mumbai, Maharashtra 400001<br />
-                    India
+                    1st Floor, The Simbolo Multimedia, Plot No. ED/149, Ring Rd,<br />
+                    near Khajrana Square, IDA Scheme 94 Sector ED<br />
+                    Indore, Madhya Pradesh 452016
                   </p>
                 </div>
               </div>
@@ -64,7 +64,7 @@ export default function ContactPage() {
                   Skip the form and talk directly to our team via WhatsApp.
                 </p>
                 <a 
-                  href="https://wa.me/919876543210" 
+                  href="https://wa.me/918982911880"
                   target="_blank" 
                   rel="noreferrer"
                   className="group relative inline-flex h-12 w-full items-center justify-center rounded-xl bg-[#25D366] px-6 font-bold text-white transition-all hover:bg-[#1DA851] overflow-hidden"
