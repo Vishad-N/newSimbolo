@@ -1,5 +1,5 @@
 <!-- SKILLGOD:START v1.1 -->
-# SkillGod Project Memory (auto-generated — do not edit; updated 2026-08-31 15:09)
+# SkillGod Project Memory (auto-generated — do not edit; updated 2026-08-31 15:45)
 
 # SkillGod Active
 
@@ -18,20 +18,20 @@ After completing **meaningful** work (decisions, architecture, non-obvious fixes
 ## SkillGod health
 - version: 1.0.1+794a995
 - project_id: `visha-90fc8883`
-- last inject: 2026-08-31T15:08:47 (runtime)
+- last inject: 2026-08-31T15:45:43 (runtime)
 - last capture: never (-)
 - markers: SKILLGOD:START v1.1
 
 ## Project memory
 
 ## Decisions
+- {"filePath": "c:\\Users\\visha\\simbolonew\\backend\\src\\auth\\auth.controller.ts", "oldString": " async googleAuthCallback(@Req() req: any, @Res() res: Response) {\n const ip = r
+- {"filePath": "c:\\Users\\visha\\simbolonew\\backend\\src\\auth\\guards\\google-auth.guard.ts", "oldString": "import { Injectable } from '@nestjs/common';\nimport { AuthGuard } from
+- {"isAsync": true, "status": "async_launched", "agentId": "a41b1611440dc0237", "description": "Investigate Google login redirect loop with no-plan client", "resolvedModel": "claude-
+- {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\landing\\src\\components\\sections\\search-results.tsx", "oldString": " {/* Recommended Packages */}\n <div>\n
+- {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\landing\\src\\components\\sections\\search-results.tsx", "oldString": " const { packages: allPackages } = usePackages();\n\n useEf
 - {"stdout": "Sign in to Railway â€” also creates a new account if you don't have one.\n\nUses a single OAuth flow for both sign-in and sign-up. Brand-new accounts are detected autom
 - {"stdout": "Upload and deploy project from the current directory.\n\nIf you're not signed in, signs you in or creates a Railway account (single unified OAuth flow â€” new accounts 
-- {"filePath": "c:\\Users\\visha\\simbolonew\\backend\\src\\invoices\\invoices.service.ts", "oldString": " supplierStateCode: process.env.SUPPLIER_STATE_CODE || '23',\n };", "newStri
-- {"filePath": "c:\\Users\\visha\\simbolonew\\backend\\src\\invoices\\invoices.service.ts", "oldString": " title: `Tax Invoice ${invoiceNumber} generated`,", "newString": " title: `T
-- {"filePath": "c:\\Users\\visha\\simbolonew\\backend\\src\\invoices\\invoices.service.ts", "oldString": " const taxResult = this.taxService.calculateTax(taxParams);\n const { number
-- {"mode": "content", "numFiles": 0, "filenames": [], "content": "90- featured: Boolean(pkg.isPopular),\n91- status: \"published\",\n92- displayOrder: index,\n93: buttonText: \"Choos
-- {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\landing\\src\\components\\websiteDesign\\WebsiteDesignPage.tsx", "oldString": " <PricingSection title=\"Website Maintenance Packag
 
 ## Notes
 

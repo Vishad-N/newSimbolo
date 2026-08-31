@@ -4,10 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import {
   AuthenticationRedirectError,
-  getLandingPageUrl,
   isSubscriptionExpired,
   mockApi,
-  redirectToLanding,
 } from "@/services/api";
 import type { ClientSubscription } from "@/services/api";
 import { getUserRole } from "@/utils/utils";
@@ -23,9 +21,11 @@ export function SubscriptionGuard({ children }: { children: React.ReactNode }) {
 
   // Sales employees (Affiliate role) are never required to hold a client
   // subscription — the lock only applies to actual client accounts. Also skip
-  // it on the checkout page itself, since that's how a client gets a plan.
+  // it on the checkout and packages pages themselves, since that's how a
+  // client gets a plan — redirecting those pages back through this guard
+  // would just re-lock the page the user was sent to.
   const isAffiliate = getUserRole() === "AFFILIATE";
-  const isCheckout = isAffiliate || pathname?.includes("/checkout");
+  const isCheckout = isAffiliate || pathname?.includes("/checkout") || pathname?.includes("/packages");
 
   useEffect(() => {
     if (isCheckout) {
@@ -42,10 +42,8 @@ export function SubscriptionGuard({ children }: { children: React.ReactNode }) {
           const hasExpired = sub ? isSubscriptionExpired(sub) : false;
 
           if (hasExpired) {
-            const packagesUrl = getLandingPageUrl('/packages', { reason: 'plan-expired' });
             setSubscription(sub);
-            setRedirectUrl(packagesUrl);
-            redirectToLanding('/packages', { reason: 'plan-expired' });
+            router.push('/packages?reason=plan-expired');
             return;
           }
 
@@ -126,7 +124,7 @@ export function SubscriptionGuard({ children }: { children: React.ReactNode }) {
               )}
               
               <button
-                onClick={() => redirectToLanding('/packages')}
+                onClick={() => router.push('/packages')}
                 className={`flex items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/5 px-6 py-4 font-bold text-white transition-all hover:bg-white/10 ${!subscription?.packageId ? 'bg-[var(--primary)] border-transparent hover:bg-[var(--primary-hover)] shadow-[0_0_20px_var(--primary-glow)] hover:scale-[1.02] active:scale-95' : ''}`}
               >
                 <PackageOpen className="h-5 w-5" />

@@ -149,11 +149,22 @@ export class AuthController {
     const userAgent = req.headers['user-agent'];
     const result = await this.authService.validateGoogleOAuth(req.user, ip, userAgent);
 
-    // Redirect to frontend with JWT tokens
-    const frontendUrl = process.env.FRONTEND_URLS?.split(',')[0] || 'http://localhost:3000';
-    const hasActivePlan = !!result.user.hasActivePlan;
-    return res.redirect(
-      `${frontendUrl}?accessToken=${result.accessToken}&refreshToken=${result.refreshToken}&hasActivePlan=${hasActivePlan}`,
-    );
+    // Bridge straight into the dashboard app's own /auth/callback (same bridge
+    // email/password login uses), instead of round-tripping through the
+    // landing app — that hop left the dashboard with no reliable way to tell
+    // the browser was already authenticated, causing a login loop.
+    // FRONTEND_URLS is ordered [landing, dashboard, ...]; state carries the
+    // package slug the user was trying to check out when the guard set it.
+    const dashboardUrl = process.env.FRONTEND_URLS?.split(',')[1] || 'http://localhost:3002';
+    const checkoutPackage = typeof req.query?.state === 'string' ? req.query.state : undefined;
+    const next = checkoutPackage ? `/checkout?package=${encodeURIComponent(checkoutPackage)}` : '/dashboard';
+
+    const callbackUrl = new URL('/auth/callback', dashboardUrl);
+    callbackUrl.searchParams.set('accessToken', result.accessToken);
+    callbackUrl.searchParams.set('refreshToken', result.refreshToken);
+    callbackUrl.searchParams.set('next', next);
+    callbackUrl.searchParams.set('role', result.user.role);
+
+    return res.redirect(callbackUrl.toString());
   }
 }

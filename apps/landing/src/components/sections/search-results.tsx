@@ -4,9 +4,10 @@ import { motion } from "framer-motion";
 import { Search, Loader2, Sparkles, Star, ChevronRight, Briefcase, PlayCircle, ExternalLink, X, ArrowRight, ArrowLeft } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { ExpertModal } from "@/components/ui/expert-modal";
 import { Expert, SearchResponse } from "@/types/search";
+import { usePackages } from "@/hooks/usePackages";
 
 interface SearchResultsProps {
   query: string;
@@ -20,6 +21,23 @@ export function SearchResults({ query, onClear, onSearch }: SearchResultsProps) 
   const [isSearching, setIsSearching] = useState(true);
   const [searchResponse, setSearchResponse] = useState<SearchResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const { packages: allPackages } = usePackages();
+
+  // Surface the AI's actual recommended package first, then fill out the row
+  // with the rest of the real catalog instead of always showing the same
+  // three hardcoded placeholder cards.
+  const recommendedPackages = useMemo(() => {
+    if (allPackages.length === 0) return [];
+    const recommendedName = searchResponse?.recommendedPackage?.trim().toLowerCase();
+    const sorted = recommendedName
+      ? [...allPackages].sort((a, b) => {
+          const aMatch = a.name.trim().toLowerCase() === recommendedName ? 1 : 0;
+          const bMatch = b.name.trim().toLowerCase() === recommendedName ? 1 : 0;
+          return bMatch - aMatch;
+        })
+      : allPackages;
+    return sorted.slice(0, 3);
+  }, [allPackages, searchResponse?.recommendedPackage]);
 
   useEffect(() => {
     let active = true;
@@ -215,19 +233,42 @@ export function SearchResults({ query, onClear, onSearch }: SearchResultsProps) 
               {/* Recommended Packages */}
               <div>
                 <h3 className="mb-4 text-lg font-bold text-white">Recommended Packages</h3>
-                <div className="grid gap-4 sm:grid-cols-3">
-                  {["Growth", "Premium", "Enterprise"].map((pkg) => (
-                    <div key={pkg} className="rounded-[20px] border border-white/[0.08] bg-[var(--surface)]/50 p-5 transition hover:border-[var(--primary)]/50">
-                      <h4 className="mb-1 font-bold text-white">{pkg} Package</h4>
-                      <p className="mb-4 text-xs text-[var(--muted)]">Perfect for scaling your business.</p>
-                      <Link href="/packages">
-                        <button className="w-full rounded-[10px] bg-white/5 py-2 text-xs font-bold text-white transition hover:bg-[var(--primary)]">
-                          View Details
-                        </button>
-                      </Link>
-                    </div>
-                  ))}
-                </div>
+                {recommendedPackages.length > 0 ? (
+                  <div className="grid gap-4 sm:grid-cols-3">
+                    {recommendedPackages.map((pkg) => {
+                      const isAiRecommended =
+                        pkg.name.trim().toLowerCase() === searchResponse.recommendedPackage?.trim().toLowerCase();
+                      return (
+                        <div
+                          key={pkg.id}
+                          className={`relative rounded-[20px] border p-5 transition ${
+                            isAiRecommended
+                              ? "border-[var(--primary)]/60 bg-[var(--primary)]/5 hover:border-[var(--primary)]"
+                              : "border-white/[0.08] bg-[var(--surface)]/50 hover:border-[var(--primary)]/50"
+                          }`}
+                        >
+                          {isAiRecommended && (
+                            <div className="absolute -top-2.5 right-4 rounded-full bg-[var(--primary)] px-2.5 py-0.5 text-[0.6rem] font-bold uppercase text-white">
+                              AI Recommended
+                            </div>
+                          )}
+                          <h4 className="mb-1 font-bold text-white">{pkg.name}</h4>
+                          <p className="mb-2 text-xs text-[var(--muted)] line-clamp-2">{pkg.shortDescription}</p>
+                          <p className="mb-4 text-sm font-bold text-white">
+                            {pkg.priceMonthly ? `₹${pkg.priceMonthly.toLocaleString("en-IN")}/mo` : "Custom pricing"}
+                          </p>
+                          <Link href={`/packages${pkg.buttonLink}`}>
+                            <button className="w-full rounded-[10px] bg-white/5 py-2 text-xs font-bold text-white transition hover:bg-[var(--primary)]">
+                              View Details
+                            </button>
+                          </Link>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-sm text-[var(--muted)]">Loading packages…</p>
+                )}
               </div>
             </div>
 

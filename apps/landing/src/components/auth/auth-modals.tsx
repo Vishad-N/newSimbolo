@@ -341,10 +341,14 @@ function LoginModal({ onClose }: { onClose: () => void }) {
           type="button"
           onClick={() => {
             const checkoutPackage = searchParams.get("checkout");
-            if (checkoutPackage) {
-              localStorage.setItem("redirectAfterLogin", checkoutPackage);
-            }
-            window.location.href = `${API_BASE_URL}/auth/google`;
+            // The Google OAuth flow leaves this page entirely, so it can't rely on
+            // localStorage surviving a round trip like the email/password flow does —
+            // the checkout intent is passed through Google's own `state` param instead
+            // (see GoogleAuthGuard.getAuthenticateOptions on the backend).
+            const googleAuthUrl = checkoutPackage
+              ? `${API_BASE_URL}/auth/google?checkout=${encodeURIComponent(checkoutPackage)}`
+              : `${API_BASE_URL}/auth/google`;
+            window.location.href = googleAuthUrl;
           }}
           className="mt-4 flex w-full items-center justify-center gap-3 rounded-[14px] border border-white/10 bg-white/5 p-3.5 text-sm font-semibold text-white transition-all hover:bg-white/10 active:scale-[0.98]"
         >
@@ -704,10 +708,14 @@ function RegisterModal({ onClose }: { onClose: () => void }) {
           type="button"
           onClick={() => {
             const checkoutPackage = searchParams.get("checkout");
-            if (checkoutPackage) {
-              localStorage.setItem("redirectAfterLogin", checkoutPackage);
-            }
-            window.location.href = `${API_BASE_URL}/auth/google`;
+            // The Google OAuth flow leaves this page entirely, so it can't rely on
+            // localStorage surviving a round trip like the email/password flow does —
+            // the checkout intent is passed through Google's own `state` param instead
+            // (see GoogleAuthGuard.getAuthenticateOptions on the backend).
+            const googleAuthUrl = checkoutPackage
+              ? `${API_BASE_URL}/auth/google?checkout=${encodeURIComponent(checkoutPackage)}`
+              : `${API_BASE_URL}/auth/google`;
+            window.location.href = googleAuthUrl;
           }}
           className="mt-4 flex w-full items-center justify-center gap-3 rounded-[14px] border border-white/10 bg-white/5 p-3.5 text-sm font-semibold text-white transition-all hover:bg-white/10 active:scale-[0.98]"
         >
