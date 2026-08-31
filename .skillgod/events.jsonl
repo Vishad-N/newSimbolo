@@ -3337,3 +3337,103 @@
 {"ts": 1787809295.5072367, "iso": "2026-08-27T11:11:35", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.35"}
 {"ts": 1787809308.437058, "iso": "2026-08-27T11:11:48", "event": "pre_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "pre_tool: inject chars=7834"}
 {"ts": 1787809314.8459673, "iso": "2026-08-27T11:11:54", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.35"}
+{"ts": 1788154897.2248616, "iso": "2026-08-31T11:11:37", "event": "session_start", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "session_start: context_chars=9557"}
+{"ts": 1788154897.2730768, "iso": "2026-08-31T11:11:37", "event": "session_start", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "session_start: context_chars=9557"}
+{"ts": 1788154897.3436959, "iso": "2026-08-31T11:11:37", "event": "session_start", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "session_start: context_chars=9557"}
+{"ts": 1788154897.4776573, "iso": "2026-08-31T11:11:37", "event": "session_start", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "session_start: context_chars=9557"}
+{"ts": 1788155021.5881984, "iso": "2026-08-31T11:13:41", "event": "session_start", "channel": "hook-grok", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "session_start: grok-fast-path digests"}
+{"ts": 1788155031.0886161, "iso": "2026-08-31T11:13:51", "event": "session_start", "channel": "hook-grok", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "session_start: grok-fast-path digests"}
+{"ts": 1788155172.7902718, "iso": "2026-08-31T11:16:12", "event": "pre_tool", "channel": "hook-grok", "project_id": "", "branch": "", "ok": true, "detail": "pre_tool: allow (fast path)"}
+{"ts": 1788155176.4893467, "iso": "2026-08-31T11:16:16", "event": "pre_tool", "channel": "hook-grok", "project_id": "", "branch": "", "ok": true, "detail": "pre_tool: allow (fast path)"}
+{"ts": 1788155178.7733476, "iso": "2026-08-31T11:16:18", "event": "pre_tool", "channel": "hook-grok", "project_id": "", "branch": "", "ok": true, "detail": "pre_tool: allow (fast path)"}
+{"ts": 1788155184.7107136, "iso": "2026-08-31T11:16:24", "event": "pre_tool", "channel": "hook-grok", "project_id": "", "branch": "", "ok": true, "detail": "pre_tool: allow (fast path)"}
+{"ts": 1788155190.3649817, "iso": "2026-08-31T11:16:30", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.00"}
+{"ts": 1788155198.7534182, "iso": "2026-08-31T11:16:38", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.00"}
+{"ts": 1788155201.958438, "iso": "2026-08-31T11:16:41", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.00"}
+{"ts": 1788155211.3835146, "iso": "2026-08-31T11:16:51", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.00"}
+{"ts": 1788155221.4570665, "iso": "2026-08-31T11:17:01", "event": "pre_tool", "channel": "hook-grok", "project_id": "", "branch": "", "ok": true, "detail": "pre_tool: allow (fast path)"}
+{"ts": 1788155225.27642, "iso": "2026-08-31T11:17:05", "event": "pre_tool", "channel": "hook-grok", "project_id": "", "branch": "", "ok": true, "detail": "pre_tool: allow (fast path)"}
+{"ts": 1788155227.5942297, "iso": "2026-08-31T11:17:07", "event": "pre_tool", "channel": "hook-grok", "project_id": "", "branch": "", "ok": true, "detail": "pre_tool: allow (fast path)"}
+{"ts": 1788155233.3367298, "iso": "2026-08-31T11:17:13", "event": "pre_tool", "channel": "hook-grok", "project_id": "", "branch": "", "ok": true, "detail": "pre_tool: allow (fast path)"}
+{"ts": 1788155240.7175503, "iso": "2026-08-31T11:17:20", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.00"}
+{"ts": 1788155241.5599167, "iso": "2026-08-31T11:17:21", "event": "session_start", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "session_start: context_chars=9557"}
+{"ts": 1788155248.305372, "iso": "2026-08-31T11:17:28", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.00"}
+{"ts": 1788155250.8335652, "iso": "2026-08-31T11:17:30", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.00"}
+{"ts": 1788155255.5745754, "iso": "2026-08-31T11:17:35", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.00"}
+{"ts": 1788155265.6145093, "iso": "2026-08-31T11:17:45", "event": "pre_tool", "channel": "hook-grok", "project_id": "", "branch": "", "ok": true, "detail": "pre_tool: allow (fast path)"}
+{"ts": 1788155268.9018328, "iso": "2026-08-31T11:17:48", "event": "pre_tool", "channel": "hook-grok", "project_id": "", "branch": "", "ok": true, "detail": "pre_tool: allow (fast path)"}
+{"ts": 1788155270.550244, "iso": "2026-08-31T11:17:50", "event": "pre_tool", "channel": "hook-grok", "project_id": "", "branch": "", "ok": true, "detail": "pre_tool: allow (fast path)"}
+{"ts": 1788155273.9988687, "iso": "2026-08-31T11:17:53", "event": "pre_tool", "channel": "hook-grok", "project_id": "", "branch": "", "ok": true, "detail": "pre_tool: allow (fast path)"}
+{"ts": 1788155277.9898477, "iso": "2026-08-31T11:17:57", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.00"}
+{"ts": 1788155282.7059658, "iso": "2026-08-31T11:18:02", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.00"}
+{"ts": 1788155286.6758962, "iso": "2026-08-31T11:18:06", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.00"}
+{"ts": 1788155290.0296621, "iso": "2026-08-31T11:18:10", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.00"}
+{"ts": 1788155303.2900095, "iso": "2026-08-31T11:18:23", "event": "pre_tool", "channel": "hook-grok", "project_id": "", "branch": "", "ok": true, "detail": "pre_tool: allow (fast path)"}
+{"ts": 1788155306.2911315, "iso": "2026-08-31T11:18:26", "event": "pre_tool", "channel": "hook-grok", "project_id": "", "branch": "", "ok": true, "detail": "pre_tool: allow (fast path)"}
+{"ts": 1788155319.8940892, "iso": "2026-08-31T11:18:39", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.00"}
+{"ts": 1788155323.4836667, "iso": "2026-08-31T11:18:43", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.00"}
+{"ts": 1788155328.8823335, "iso": "2026-08-31T11:18:48", "event": "pre_tool", "channel": "hook-grok", "project_id": "", "branch": "", "ok": true, "detail": "pre_tool: allow (fast path)"}
+{"ts": 1788155331.8954284, "iso": "2026-08-31T11:18:51", "event": "pre_tool", "channel": "hook-grok", "project_id": "", "branch": "", "ok": true, "detail": "pre_tool: allow (fast path)"}
+{"ts": 1788155337.117509, "iso": "2026-08-31T11:18:57", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.00"}
+{"ts": 1788155341.3172874, "iso": "2026-08-31T11:19:01", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.00"}
+{"ts": 1788155346.769624, "iso": "2026-08-31T11:19:06", "event": "pre_tool", "channel": "hook-grok", "project_id": "", "branch": "", "ok": true, "detail": "pre_tool: allow (fast path)"}
+{"ts": 1788155349.8531904, "iso": "2026-08-31T11:19:09", "event": "pre_tool", "channel": "hook-grok", "project_id": "", "branch": "", "ok": true, "detail": "pre_tool: allow (fast path)"}
+{"ts": 1788155360.3620486, "iso": "2026-08-31T11:19:20", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.00"}
+{"ts": 1788155366.8053777, "iso": "2026-08-31T11:19:26", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.00"}
+{"ts": 1788155372.9923496, "iso": "2026-08-31T11:19:32", "event": "pre_tool", "channel": "hook-grok", "project_id": "", "branch": "", "ok": true, "detail": "pre_tool: allow (fast path)"}
+{"ts": 1788155376.45876, "iso": "2026-08-31T11:19:36", "event": "pre_tool", "channel": "hook-grok", "project_id": "", "branch": "", "ok": true, "detail": "pre_tool: allow (fast path)"}
+{"ts": 1788155381.2596288, "iso": "2026-08-31T11:19:41", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.00"}
+{"ts": 1788155384.3373911, "iso": "2026-08-31T11:19:44", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.00"}
+{"ts": 1788155389.624754, "iso": "2026-08-31T11:19:49", "event": "pre_tool", "channel": "hook-grok", "project_id": "", "branch": "", "ok": true, "detail": "pre_tool: allow (fast path)"}
+{"ts": 1788155392.4153116, "iso": "2026-08-31T11:19:52", "event": "pre_tool", "channel": "hook-grok", "project_id": "", "branch": "", "ok": true, "detail": "pre_tool: allow (fast path)"}
+{"ts": 1788155401.5847886, "iso": "2026-08-31T11:20:01", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.00"}
+{"ts": 1788155405.1557417, "iso": "2026-08-31T11:20:05", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.00"}
+{"ts": 1788155414.604975, "iso": "2026-08-31T11:20:14", "event": "pre_tool", "channel": "hook-grok", "project_id": "", "branch": "", "ok": true, "detail": "pre_tool: allow (fast path)"}
+{"ts": 1788155417.3508425, "iso": "2026-08-31T11:20:17", "event": "pre_tool", "channel": "hook-grok", "project_id": "", "branch": "", "ok": true, "detail": "pre_tool: allow (fast path)"}
+{"ts": 1788155418.542547, "iso": "2026-08-31T11:20:18", "event": "pre_tool", "channel": "hook-grok", "project_id": "", "branch": "", "ok": true, "detail": "pre_tool: allow (fast path)"}
+{"ts": 1788155421.8022304, "iso": "2026-08-31T11:20:21", "event": "pre_tool", "channel": "hook-grok", "project_id": "", "branch": "", "ok": true, "detail": "pre_tool: allow (fast path)"}
+{"ts": 1788155423.1203945, "iso": "2026-08-31T11:20:23", "event": "pre_tool", "channel": "hook-grok", "project_id": "", "branch": "", "ok": true, "detail": "pre_tool: allow (fast path)"}
+{"ts": 1788155426.0238953, "iso": "2026-08-31T11:20:26", "event": "pre_tool", "channel": "hook-grok", "project_id": "", "branch": "", "ok": true, "detail": "pre_tool: allow (fast path)"}
+{"ts": 1788155434.7318425, "iso": "2026-08-31T11:20:34", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.00"}
+{"ts": 1788155441.0220258, "iso": "2026-08-31T11:20:41", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.00"}
+{"ts": 1788155676.4311101, "iso": "2026-08-31T11:24:36", "event": "pre_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "pre_tool: inject chars=7832"}
+{"ts": 1788155691.865706, "iso": "2026-08-31T11:24:51", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.35"}
+{"ts": 1788155698.7496297, "iso": "2026-08-31T11:24:58", "event": "pre_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "pre_tool: inject chars=7826"}
+{"ts": 1788155700.9839048, "iso": "2026-08-31T11:25:00", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.35"}
+{"ts": 1788155706.567979, "iso": "2026-08-31T11:25:06", "event": "pre_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "pre_tool: inject chars=7858"}
+{"ts": 1788155708.7097793, "iso": "2026-08-31T11:25:08", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.35"}
+{"ts": 1788155719.597822, "iso": "2026-08-31T11:25:19", "event": "pre_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "pre_tool: inject chars=7826"}
+{"ts": 1788155723.6776378, "iso": "2026-08-31T11:25:23", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.35"}
+{"ts": 1788155729.2558453, "iso": "2026-08-31T11:25:29", "event": "pre_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "pre_tool: inject chars=7842"}
+{"ts": 1788155731.977998, "iso": "2026-08-31T11:25:31", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.00"}
+{"ts": 1788155741.4082606, "iso": "2026-08-31T11:25:41", "event": "pre_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "pre_tool: inject chars=7848"}
+{"ts": 1788155744.3619683, "iso": "2026-08-31T11:25:44", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.00"}
+{"ts": 1788155755.5384798, "iso": "2026-08-31T11:25:55", "event": "pre_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "pre_tool: inject chars=7841"}
+{"ts": 1788155757.4087613, "iso": "2026-08-31T11:25:57", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.00"}
+{"ts": 1788155766.5513165, "iso": "2026-08-31T11:26:06", "event": "pre_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "pre_tool: inject chars=9749"}
+{"ts": 1788155769.8234043, "iso": "2026-08-31T11:26:09", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.35"}
+{"ts": 1788155777.0676663, "iso": "2026-08-31T11:26:17", "event": "pre_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "pre_tool: inject chars=7858"}
+{"ts": 1788155779.751987, "iso": "2026-08-31T11:26:19", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.00"}
+{"ts": 1788155796.0477624, "iso": "2026-08-31T11:26:36", "event": "pre_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "pre_tool: inject chars=7847"}
+{"ts": 1788155798.32186, "iso": "2026-08-31T11:26:38", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.00"}
+{"ts": 1788155810.0583494, "iso": "2026-08-31T11:26:50", "event": "pre_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "pre_tool: inject chars=9987"}
+{"ts": 1788156033.2651827, "iso": "2026-08-31T11:30:33", "event": "pre_tool", "channel": "hook-grok", "project_id": "", "branch": "", "ok": true, "detail": "pre_tool: allow (fast path)"}
+{"ts": 1788156036.834662, "iso": "2026-08-31T11:30:36", "event": "pre_tool", "channel": "hook-grok", "project_id": "", "branch": "", "ok": true, "detail": "pre_tool: allow (fast path)"}
+{"ts": 1788156048.4326475, "iso": "2026-08-31T11:30:48", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.00"}
+{"ts": 1788156053.344327, "iso": "2026-08-31T11:30:53", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.00"}
+{"ts": 1788156243.2215004, "iso": "2026-08-31T11:34:03", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.00"}
+{"ts": 1788156248.3609345, "iso": "2026-08-31T11:34:08", "event": "pre_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "pre_tool: inject chars=7828"}
+{"ts": 1788156256.024989, "iso": "2026-08-31T11:34:16", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.35"}
+{"ts": 1788156278.2916958, "iso": "2026-08-31T11:34:38", "event": "pre_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "pre_tool: inject chars=9987"}
+{"ts": 1788156283.7570276, "iso": "2026-08-31T11:34:43", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.00"}
+{"ts": 1788156308.4432821, "iso": "2026-08-31T11:35:08", "event": "pre_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "pre_tool: inject chars=9987"}
+{"ts": 1788156312.4983242, "iso": "2026-08-31T11:35:12", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.00"}
+{"ts": 1788156321.4216843, "iso": "2026-08-31T11:35:21", "event": "pre_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "pre_tool: inject chars=7858"}
+{"ts": 1788156324.5754154, "iso": "2026-08-31T11:35:24", "event": "pre_tool", "channel": "hook-grok", "project_id": "", "branch": "", "ok": true, "detail": "pre_tool: allow (fast path)"}
+{"ts": 1788156331.521109, "iso": "2026-08-31T11:35:31", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.35"}
+{"ts": 1788156332.4104304, "iso": "2026-08-31T11:35:32", "event": "pre_tool", "channel": "hook-grok", "project_id": "", "branch": "", "ok": true, "detail": "pre_tool: allow (fast path)"}
+{"ts": 1788156339.7342176, "iso": "2026-08-31T11:35:39", "event": "pre_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "pre_tool: inject chars=7850"}
+{"ts": 1788156343.758393, "iso": "2026-08-31T11:35:43", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.00"}
+{"ts": 1788156352.170497, "iso": "2026-08-31T11:35:52", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.00"}
+{"ts": 1788156369.688366, "iso": "2026-08-31T11:36:09", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.35"}
+{"ts": 1788156375.2070353, "iso": "2026-08-31T11:36:15", "event": "pre_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "pre_tool: inject chars=9987"}

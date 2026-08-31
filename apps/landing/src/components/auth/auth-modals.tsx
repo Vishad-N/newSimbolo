@@ -668,13 +668,13 @@ function RegisterModal({ onClose }: { onClose: () => void }) {
             />
             <label htmlFor="acceptTerms" className="text-xs text-[var(--muted)]">
               I agree to the{" "}
-              <button type="button" className="text-[var(--primary)] hover:underline">
+              <Link href="/terms-and-conditions" target="_blank" className="text-[var(--primary)] hover:underline">
                 Terms of Service
-              </button>{" "}
+              </Link>{" "}
               and{" "}
-              <button type="button" className="text-[var(--primary)] hover:underline">
+              <Link href="/privacy-policy" target="_blank" className="text-[var(--primary)] hover:underline">
                 Privacy Policy
-              </button>
+              </Link>
             </label>
           </div>
 
