@@ -34,7 +34,10 @@ export function SearchResults({ query, onClear, onSearch }: SearchResultsProps) 
           body: JSON.stringify({ query }),
         });
         if (response.ok) {
-          const data = await response.json();
+          const json = await response.json();
+          // The backend's global TransformInterceptor wraps every response in
+          // { success, message, data } — unwrap it to get the actual SearchResponse.
+          const data = json && typeof json === 'object' && 'success' in json && 'data' in json ? json.data : json;
           if (active) setSearchResponse(data);
         } else {
           console.error("Failed to fetch search results");
