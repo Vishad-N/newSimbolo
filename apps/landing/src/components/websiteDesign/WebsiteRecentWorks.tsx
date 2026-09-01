@@ -24,7 +24,7 @@ export function WebsiteRecentWorks({ works }: WebsiteRecentWorksProps) {
     <SectionCard className="p-5">
       <div className="mb-6 flex items-center justify-between">
         <h2 className="text-[1.15rem] font-black text-white">Recent Our Work</h2>
-        <Link href="/portfolio" className="flex items-center gap-1.5 text-[0.8rem] font-bold text-[var(--accent)] transition hover:text-white">
+        <Link href="/case-studies" className="flex items-center gap-1.5 text-[0.8rem] font-bold text-[var(--accent)] transition hover:text-white">
           View all works
           <ArrowRight className="h-3.5 w-3.5" />
         </Link>

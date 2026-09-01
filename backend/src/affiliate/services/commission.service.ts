@@ -34,17 +34,22 @@ export class CommissionService extends BaseService {
    *   GRAND_TOTAL             -> order.netAmount + order.taxAmount      (what the customer pays)
    */
   computeCommissionBase(order: Pick<Order, 'totalAmount' | 'discountAmount' | 'netAmount' | 'taxAmount'>, basis: CommissionCalculationBasisEnum): number {
+    const totalAmount = Number(order.totalAmount);
+    const discountAmount = Number(order.discountAmount);
+    const netAmount = Number(order.netAmount);
+    const taxAmount = Number(order.taxAmount);
+
     switch (basis) {
       case CommissionCalculationBasisEnum.SUBTOTAL:
-        return roundCurrency(order.totalAmount);
+        return roundCurrency(totalAmount);
       case CommissionCalculationBasisEnum.SUBTOTAL_AFTER_DISCOUNT:
-        return roundCurrency(order.totalAmount - order.discountAmount);
+        return roundCurrency(totalAmount - discountAmount);
       case CommissionCalculationBasisEnum.TAXABLE_AMOUNT:
-        return roundCurrency(order.netAmount);
+        return roundCurrency(netAmount);
       case CommissionCalculationBasisEnum.GRAND_TOTAL:
-        return roundCurrency(order.netAmount + order.taxAmount);
+        return roundCurrency(netAmount + taxAmount);
       default:
-        return roundCurrency(order.netAmount);
+        return roundCurrency(netAmount);
     }
   }
 

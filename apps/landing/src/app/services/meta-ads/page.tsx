@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { MetaAdsClientPage } from "./client-page";
 
 export const metadata: Metadata = {
@@ -15,7 +16,7 @@ export const metadata: Metadata = {
     siteName: "The Simbolo",
     images: [
       {
-        url: "/images/og/meta-ads.jpg",
+        url: "/api/og?title=Meta%20Ads%20Management&subtitle=High-converting%20Facebook%20%26%20Instagram%20campaigns",
         width: 1200,
         height: 630,
         alt: "Meta Ads Management Services by The Simbolo",
@@ -28,7 +29,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Meta Ads Management Services | The Simbolo",
     description: "Boost your business with high-converting Meta Ads campaigns managed by certified experts.",
-    images: ["/images/og/meta-ads.jpg"],
+    images: ["/api/og?title=Meta%20Ads%20Management&subtitle=High-converting%20Facebook%20%26%20Instagram%20campaigns"],
   },
   authors: [{ name: "The Simbolo" }],
   category: "Marketing",
@@ -39,11 +40,30 @@ export const dynamic = "force-dynamic";
 import { fetchMappedPackages } from "@/lib/package-mapper";
 import { landingApi } from "@/lib/api";
 
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Service",
+  name: "Meta Ads Management Services",
+  provider: {
+    "@type": "Organization",
+    name: "The Simbolo",
+    url: "https://thesimbolo.com",
+  },
+  description: "Facebook and Instagram advertising campaign management to generate leads and maximize ROAS.",
+  serviceType: "Paid Social Advertising",
+  areaServed: "Worldwide",
+};
+
 export default async function MetaAdsPage() {
   const [livePackages, liveConfig] = await Promise.all([
     fetchMappedPackages('meta-ads', []),
     landingApi.getServicePageConfig('meta-ads', null),
   ]);
 
-  return <MetaAdsClientPage livePackages={livePackages} liveConfig={liveConfig} />;
+  return (
+    <>
+      <Script id="meta-ads-jsonld" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <MetaAdsClientPage livePackages={livePackages} liveConfig={liveConfig} />
+    </>
+  );
 }

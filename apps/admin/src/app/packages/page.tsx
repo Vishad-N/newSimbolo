@@ -12,6 +12,11 @@ interface ServiceOption {
   shortDescription?: string;
 }
 
+interface PackageFeatureItem {
+  id: string;
+  name: string;
+}
+
 interface PackageApiRecord {
   id: string;
   name: string;
@@ -26,6 +31,7 @@ interface PackageApiRecord {
     id?: string;
     name?: string;
   };
+  features?: PackageFeatureItem[];
 }
 
 type PackageTier = "STARTER" | "PROFESSIONAL" | "ENTERPRISE" | "CUSTOM";
@@ -43,6 +49,7 @@ interface PackageData {
   serviceId: string;
   basePrice: number;
   isAddon: boolean;
+  features: PackageFeatureItem[];
 }
 
 interface PackageFormData {
@@ -110,6 +117,9 @@ export default function PackagesPage() {
   const [newService, setNewService] = useState<ServiceFormData>(emptyServiceForm);
   const [isCreatingService, setIsCreatingService] = useState(false);
   const [modalError, setModalError] = useState<string | null>(null);
+  const [packageFeatures, setPackageFeatures] = useState<PackageFeatureItem[]>([]);
+  const [featureInput, setFeatureInput] = useState("");
+  const [isSavingFeature, setIsSavingFeature] = useState(false);
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -134,6 +144,7 @@ export default function PackagesPage() {
         serviceId: pkg.serviceId || pkg.service?.id || "",
         basePrice: Number(pkg.basePrice) || 0,
         isAddon: pkg.isAddon || false,
+        features: pkg.features || [],
       }));
       setData(mappedData);
     } catch (err: unknown) {
@@ -164,6 +175,8 @@ export default function PackagesPage() {
     setNewService(emptyServiceForm);
     setIsServiceFormOpen(services.length === 0);
     setModalError(null);
+    setPackageFeatures([]);
+    setFeatureInput("");
     setIsModalOpen(true);
   };
 
@@ -182,6 +195,8 @@ export default function PackagesPage() {
     setNewService(emptyServiceForm);
     setIsServiceFormOpen(false);
     setModalError(null);
+    setPackageFeatures(item.features);
+    setFeatureInput("");
     setIsModalOpen(true);
   };
 
@@ -249,6 +264,48 @@ export default function PackagesPage() {
       fetchData();
     } catch (err: unknown) {
       setModalError(`Failed to ${editingPackageId ? "update" : "create"} package: ${getErrorMessage(err, "Unknown error")}`);
+    }
+  };
+
+  const handleAddFeature = async () => {
+    const name = featureInput.trim();
+    if (!name || !editingPackageId) return;
+
+    setIsSavingFeature(true);
+    setModalError(null);
+    try {
+      const created = await api.packages.addFeature({
+        name,
+        packageId: editingPackageId,
+        sortOrder: packageFeatures.length,
+      }) as PackageFeatureItem;
+      setPackageFeatures((current) => [...current, created]);
+      setFeatureInput("");
+      setData((current) =>
+        current.map((pkg) =>
+          pkg.id === editingPackageId ? { ...pkg, features: [...pkg.features, created] } : pkg,
+        ),
+      );
+    } catch (err: unknown) {
+      setModalError(getErrorMessage(err, "Failed to add feature"));
+    } finally {
+      setIsSavingFeature(false);
+    }
+  };
+
+  const handleDeleteFeature = async (featureId: string) => {
+    try {
+      await api.packages.deleteFeature(featureId);
+      setPackageFeatures((current) => current.filter((feature) => feature.id !== featureId));
+      setData((current) =>
+        current.map((pkg) =>
+          pkg.id === editingPackageId
+            ? { ...pkg, features: pkg.features.filter((feature) => feature.id !== featureId) }
+            : pkg,
+        ),
+      );
+    } catch (err: unknown) {
+      setModalError(getErrorMessage(err, "Failed to remove feature"));
     }
   };
 
@@ -450,6 +507,55 @@ export default function PackagesPage() {
                   }} className="w-4 h-4 rounded bg-white/5 border-white/10 text-purple-500 focus:ring-purple-500/20" />
                   <label htmlFor="addon" className="text-sm text-gray-400 font-medium">Is this a Service Add-on?</label>
                 </div>
+              </div>
+              <div>
+                <label className="block text-sm text-gray-400 mb-1">Feature Bullet Points</label>
+                {editingPackageId ? (
+                  <div className="space-y-2">
+                    {packageFeatures.length > 0 && (
+                      <ul className="space-y-1.5">
+                        {packageFeatures.map((feature) => (
+                          <li key={feature.id} className="flex items-center justify-between gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5">
+                            <span className="text-sm text-white">{feature.name}</span>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteFeature(feature.id)}
+                              className="p-1 text-gray-400 hover:text-red-400 transition-colors"
+                              aria-label={`Remove feature ${feature.name}`}
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        className="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white"
+                        value={featureInput}
+                        onChange={e => setFeatureInput(e.target.value)}
+                        onKeyDown={e => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            handleAddFeature();
+                          }
+                        }}
+                        placeholder="e.g. Weekly Optimization"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleAddFeature}
+                        disabled={isSavingFeature || !featureInput.trim()}
+                        className="px-4 py-2 bg-white/10 hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors shrink-0"
+                      >
+                        {isSavingFeature ? "Adding..." : "Add"}
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-xs text-gray-500">Save the package first, then reopen it to add feature bullet points.</p>
+                )}
               </div>
               {modalError && (
                 <div className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-2 text-sm text-red-400">

@@ -95,12 +95,12 @@ export class TransactionsService extends BaseService {
       include: { payment: { select: { currency: true } } },
     });
 
-    const totalRevenue = successfulTransactions.reduce((sum, t) => sum + t.amount, 0);
+    const totalRevenue = successfulTransactions.reduce((sum, t) => sum + Number(t.amount), 0);
     const totalCount = successfulTransactions.length;
 
     const byType = successfulTransactions.reduce(
       (acc, t) => {
-        acc[t.type] = (acc[t.type] || 0) + t.amount;
+        acc[t.type] = (acc[t.type] || 0) + Number(t.amount);
         return acc;
       },
       {} as Record<string, number>,

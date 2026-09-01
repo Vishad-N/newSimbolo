@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     siteName: "The Simbolo",
     images: [
       {
-        url: "/images/og/case-studies.jpg",
+        url: "/api/og?title=Case%20Studies%20%26%20Results&subtitle=Real%20client%20growth%20and%20ROI",
         width: 1200,
         height: 630,
         alt: "The Simbolo Case Studies",

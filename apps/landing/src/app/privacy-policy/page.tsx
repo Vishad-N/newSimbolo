@@ -3,6 +3,18 @@ import { LegalPageLayout, LegalSection } from "@/components/legal/LegalPageLayou
 export const metadata = {
   title: "Privacy Policy | The Simbolo",
   description: "How The Simbolo collects, uses, and protects your personal data.",
+  alternates: {
+    canonical: "/privacy-policy",
+  },
+  openGraph: {
+    title: "Privacy Policy | The Simbolo",
+    description: "How The Simbolo collects, uses, and protects your personal data.",
+    url: "/privacy-policy",
+    siteName: "The Simbolo",
+    images: [{ url: "/api/og?title=Privacy%20Policy&subtitle=The%20Simbolo", width: 1200, height: 630 }],
+    locale: "en_IN",
+    type: "website",
+  },
 };
 
 export default function PrivacyPolicyPage() {

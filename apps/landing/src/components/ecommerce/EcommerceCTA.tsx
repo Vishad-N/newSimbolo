@@ -63,7 +63,7 @@ export function EcommerceCTA() {
             <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
           </Link>
           <Link
-            href="/portfolio"
+            href="/case-studies"
             className="group flex h-14 items-center justify-center gap-3 rounded-full border border-white/20 bg-white/5 px-8 text-[1rem] font-bold text-white transition hover:bg-white/10"
           >
             View Success Stories

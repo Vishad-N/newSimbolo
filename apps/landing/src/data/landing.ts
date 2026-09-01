@@ -120,7 +120,17 @@ export const chooseItems = [
   { label: "100% Secure Payments", icon: ShieldCheck },
 ];
 
-export const brands = ["apollo", "Cipla", "lenskart", "Myntra", "TATA", "SAMSUNG", "boat", "Paytm", "SWIGGY"];
+export const brands = [
+  "Shree Sweets",
+  "Suman Nursery",
+  "Kwality Sweets",
+  "Paramount Legal",
+  "Shape and Shine",
+  "Aries India Research",
+  "Prathamveda",
+  "Recoco Innovations",
+  "Nextgen Aqua",
+];
 
 export const CrownIcon = Crown;
 export const DashboardIcon = Grid2X2;

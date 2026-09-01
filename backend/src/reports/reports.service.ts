@@ -90,7 +90,7 @@ export class ReportsService extends BaseService {
     const reportRows = rows.map((row): ReportRow => ({
       paymentNumber: row.paymentNumber,
       orderNumber: row.order?.orderNumber ?? null,
-      amount: row.amount,
+      amount: Number(row.amount),
       currency: row.currency,
       gatewayProvider: row.gatewayProvider,
       paidAt: row.paidAt?.toISOString() ?? null,
@@ -101,7 +101,7 @@ export class ReportsService extends BaseService {
       dto,
       ['paymentNumber', 'orderNumber', 'amount', 'currency', 'gatewayProvider', 'paidAt'],
       reportRows,
-      { totalRevenue: rows.reduce((sum, row) => sum + row.amount, 0), totalPayments: rows.length },
+      { totalRevenue: rows.reduce((sum, row) => sum + Number(row.amount), 0), totalPayments: rows.length },
     );
   }
 
@@ -176,11 +176,11 @@ export class ReportsService extends BaseService {
       rows.map((row): ReportRow => ({
         orderNumber: row.orderNumber,
         status: row.status,
-        netAmount: row.netAmount,
+        netAmount: Number(row.netAmount),
         currency: row.currency,
         createdAt: row.createdAt.toISOString(),
       })),
-      { totalOrders: rows.length, totalValue: rows.reduce((sum, row) => sum + row.netAmount, 0) },
+      { totalOrders: rows.length, totalValue: rows.reduce((sum, row) => sum + Number(row.netAmount), 0) },
     );
   }
 
@@ -205,12 +205,12 @@ export class ReportsService extends BaseService {
       rows.map((row): ReportRow => ({
         paymentNumber: row.paymentNumber,
         status: row.status,
-        amount: row.amount,
+        amount: Number(row.amount),
         currency: row.currency,
         gatewayProvider: row.gatewayProvider,
         createdAt: row.createdAt.toISOString(),
       })),
-      { totalPayments: rows.length, totalAmount: rows.reduce((sum, row) => sum + row.amount, 0) },
+      { totalPayments: rows.length, totalAmount: rows.reduce((sum, row) => sum + Number(row.amount), 0) },
     );
   }
 

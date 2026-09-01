@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     siteName: "The Simbolo",
     images: [
       {
-        url: "https://thesimbolo.com/assets/og-ecommerce.jpg",
+        url: "/api/og?title=E-Commerce%20Development&subtitle=Shopify%2C%20WooCommerce%20%26%20custom%20stores",
         width: 1200,
         height: 630,
         alt: "Professional E-Commerce Development Services",
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "E-Commerce Development Services | The Simbolo",
     description: "Build high-converting e-commerce websites with Shopify, WooCommerce, React, Next.js and custom development.",
-    images: ["https://thesimbolo.com/assets/og-ecommerce.jpg"],
+    images: ["/api/og?title=E-Commerce%20Development&subtitle=Shopify%2C%20WooCommerce%20%26%20custom%20stores"],
   },
   robots: {
     index: true,

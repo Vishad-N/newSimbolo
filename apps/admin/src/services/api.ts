@@ -405,6 +405,9 @@ export const api = {
     create: async (data: any) => fetchFromApi('/packages', { method: 'POST', body: JSON.stringify(data) }),
     update: async (id: string, data: any) => fetchFromApi(`/packages/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
     delete: async (id: string) => fetchFromApi(`/packages/${id}`, { method: 'DELETE' }),
+    addFeature: async (data: { name: string; packageId: string; description?: string; isIncluded?: boolean; limitValue?: string; sortOrder?: number }) =>
+      fetchFromApi('/packages/features', { method: 'POST', body: JSON.stringify(data) }),
+    deleteFeature: async (id: string) => fetchFromApi(`/packages/features/${id}`, { method: 'DELETE' }),
   },
   clients: {
     getAll: async () => fetchFromApi('/clients', { method: 'GET' }),

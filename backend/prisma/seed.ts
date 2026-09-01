@@ -216,6 +216,166 @@ async function main() {
       module: 'clients',
       description: "Can view any client's profile and dashboard (staff only)",
     },
+    {
+      name: 'Manage Clients',
+      slug: 'clients.manage',
+      module: 'clients',
+      description: 'Can create, update, and delete client records',
+    },
+    // AI module
+    { name: 'Use AI', slug: 'ai.use', module: 'ai', description: 'Can use AI-assisted content generation and search' },
+    {
+      name: 'Manage AI',
+      slug: 'ai.manage',
+      module: 'ai',
+      description: 'Can manage AI conversations and trigger embedding sync',
+    },
+    // Audit module
+    { name: 'View Audit Log', slug: 'audit.view', module: 'audit', description: 'Can view the system audit log' },
+    // Automation module
+    {
+      name: 'Manage Automation',
+      slug: 'automation.manage',
+      module: 'automation',
+      description: 'Can manage automation workflows',
+    },
+    // Blogs module (additional)
+    { name: 'Manage Blogs', slug: 'blogs.manage', module: 'blogs', description: 'Full blog management access' },
+    { name: 'Update Blogs', slug: 'blogs.update', module: 'blogs', description: 'Can update existing blog articles' },
+    // Case Studies module (additional; controllers check these exact lowercase slugs)
+    {
+      name: 'Create Case Studies (Legacy)',
+      slug: 'casestudies.create',
+      module: 'caseStudies',
+      description: 'Can create case studies',
+    },
+    {
+      name: 'Update Case Studies (Legacy)',
+      slug: 'casestudies.update',
+      module: 'caseStudies',
+      description: 'Can update case studies',
+    },
+    {
+      name: 'Delete Case Studies (Legacy)',
+      slug: 'casestudies.delete',
+      module: 'caseStudies',
+      description: 'Can delete case studies',
+    },
+    {
+      name: 'Manage Case Studies (Legacy)',
+      slug: 'casestudies.manage',
+      module: 'caseStudies',
+      description: 'Full case study management access, including metrics and categories',
+    },
+    // Generic CMS content module (about-us, footer, help-center, homepage, navigation, website-team)
+    { name: 'Create Content', slug: 'content.create', module: 'content', description: 'Can create CMS content blocks' },
+    { name: 'Read Content', slug: 'content.read', module: 'content', description: 'Can view CMS content blocks' },
+    { name: 'Update Content', slug: 'content.update', module: 'content', description: 'Can edit CMS content blocks' },
+    { name: 'Delete Content', slug: 'content.delete', module: 'content', description: 'Can delete CMS content blocks' },
+    // Deliverables module
+    {
+      name: 'Read Deliverables',
+      slug: 'deliverables.read',
+      module: 'deliverables',
+      description: 'Can view project deliverables',
+    },
+    {
+      name: 'Upload Deliverables',
+      slug: 'deliverables.upload',
+      module: 'deliverables',
+      description: 'Can upload new deliverable files',
+    },
+    {
+      name: 'Approve Deliverables',
+      slug: 'deliverables.approve',
+      module: 'deliverables',
+      description: 'Can approve or reject submitted deliverables',
+    },
+    // FAQs module
+    { name: 'Create FAQs', slug: 'faqs.create', module: 'faqs', description: 'Can create FAQ entries' },
+    { name: 'Update FAQs', slug: 'faqs.update', module: 'faqs', description: 'Can update FAQ entries' },
+    { name: 'Delete FAQs', slug: 'faqs.delete', module: 'faqs', description: 'Can delete FAQ entries' },
+    { name: 'Manage FAQs', slug: 'faqs.manage', module: 'faqs', description: 'Full FAQ management access' },
+    // Media module (additional)
+    { name: 'Read Media', slug: 'media.read', module: 'media', description: 'Can view media assets' },
+    { name: 'Manage Media', slug: 'media.manage', module: 'media', description: 'Full media library management access' },
+    // Meetings module
+    { name: 'Read Meetings', slug: 'meetings.read', module: 'meetings', description: 'Can view scheduled meetings' },
+    {
+      name: 'Manage Meetings',
+      slug: 'meetings.manage',
+      module: 'meetings',
+      description: 'Can schedule, update, and cancel meetings',
+    },
+    // Milestones module
+    {
+      name: 'Manage Milestones',
+      slug: 'milestones.manage',
+      module: 'milestones',
+      description: 'Can create, update, and delete project milestones',
+    },
+    // Packages module (additional)
+    {
+      name: 'Manage Packages',
+      slug: 'packages.manage',
+      module: 'packages',
+      description: 'Full package management access, including features and pricing',
+    },
+    // Portfolio module
+    { name: 'Create Portfolio Items', slug: 'portfolio.create', module: 'portfolio', description: 'Can create portfolio projects' },
+    { name: 'Update Portfolio Items', slug: 'portfolio.update', module: 'portfolio', description: 'Can update portfolio projects' },
+    { name: 'Delete Portfolio Items', slug: 'portfolio.delete', module: 'portfolio', description: 'Can delete portfolio projects' },
+    {
+      name: 'Manage Portfolio',
+      slug: 'portfolio.manage',
+      module: 'portfolio',
+      description: 'Full portfolio management access',
+    },
+    // Projects module
+    { name: 'Read Projects', slug: 'projects.read', module: 'projects', description: 'Can view client projects' },
+    { name: 'Create Projects', slug: 'projects.create', module: 'projects', description: 'Can create new projects' },
+    { name: 'Update Projects', slug: 'projects.update', module: 'projects', description: 'Can update existing projects' },
+    { name: 'Delete Projects', slug: 'projects.delete', module: 'projects', description: 'Can delete projects' },
+    { name: 'Manage Projects', slug: 'projects.manage', module: 'projects', description: 'Full project management access' },
+    // Reports (additional)
+    {
+      name: 'Generate Reports',
+      slug: 'reports.generate',
+      module: 'analytics',
+      description: 'Can generate on-demand reports',
+    },
+    // SEO module
+    { name: 'Create SEO Pages', slug: 'seo.create', module: 'seo', description: 'Can create SEO page configurations' },
+    { name: 'Update SEO Pages', slug: 'seo.update', module: 'seo', description: 'Can update SEO page configurations' },
+    { name: 'Delete SEO Pages', slug: 'seo.delete', module: 'seo', description: 'Can delete SEO page configurations' },
+    { name: 'Manage SEO', slug: 'seo.manage', module: 'seo', description: 'Full SEO management access' },
+    // Services module (additional)
+    {
+      name: 'Manage Services',
+      slug: 'services.manage',
+      module: 'services',
+      description: 'Full service catalog management access',
+    },
+    // Settings module (additional)
+    { name: 'Read Settings', slug: 'settings.read', module: 'settings', description: 'Can view platform settings' },
+    // Tasks module
+    {
+      name: 'Manage Tasks',
+      slug: 'tasks.manage',
+      module: 'tasks',
+      description: 'Can create, update, and delete project tasks',
+    },
+    // Team module
+    {
+      name: 'Assign Team',
+      slug: 'team.assign',
+      module: 'team',
+      description: 'Can assign team members to projects',
+    },
+    // Testimonials module (additional)
+    { name: 'Create Testimonials', slug: 'testimonials.create', module: 'testimonials', description: 'Can create testimonials' },
+    { name: 'Update Testimonials', slug: 'testimonials.update', module: 'testimonials', description: 'Can update testimonials' },
+    { name: 'Delete Testimonials', slug: 'testimonials.delete', module: 'testimonials', description: 'Can delete testimonials' },
   ];
 
   console.log(`Creating/updating ${permissionsData.length} permissions...`);
@@ -314,27 +474,61 @@ async function main() {
     data: { permissions: { set: adminPermSlugs.map((s) => ({ id: createdPermissions[s] })) } },
   });
 
-  // Content Manager gets blog, case study, media, service view perms
+  // Content Manager gets blog, case study, media, service view perms, plus the
+  // wider content-domain permissions (FAQs, portfolio, testimonials, SEO, and
+  // the generic CMS content.* used by about-us/footer/homepage/navigation)
+  // that its "Manages blogs, case studies, FAQs, and media" description implies.
   const contentPermSlugs = [
     'blogs.view',
     'blogs.create',
     'blogs.edit',
     'blogs.publish',
+    'blogs.update',
+    'blogs.manage',
     'caseStudies.view',
     'caseStudies.create',
     'caseStudies.edit',
     'caseStudies.publish',
+    'casestudies.create',
+    'casestudies.update',
+    'casestudies.delete',
+    'casestudies.manage',
     'media.view',
     'media.upload',
+    'media.read',
+    'media.manage',
     'services.view',
     'packages.view',
+    'content.create',
+    'content.read',
+    'content.update',
+    'content.delete',
+    'faqs.create',
+    'faqs.update',
+    'faqs.delete',
+    'faqs.manage',
+    'portfolio.create',
+    'portfolio.update',
+    'portfolio.delete',
+    'portfolio.manage',
+    'testimonials.create',
+    'testimonials.update',
+    'testimonials.delete',
+    'seo.create',
+    'seo.update',
+    'seo.delete',
+    'seo.manage',
+    'ai.use',
   ];
   await prisma.role.update({
     where: { id: createdRoles['CONTENT_MANAGER'] },
     data: { permissions: { set: contentPermSlugs.map((s) => ({ id: createdPermissions[s] })) } },
   });
 
-  // Project Manager gets order, service, user view perms
+  // Project Manager gets order, service, user view perms, plus everything
+  // needed to actually run projects — tasks, milestones, deliverables,
+  // meetings, and team assignment — matching its "Manages client projects,
+  // orders, and timelines" description.
   const pmPermSlugs = [
     'orders.view',
     'orders.manage',
@@ -349,6 +543,22 @@ async function main() {
     'documents.upload',
     'dashboard.view',
     'clients.read',
+    'projects.read',
+    'projects.create',
+    'projects.update',
+    'projects.delete',
+    'projects.manage',
+    'tasks.manage',
+    'milestones.manage',
+    'deliverables.read',
+    'deliverables.upload',
+    'deliverables.approve',
+    'meetings.read',
+    'meetings.manage',
+    'team.assign',
+    'reports.generate',
+    'reports.export',
+    'analytics.view',
   ];
   await prisma.role.update({
     where: { id: createdRoles['PROJECT_MANAGER'] },

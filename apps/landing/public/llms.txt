@@ -1,0 +1,30 @@
+# The Simbolo
+
+> The Simbolo is a digital marketing agency based in Indore, Madhya Pradesh, India, offering SEO, Google Ads, Meta Ads, website design and development, e-commerce setup, graphic design, and video editing services.
+
+The Simbolo helps businesses grow online through data-driven digital marketing and creative services, delivered by an in-house team and available as fixed pricing packages or custom engagements.
+
+## Services
+
+- [SEO](https://thesimbolo.com/services/seo): Search engine optimization to improve organic rankings and traffic.
+- [Google Ads](https://thesimbolo.com/services/google-ads): Paid search and display advertising management.
+- [Meta Ads](https://thesimbolo.com/services/meta-ads): Facebook and Instagram advertising management.
+- [Website Design](https://thesimbolo.com/services/website-design): Custom website design and development.
+- [E-Commerce](https://thesimbolo.com/services/ecommerce): Online store setup on Shopify, WooCommerce, and custom platforms.
+- [Graphic Design](https://thesimbolo.com/services/graphic-design): Branding, logos, and marketing creative.
+- [Video Editing](https://thesimbolo.com/services/video-editing): Short-form and long-form video editing for social and marketing.
+
+## Company
+
+- [About Us](https://thesimbolo.com/about-us): Company background, mission, and team.
+- [Packages](https://thesimbolo.com/packages): Fixed-price service packages.
+- [Case Studies](https://thesimbolo.com/case-studies): Real client results and outcomes.
+- [Blog](https://thesimbolo.com/blogs): Digital marketing insights and guides.
+- [Contact](https://thesimbolo.com/contact): Get in touch or request a consultation.
+
+## Optional
+
+- [Affiliate Program](https://thesimbolo.com/affiliate-program): Referral partnership program.
+- [Help Center](https://thesimbolo.com/help-center): Support and frequently asked questions.
+- [Privacy Policy](https://thesimbolo.com/privacy-policy)
+- [Terms & Conditions](https://thesimbolo.com/terms-and-conditions)

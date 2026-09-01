@@ -3,6 +3,7 @@ import {
   InvoiceStatusEnum,
   OrderStatusEnum,
   PaymentStatusEnum,
+  Prisma,
   ProjectStatusEnum,
   TicketStatusEnum,
 } from '@prisma/client';
@@ -39,12 +40,12 @@ export class AnalyticsService extends BaseService {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
   }
 
-  private groupRevenueByMonth(payments: { amount: number; paidAt: Date | null; createdAt: Date }[]): TrendPoint[] {
+  private groupRevenueByMonth(payments: { amount: number | Prisma.Decimal; paidAt: Date | null; createdAt: Date }[]): TrendPoint[] {
     const trendMap = new Map<string, TrendPoint>();
     for (const payment of payments) {
       const key = this.monthKey(payment.paidAt ?? payment.createdAt);
       const current = trendMap.get(key) ?? { period: key, amount: 0, count: 0 };
-      current.amount += payment.amount;
+      current.amount += Number(payment.amount);
       current.count += 1;
       trendMap.set(key, current);
     }
@@ -239,7 +240,7 @@ export class AnalyticsService extends BaseService {
     return {
       generatedAt: now,
       revenue: {
-        total: successfulPayments._sum.amount ?? 0,
+        total: Number(successfulPayments._sum.amount ?? 0),
         paymentCount: successfulPayments._count,
         trends: this.groupRevenueByMonth(monthlyRevenue),
       },
@@ -381,7 +382,7 @@ export class AnalyticsService extends BaseService {
         analytics.website.pageViews > 0
           ? Number(((analytics.website.inquiries / analytics.website.pageViews) * 100).toFixed(2))
           : 0,
-      averageOrderValue: Number((orders._avg.netAmount ?? 0).toFixed(2)),
+      averageOrderValue: Number(Number(orders._avg.netAmount ?? 0).toFixed(2)),
       customerLifetimeValue: clients > 0 ? Number((analytics.revenue.total / clients).toFixed(2)) : 0,
       projectCompletionRate: allProjects > 0 ? Number(((completedProjects / allProjects) * 100).toFixed(2)) : 0,
       teamUtilization: analytics.teamWorkload,

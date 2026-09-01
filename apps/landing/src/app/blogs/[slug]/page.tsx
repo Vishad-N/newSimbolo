@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import Script from "next/script";
 import { BlogReadingLayout } from "@/components/blog/BlogReadingLayout";
 import { landingApi } from "@/lib/api";
 import { mapBlogResponse } from "@/lib/blog-mapper";
@@ -61,13 +62,40 @@ export default async function BlogArticlePage({ params }: PageProps) {
     .filter((blogPost) => blogPost.id !== post.id && blogPost.status === "published")
     .filter((blogPost) => blogPost.categoryId === post.categoryId || post.relatedArticleIds?.includes(blogPost.id))
     .slice(0, 3);
+  const postAuthor = authors.find((author) => author.id === post.authorId);
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: post.title,
+    description: post.excerpt,
+    image: post.seo?.ogImage || post.heroImage,
+    datePublished: post.publishDate,
+    author: { "@type": "Person", name: postAuthor?.name || "The Simbolo" },
+    publisher: { "@type": "Organization", name: "The Simbolo", logo: { "@type": "ImageObject", url: "https://thesimbolo.com/favicon.png" } },
+    mainEntityOfPage: { "@type": "WebPage", "@id": `https://thesimbolo.com/blogs/${slug}` },
+  };
+
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://thesimbolo.com" },
+      { "@type": "ListItem", position: 2, name: "Blog", item: "https://thesimbolo.com/blogs" },
+      { "@type": "ListItem", position: 3, name: post.title, item: `https://thesimbolo.com/blogs/${slug}` },
+    ],
+  };
 
   return (
-    <BlogReadingLayout
-      post={post}
-      author={authors.find((author) => author.id === post.authorId)}
-      category={categories.find((category) => category.id === post.categoryId)}
-      relatedPosts={relatedPosts}
-    />
+    <>
+      <Script id="json-ld-blog-post" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <Script id="json-ld-blog-post-breadcrumb" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
+      <BlogReadingLayout
+        post={post}
+        author={postAuthor}
+        category={categories.find((category) => category.id === post.categoryId)}
+        relatedPosts={relatedPosts}
+      />
+    </>
   );
 }

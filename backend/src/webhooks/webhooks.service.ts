@@ -166,7 +166,7 @@ export class WebhooksService {
         try {
           const refundAmount = (entity.amount ?? 0) / 100; // Razorpay sends paise
           // The customer-paid total is the taxable base plus tax.
-          const orderTotal = payment.order.netAmount + payment.order.taxAmount;
+          const orderTotal = Number(payment.order.netAmount) + Number(payment.order.taxAmount);
           await this.commissionService.reverseCommission(payment.orderId, refundAmount, orderTotal);
         } catch (error) {
           this.logger.error(

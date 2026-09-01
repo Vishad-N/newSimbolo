@@ -39,11 +39,23 @@ export function ServiceHero({
 }: ServiceHeroProps) {
   const BadgeIcon = badge.icon;
 
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: breadcrumbs.map((crumb, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      name: crumb.label,
+      ...(crumb.href ? { item: `https://thesimbolo.com${crumb.href}` } : {}),
+    })),
+  };
+
   return (
     <section className="relative flex min-h-[60vh] w-full items-center py-12 lg:py-0">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
       <div className="grid w-full items-center gap-8 lg:grid-cols-[1.22fr_1fr] lg:items-stretch">
         <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55 }} className="relative z-10 flex flex-col justify-center py-1 lg:py-0">
-          
+
           <div className="mb-6 flex items-center gap-2 text-[0.72rem] font-medium text-white/70">
             {breadcrumbs.map((crumb, i) => {
               const isLast = i === breadcrumbs.length - 1;

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { X, Check, ArrowRight, Zap, Target, Briefcase } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
@@ -47,7 +48,7 @@ export function ExpandedPackageModal({ pkg, isOpen, onClose, defaultBilling = "m
 
   return (
     <AnimatePresence>
-      {isOpen && (
+      {isOpen && typeof document !== "undefined" && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 md:p-12">
           <motion.div
             initial={{ opacity: 0 }}
@@ -228,7 +229,8 @@ export function ExpandedPackageModal({ pkg, isOpen, onClose, defaultBilling = "m
             <MascotMessage pkgName={pkg.name} />
             </div>
           </motion.div>
-        </div>
+        </div>,
+        document.body
       )}
     </AnimatePresence>
   );

@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     siteName: "The Simbolo",
     images: [
       {
-        url: "https://thesimbolo.com/assets/og-video-editing.jpg",
+        url: "/api/og?title=Video%20Editing%20Services&subtitle=High-quality%20edits%20that%20increase%20engagement",
         width: 1200,
         height: 630,
         alt: "Professional Video Editing Services",
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Professional Video Editing Services | The Simbolo",
     description: "High-quality video editing services that increase engagement and conversions.",
-    images: ["https://thesimbolo.com/assets/og-video-editing.jpg"],
+    images: ["/api/og?title=Video%20Editing%20Services&subtitle=High-quality%20edits%20that%20increase%20engagement"],
   },
   robots: {
     index: true,

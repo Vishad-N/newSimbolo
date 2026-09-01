@@ -41,7 +41,7 @@ export function PricingSection({ title = "Packages", packages }: PricingSectionP
           ))}
         </div>
       </div>
-      <div className="grid gap-3 lg:grid-cols-2 2xl:grid-cols-4">
+      <div className="flex flex-wrap justify-center gap-3 lg:justify-start">
         {packages.map((item, index) => {
           const price = formatPrice(item, billing);
           const suffix = billing === "monthly" ? "/month" : "/year";
@@ -54,7 +54,7 @@ export function PricingSection({ title = "Packages", packages }: PricingSectionP
               transition={{ delay: index * 0.06, duration: 0.4 }}
               whileHover={{ y: -6 }}
               onClick={() => setSelectedPackage(item)}
-              className={cn("relative flex min-h-[395px] cursor-pointer flex-col rounded-[8px] border bg-[var(--background)]/34 p-4 pt-6 mt-4", item.isPopular ? "border-[var(--primary)] shadow-[0_0_30px_var(--accent-glow)]" : "border-white/10")}
+              className={cn("relative flex min-h-[395px] w-full cursor-pointer flex-col rounded-[8px] border bg-[var(--background)]/34 p-4 pt-6 mt-4 sm:w-[calc(50%-0.375rem)] lg:w-[280px] xl:w-[300px]", item.isPopular ? "border-[var(--primary)] shadow-[0_0_30px_var(--accent-glow)]" : "border-white/10")}
             >
               {item.badge && <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-[var(--primary)] px-4 py-1.5 text-[0.68rem] font-black text-[#ffffff]">{item.badge}</div>}
               <h3 className="text-[1.25rem] font-black text-white">{item.name}</h3>

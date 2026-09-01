@@ -16,15 +16,23 @@ import { FAQSection } from "@/components/shared/FAQSection";
 export const metadata: Metadata = {
   title: "Digital Marketing Services | The Simbolo",
   description: "Discover The Simbolo's complete digital marketing, SEO, Google Ads, website development, e-commerce, video editing, and graphic design services. Find the perfect solution to grow your business.",
+  alternates: {
+    canonical: "/services",
+  },
   openGraph: {
     title: "Digital Marketing Services | The Simbolo",
     description: "Discover The Simbolo's complete digital marketing and development services.",
+    url: "/services",
+    siteName: "The Simbolo",
+    images: [{ url: "/api/og?title=Digital%20Marketing%20Services&subtitle=SEO%2C%20Ads%2C%20Web%2C%20and%20more", width: 1200, height: 630 }],
+    locale: "en_IN",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: "Digital Marketing Services | The Simbolo",
     description: "Discover The Simbolo's complete digital marketing and development services.",
+    images: ["/api/og?title=Digital%20Marketing%20Services&subtitle=SEO%2C%20Ads%2C%20Web%2C%20and%20more"],
   },
 };
 

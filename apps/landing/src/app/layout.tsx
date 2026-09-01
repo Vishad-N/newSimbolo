@@ -6,7 +6,7 @@ import { FloatingWhatsApp } from "@/components/shared/FloatingWhatsApp";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://simbolo.ai"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://thesimbolo.com"),
   title: "The Simbolo | AI-Powered Marketing Match",
   description: "Find the right digital marketing expert in seconds.",
   icons: {

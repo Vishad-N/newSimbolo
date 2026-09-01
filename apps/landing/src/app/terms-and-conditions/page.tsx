@@ -3,6 +3,18 @@ import { LegalPageLayout, LegalSection } from "@/components/legal/LegalPageLayou
 export const metadata = {
   title: "Terms & Conditions | The Simbolo",
   description: "The terms and conditions governing the use of The Simbolo's website and services.",
+  alternates: {
+    canonical: "/terms-and-conditions",
+  },
+  openGraph: {
+    title: "Terms & Conditions | The Simbolo",
+    description: "The terms and conditions governing the use of The Simbolo's website and services.",
+    url: "/terms-and-conditions",
+    siteName: "The Simbolo",
+    images: [{ url: "/api/og?title=Terms%20%26%20Conditions&subtitle=The%20Simbolo", width: 1200, height: 630 }],
+    locale: "en_IN",
+    type: "website",
+  },
 };
 
 export default function TermsAndConditionsPage() {

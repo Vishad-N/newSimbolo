@@ -83,7 +83,7 @@ export class PaymentsService extends BaseService {
 
     // The gateway call is deliberately OUTSIDE any DB transaction — an external HTTP
     // call cannot be rolled back, so it is sequenced between the two DB writes.
-    const gatewayOrder = await this.razorpayGateway.createOrder(order.netAmount, currency, receipt);
+    const gatewayOrder = await this.razorpayGateway.createOrder(Number(order.netAmount), currency, receipt);
 
     const paymentNumber = this.generatePaymentNumber();
 
@@ -242,7 +242,7 @@ export class PaymentsService extends BaseService {
             subscriptionNumber: `SUB-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`,
             clientId: payment.order.clientId,
             packageId: payment.order.packageId,
-            price: payment.amount,
+            price: Number(payment.amount),
             currency: payment.currency,
             status: 'ACTIVE',
             interval: 'MONTHLY',

@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     siteName: "The Simbolo",
     images: [
       {
-        url: "https://thesimbolo.com/assets/og-graphic-design.jpg",
+        url: "/api/og?title=Graphic%20Design%20Services&subtitle=Branding%2C%20logos%20%26%20marketing%20creative",
         width: 1200,
         height: 630,
         alt: "Professional Graphic Design Services",
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Graphic Design Services | The Simbolo",
     description: "Professional graphic design services including logo design, social media creatives, and branding.",
-    images: ["https://thesimbolo.com/assets/og-graphic-design.jpg"],
+    images: ["/api/og?title=Graphic%20Design%20Services&subtitle=Branding%2C%20logos%20%26%20marketing%20creative"],
   },
   robots: {
     index: true,

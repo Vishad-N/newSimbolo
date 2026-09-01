@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     siteName: "The Simbolo",
     images: [
       {
-        url: "https://thesimbolo.com/assets/og-website-design.jpg",
+        url: "/api/og?title=Website%20Design%20%26%20Development&subtitle=Fast%2C%20responsive%2C%20SEO-friendly%20websites",
         width: 1200,
         height: 630,
         alt: "Professional Website Design Services",
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Website Design & Development Services | The Simbolo",
     description: "Professional website design and web development services using modern technologies.",
-    images: ["https://thesimbolo.com/assets/og-website-design.jpg"],
+    images: ["/api/og?title=Website%20Design%20%26%20Development&subtitle=Fast%2C%20responsive%2C%20SEO-friendly%20websites"],
   },
   robots: {
     index: true,

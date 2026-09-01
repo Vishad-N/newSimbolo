@@ -69,7 +69,7 @@ export class DashboardService extends BaseService {
 
     const monthlyRevenue = monthlyOrders
       .filter((o) => !['CANCELLED', 'REFUNDED'].includes(o.status))
-      .reduce((sum, o) => sum + o.netAmount, 0);
+      .reduce((sum, o) => sum + Number(o.netAmount), 0);
 
     return {
       metrics: {
@@ -218,8 +218,8 @@ export class DashboardService extends BaseService {
       }),
     ]);
 
-    const currentRevenue = currentMonthPayments._sum.amount ?? 0;
-    const lastRevenue = lastMonthPayments._sum.amount ?? 0;
+    const currentRevenue = Number(currentMonthPayments._sum.amount ?? 0);
+    const lastRevenue = Number(lastMonthPayments._sum.amount ?? 0);
     const growthPct = lastRevenue > 0 ? ((currentRevenue - lastRevenue) / lastRevenue) * 100 : 0;
 
     return {
@@ -227,7 +227,7 @@ export class DashboardService extends BaseService {
         currentMonth: currentRevenue,
         lastMonth: lastRevenue,
         growthPercentage: parseFloat(growthPct.toFixed(2)),
-        totalAllTime: totalRevenue._sum.amount ?? 0,
+        totalAllTime: Number(totalRevenue._sum.amount ?? 0),
       },
       counts: {
         currentMonthPayments: currentMonthPayments._count,
@@ -374,9 +374,9 @@ export class DashboardService extends BaseService {
       this.prisma.project.count({ where: { deletedAt: null } }),
     ]);
 
-    const revenue = totalRevenue._sum.amount ?? 0;
+    const revenue = Number(totalRevenue._sum.amount ?? 0);
     return {
-      averageOrderValue: Number((totalOrders._avg.netAmount ?? 0).toFixed(2)),
+      averageOrderValue: Number(Number(totalOrders._avg.netAmount ?? 0).toFixed(2)),
       customerLifetimeValue: totalClients > 0 ? Number((revenue / totalClients).toFixed(2)) : 0,
       projectCompletionRate: allProjects > 0 ? Number(((completedProjects / allProjects) * 100).toFixed(2)) : 0,
       totalRevenue: revenue,

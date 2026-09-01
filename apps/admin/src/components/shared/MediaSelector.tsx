@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Loader2, UploadCloud, Image as ImageIcon, Check, X } from "lucide-react";
 import { cn } from "@/utils/utils";
 import { getDataArray } from "@/services/api";
@@ -104,7 +105,7 @@ export function MediaSelector({ onSelect, triggerText = "Select Media", triggerI
         {triggerText}
       </button>
 
-      {isOpen && (
+      {isOpen && typeof document !== "undefined" && createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           {/* Backdrop */}
           <div 
@@ -201,7 +202,8 @@ export function MediaSelector({ onSelect, triggerText = "Select Media", triggerI
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

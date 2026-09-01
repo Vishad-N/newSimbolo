@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     siteName: "The Simbolo",
     images: [
       {
-        url: "https://thesimbolo.com/assets/og-affiliate.jpg",
+        url: "/api/og?title=Affiliate%20Program&subtitle=Earn%20recurring%20commissions%20with%20The%20Simbolo",
         width: 1200,
         height: 630,
         alt: "The Simbolo Affiliate Program",
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Affiliate Program | The Simbolo",
     description: "Earn recurring commissions by referring businesses to The Simbolo.",
-    images: ["https://thesimbolo.com/assets/og-affiliate.jpg"],
+    images: ["/api/og?title=Affiliate%20Program&subtitle=Earn%20recurring%20commissions%20with%20The%20Simbolo"],
   },
   robots: {
     index: true,

@@ -4,6 +4,18 @@ import { ContactForm } from "@/components/contact/ContactForm";
 export const metadata = {
   title: "Contact Us | The Simbolo",
   description: "Get in touch with our team to discuss your digital growth.",
+  alternates: {
+    canonical: "/contact",
+  },
+  openGraph: {
+    title: "Contact Us | The Simbolo",
+    description: "Get in touch with our team to discuss your digital growth.",
+    url: "/contact",
+    siteName: "The Simbolo",
+    images: [{ url: "/api/og?title=Contact%20Us&subtitle=Let%27s%20build%20your%20growth%20strategy", width: 1200, height: 630 }],
+    locale: "en_IN",
+    type: "website",
+  },
 };
 
 export default function ContactPage() {
