@@ -7,7 +7,7 @@ import { buildSearchPrompt } from './prompts/search.prompt';
 import { AiGenerationDto } from './dto/ai.dto';
 import { CacheService } from '../cache/cache.service';
 import { AiEmbeddingService } from './ai-embedding.service';
-import { SearchResponse } from './interfaces/search-response.interface';
+import { Expert, LlmSearchResponse, SearchResponse, Service } from './interfaces/search-response.interface';
 
 interface TablePresenceResult {
   exists: boolean;
@@ -49,38 +49,41 @@ export class AiService extends BaseService {
 
     this.logger.log(`Cache miss for query: ${query}. Performing hybrid search...`);
 
-    let queryEmbedding: number[] = [];
-    try {
-      // 2. Generate Embedding for Query
-      queryEmbedding = await this.embeddingService.getEmbedding(query);
-    } catch (e) {
-      this.logger.warn(`Failed to generate embedding for query: ${query}. Falling back to keyword search only.`);
-    }
-
-    let services: any[] = [];
-    let packages: any[] = [];
-
-    const keywordPattern = `%${query}%`;
-    const [hasServicesTable, hasPackagesTable] = await Promise.all([
+    // 2. Everything below is independent until the catalog queries need the
+    // embedding vector, so run it all concurrently instead of one round trip
+    // at a time — this alone removes 3 sequential DB/network round trips.
+    const [queryEmbedding, hasServicesTable, hasPackagesTable, experts] = await Promise.all([
+      this.embeddingService.getEmbedding(query).catch(() => {
+        this.logger.warn(`Failed to generate embedding for query: ${query}. Falling back to keyword search only.`);
+        return [] as number[];
+      }),
       this.tableExists('services'),
       this.tableExists('packages'),
+      this.prisma.user.findMany({
+        where: { role: { name: { in: ['CONTENT_MANAGER', 'PROJECT_MANAGER', 'MARKETING_MANAGER', 'ADMIN'] } } },
+        take: 10,
+      }),
     ]);
 
     if (!hasServicesTable) {
       this.logger.warn('AI search skipped services lookup because table "services" does not exist.');
     }
-
     if (!hasPackagesTable) {
       this.logger.warn('AI search skipped packages lookup because table "packages" does not exist.');
     }
 
+    const keywordPattern = `%${query}%`;
+    let services: any[] = [];
+    let packages: any[] = [];
+
+    const catalogFetches: Promise<void>[] = [];
     if (queryEmbedding.length > 0) {
       const vectorString = `[${queryEmbedding.join(',')}]`;
 
-      // 3. Hybrid Search Services
       if (hasServicesTable) {
-        services = await this.queryCatalogTable<any>(
-          `
+        catalogFetches.push(
+          this.queryCatalogTable<any>(
+            `
           SELECT id, name, "shortDescription",
           COALESCE(1 - (embedding <=> $1::vector), 0) as similarity,
           (CASE WHEN name ILIKE $2 THEN 0.5 ELSE 0 END) as keyword_score
@@ -88,15 +91,18 @@ export class AiService extends BaseService {
           ORDER BY COALESCE(1 - (embedding <=> $1::vector), 0) + (CASE WHEN name ILIKE $2 THEN 0.5 ELSE 0 END) DESC
           LIMIT 5
         `,
-          [vectorString, keywordPattern],
-          'services',
+            [vectorString, keywordPattern],
+            'services',
+          ).then((rows) => {
+            services = rows;
+          }),
         );
       }
 
-      // 4. Hybrid Search Packages
       if (hasPackagesTable) {
-        packages = await this.queryCatalogTable<any>(
-          `
+        catalogFetches.push(
+          this.queryCatalogTable<any>(
+            `
           SELECT id, name, description,
           COALESCE(1 - (embedding <=> $1::vector), 0) as similarity,
           (CASE WHEN name ILIKE $2 THEN 0.5 ELSE 0 END) as keyword_score
@@ -104,15 +110,19 @@ export class AiService extends BaseService {
           ORDER BY COALESCE(1 - (embedding <=> $1::vector), 0) + (CASE WHEN name ILIKE $2 THEN 0.5 ELSE 0 END) DESC
           LIMIT 5
         `,
-          [vectorString, keywordPattern],
-          'packages',
+            [vectorString, keywordPattern],
+            'packages',
+          ).then((rows) => {
+            packages = rows;
+          }),
         );
       }
     } else {
       // Fallback to purely keyword if embedding fails
       if (hasServicesTable) {
-        services = await this.queryCatalogTable<any>(
-          `
+        catalogFetches.push(
+          this.queryCatalogTable<any>(
+            `
           SELECT id, name, "shortDescription",
           0 as similarity,
           (CASE WHEN name ILIKE $1 THEN 0.5 ELSE 0 END) as keyword_score
@@ -121,14 +131,18 @@ export class AiService extends BaseService {
           ORDER BY keyword_score DESC
           LIMIT 5
         `,
-          [keywordPattern],
-          'services',
+            [keywordPattern],
+            'services',
+          ).then((rows) => {
+            services = rows;
+          }),
         );
       }
 
       if (hasPackagesTable) {
-        packages = await this.queryCatalogTable<any>(
-          `
+        catalogFetches.push(
+          this.queryCatalogTable<any>(
+            `
           SELECT id, name, description,
           0 as similarity,
           (CASE WHEN name ILIKE $1 THEN 0.5 ELSE 0 END) as keyword_score
@@ -137,21 +151,16 @@ export class AiService extends BaseService {
           ORDER BY keyword_score DESC
           LIMIT 5
         `,
-          [keywordPattern],
-          'packages',
+            [keywordPattern],
+            'packages',
+          ).then((rows) => {
+            packages = rows;
+          }),
         );
       }
     }
 
-    // 5. Experts
-    const experts = await this.prisma.user.findMany({
-      where: {
-        role: {
-          name: { in: ['CONTENT_MANAGER', 'PROJECT_MANAGER', 'MARKETING_MANAGER', 'ADMIN'] },
-        },
-      },
-      take: 10,
-    });
+    await Promise.all(catalogFetches);
 
     const contextExperts = experts.map((e) => ({
       id: e.id,
@@ -160,27 +169,56 @@ export class AiService extends BaseService {
       imageUrl: e.avatarUrl || `https://i.pravatar.cc/150?u=${e.id}`,
     }));
 
-    // 6. Gemini Generation
-    const prompt = buildSearchPrompt(query, {
-      services,
-      packages,
-      experts: contextExperts,
-      reviews: [],
-    });
+    // 3. Gemini Generation — only asked for the parts that genuinely need
+    // reasoning (summary/matchPercentage/recommendedService/recommendedPackage/
+    // suggestions). Experts and relatedServices are data we already have, so
+    // they're assembled deterministically below instead of round-tripped
+    // through the model as structured JSON, which cuts generation time.
+    const prompt = buildSearchPrompt(query, { services, packages });
 
     let result: SearchResponse;
     try {
-      result = await this.provider.search(prompt);
+      const llmResult = await this.provider.search(prompt);
+      result = {
+        ...llmResult,
+        experts: this.toExpertList(contextExperts),
+        reviews: [],
+        relatedServices: this.toRelatedServices(services),
+      };
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Unknown Gemini search error';
       this.logger.warn(`Gemini search failed. Returning deterministic fallback response. ${message}`);
       result = this.buildFallbackSearchResponse(query, services, packages, contextExperts);
     }
 
-    // 7. Store in Cache (TTL 1 hour = 3600 seconds)
+    // 4. Store in Cache (TTL 1 hour = 3600 seconds)
     await this.cacheService.set(cacheKey, result, 3600);
 
     return result;
+  }
+
+  private toExpertList(contextExperts: Array<{ id: string; name: string; title: string; imageUrl: string }>): Expert[] {
+    return contextExperts.slice(0, 3).map((expert) => ({
+      ...expert,
+      rating: 4.8,
+      projectsCompleted: 0,
+      specialization: 'Digital marketing',
+      responseTime: 'Within 24 hours',
+      hourlyPrice: 0,
+      isSimboloExpert: true,
+      skills: ['SEO', 'Strategy', 'Content'],
+      experience: 'Verified Simbolo expert',
+      availability: 'Available',
+    }));
+  }
+
+  private toRelatedServices(services: Array<{ id: string; name: string; shortDescription?: string | null }>): Service[] {
+    return services.slice(0, 3).map((service) => ({
+      id: service.id,
+      title: service.name,
+      description: service.shortDescription || '',
+      icon: 'search',
+    }));
   }
 
   private async tableExists(tableName: string): Promise<boolean> {

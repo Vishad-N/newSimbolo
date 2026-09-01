@@ -29,27 +29,28 @@ export class OrdersController {
 
   @Get()
   @Permissions('orders.view', 'orders.manage')
-  @ApiOperation({ summary: 'List all orders with optional filters and pagination' })
+  @ApiOperation({ summary: 'List orders with optional filters and pagination (clients only ever see their own)' })
   @ApiQuery({ name: 'clientId', required: false })
   @ApiQuery({ name: 'status', enum: OrderStatusEnum, required: false })
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiResponse({ status: 200, description: 'Paginated order list' })
   async findAll(
+    @CurrentUser() user: JwtPayload,
     @Query('clientId') clientId?: string,
     @Query('status') status?: OrderStatusEnum,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page = 1,
     @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit = 20,
   ) {
-    return this.ordersService.findAll(clientId, status, page, limit);
+    return this.ordersService.findAllForRequester(user, clientId, status, page, limit);
   }
 
   @Get(':id')
   @Permissions('orders.view', 'orders.manage')
-  @ApiOperation({ summary: 'Get order details by ID' })
+  @ApiOperation({ summary: 'Get order details by ID (clients only ever see their own)' })
   @ApiResponse({ status: 200, description: 'Order returned' })
-  async findOne(@Param('id', ParseUUIDPipe) id: string) {
-    return this.ordersService.findOne(id);
+  async findOne(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: JwtPayload) {
+    return this.ordersService.findOneForRequester(id, user);
   }
 
   @Post()

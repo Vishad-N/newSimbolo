@@ -9,24 +9,35 @@ export default function OrdersPage() {
   const [orders, setOrders] = useState<any[]>([]);
 
   useEffect(() => {
-    mockApi.orders.getAll().then(setOrders);
+    mockApi.profile.get()
+      .then(profileData => {
+        const clientId = profileData?.clientId || profileData?.id;
+        if (clientId) {
+          mockApi.orders.getAll(clientId).then(setOrders);
+        }
+      })
+      .catch(console.error);
   }, []);
 
   const columns = [
-    { key: "id", header: "Order #" },
+    { key: "orderNumber", header: "Order #" },
     {
       key: "service",
       header: "Purchased Service",
       render: (item: any) => (
-        <span className="font-medium text-white">{item.service}</span>
+        <span className="font-medium text-white">{item.service?.name || item.package?.name || "—"}</span>
       )
     },
-    { key: "date", header: "Date" },
     {
-      key: "amount",
+      key: "createdAt",
+      header: "Date",
+      render: (item: any) => <span>{item.createdAt ? new Date(item.createdAt).toLocaleDateString() : "—"}</span>
+    },
+    {
+      key: "netAmount",
       header: "Amount",
       render: (item: any) => (
-        <span className="font-medium text-white">₹{item.amount.toLocaleString('en-IN')}</span>
+        <span className="font-medium text-white">₹{Number(item.netAmount ?? item.totalAmount ?? 0).toLocaleString('en-IN')}</span>
       )
     },
     {
@@ -34,7 +45,7 @@ export default function OrdersPage() {
       header: "Status",
       render: (item: any) => (
         <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-          item.status === 'Active' ? 'bg-green-500/10 text-green-400 border border-green-500/20' :
+          item.status === 'ACTIVE' || item.status === 'COMPLETED' ? 'bg-green-500/10 text-green-400 border border-green-500/20' :
           'bg-gray-500/10 text-gray-400 border border-gray-500/20'
         }`}>
           {item.status}

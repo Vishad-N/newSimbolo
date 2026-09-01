@@ -54,3 +54,15 @@ export interface SearchResponse {
   reviews: Review[];
   relatedServices: Service[];
 }
+
+// What the LLM itself is asked to generate — the parts that genuinely need
+// reasoning about the query. Experts/reviews/relatedServices are assembled
+// deterministically in AiService from data already fetched from the DB,
+// rather than having the model regenerate structured JSON we already have.
+export interface LlmSearchResponse {
+  summary: string;
+  matchPercentage: number;
+  recommendedService: string;
+  recommendedPackage: string;
+  suggestions: Suggestion[];
+}

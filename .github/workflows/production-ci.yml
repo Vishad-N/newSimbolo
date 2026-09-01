@@ -112,7 +112,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Install Railway CLI
+        run: npm i -g @railway/cli
+
       - name: Deploy backend to Railway
+        id: railway-deploy
         # RAILWAY_TOKEN must be a PROJECT token (Railway dashboard → this project →
         # Settings → Tokens), not a personal account token — a project token lets
         # the CLI resolve the project/environment non-interactively in CI.
@@ -124,21 +129,74 @@ jobs:
         run: |
           if [ -z "$RAILWAY_TOKEN" ]; then
             echo "RAILWAY_TOKEN not set — skipping Railway deploy."
+            echo "skipped=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          npm i -g @railway/cli
+
+          PROJECT_ID="${{ vars.RAILWAY_PROJECT_ID || 'c3a54790-eeb7-4274-b04b-c93f6143e8a1' }}"
+          ENVIRONMENT_ID="${{ vars.RAILWAY_ENVIRONMENT_ID || 'a264b8bd-eb0d-4c96-8f62-39c53a8a304d' }}"
+          SERVICE_ID="${{ vars.RAILWAY_SERVICE_ID || '2096a21f-ca7b-4ce4-94f5-e8f14e93ee04' }}"
+          SERVICE_NAME="${{ vars.RAILWAY_BACKEND_SERVICE || '@simbolo/backend' }}"
+
+          # Capture the currently-running deployment BEFORE deploying a new one, so
+          # there is a known-good target to roll back to if the post-deploy smoke
+          # test (next step) finds the new deployment unhealthy. Best-effort: if
+          # this lookup fails for any reason, the deploy still proceeds — it just
+          # means an automatic rollback won't be possible and manual intervention
+          # would be needed instead.
+          QUERY_RESULT=$(railway api \
+            'query($input: DeploymentListInput!) { deployments(input: $input, first: 1) { edges { node { id status } } } }' \
+            --var "input={\"projectId\":\"$PROJECT_ID\",\"serviceId\":\"$SERVICE_ID\",\"environmentId\":\"$ENVIRONMENT_ID\",\"status\":{\"successfulOnly\":true}}" \
+            --compact --allow-errors 2>/dev/null || echo '{}')
+          PREVIOUS_DEPLOYMENT_ID=$(echo "$QUERY_RESULT" | jq -r '.data.deployments.edges[0].node.id // empty')
+          echo "Previous known-good deployment: ${PREVIOUS_DEPLOYMENT_ID:-none captured}"
+          echo "previous_deployment_id=$PREVIOUS_DEPLOYMENT_ID" >> "$GITHUB_OUTPUT"
+
           # No --detach: that only confirms the upload started, not that the
           # build/deploy actually succeeded — a Dockerfile error like the
           # "COPY backend ./backend: not found" one we just hit would still
           # report this CI step as green. Block and stream logs instead so a
           # real build failure fails this job too.
-          railway up --service "${{ vars.RAILWAY_BACKEND_SERVICE || '@simbolo/backend' }}" --yes
+          railway up --service "$SERVICE_NAME" --yes
         # Must run from the repo ROOT, not backend/ — backend/Dockerfile expects
         # the whole monorepo as its build context (it does `COPY backend ./backend`,
         # `COPY package.json ...`), matching how the "Build backend Docker image"
         # step in the verify job already builds it (`docker build -f backend/Dockerfile .`
         # from root). Running `railway up` from inside backend/ uploads only that
         # subfolder, so the Dockerfile's COPY backend ./backend step finds nothing.
+
+      - name: Post-deploy smoke test
+        if: steps.railway-deploy.outputs.skipped != 'true'
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          HEALTH_URL="${{ vars.RAILWAY_BACKEND_HEALTH_URL || 'https://simbolobackend-production.up.railway.app/api/v1/health' }}"
+          echo "Smoke-testing $HEALTH_URL ..."
+
+          ATTEMPTS=10
+          for i in $(seq 1 $ATTEMPTS); do
+            RESPONSE=$(curl -sf --max-time 10 "$HEALTH_URL" 2>/dev/null || true)
+            STATUS=$(echo "$RESPONSE" | jq -r '.data.status // empty' 2>/dev/null || true)
+            if [ "$STATUS" = "ok" ]; then
+              echo "Smoke test passed on attempt $i/$ATTEMPTS (status=ok)."
+              exit 0
+            fi
+            echo "Attempt $i/$ATTEMPTS: not healthy yet (status='${STATUS:-none}'). Retrying in 6s..."
+            sleep 6
+          done
+
+          echo "::error::Post-deploy smoke test FAILED after $ATTEMPTS attempts — the new backend deployment is not healthy."
+
+          PREVIOUS_DEPLOYMENT_ID="${{ steps.railway-deploy.outputs.previous_deployment_id }}"
+          if [ -z "$PREVIOUS_DEPLOYMENT_ID" ]; then
+            echo "::error::No previous known-good deployment was captured — cannot auto-rollback. Roll back manually from the Railway dashboard."
+            exit 1
+          fi
+
+          echo "Rolling back to previous deployment $PREVIOUS_DEPLOYMENT_ID ..."
+          railway api 'mutation($id: String!) { deploymentRollback(id: $id) { id status } }' --var "id=$PREVIOUS_DEPLOYMENT_ID" --compact
+          echo "::error::Rolled back backend to deployment $PREVIOUS_DEPLOYMENT_ID. Investigate the failed deployment before retrying."
+          exit 1
 
   deploy-frontend-vercel:
     needs: verify
@@ -150,6 +208,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Deploy ${{ matrix.app }} to Vercel
+        id: vercel-deploy
         # (The `secrets` context can't be used in a step's `if:` — GitHub Actions
         # rejects that at workflow-validation time — so the skip check happens
         # inside the shell instead.)
@@ -168,8 +227,56 @@ jobs:
         run: |
           if [ -z "$VERCEL_TOKEN" ]; then
             echo "VERCEL_TOKEN not set — skipping Vercel deploy for ${{ matrix.app }}."
+            echo "skipped=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
+
+          # Capture the deployment currently live in production BEFORE deploying a
+          # new one, so there is a known-good target to roll back to if the
+          # post-deploy smoke test (next step) finds the new deployment unhealthy.
+          # Best-effort: if this lookup fails, the deploy still proceeds — an
+          # automatic rollback just won't be possible and manual intervention
+          # would be needed instead.
+          PREVIOUS_DEPLOYMENT_URL=$(npx vercel ls --token="$VERCEL_TOKEN" --environment production --json --limit 1 2>/dev/null | jq -r '.[0].url // empty')
+          echo "Previous known-good deployment: ${PREVIOUS_DEPLOYMENT_URL:-none captured}"
+          echo "previous_deployment_url=$PREVIOUS_DEPLOYMENT_URL" >> "$GITHUB_OUTPUT"
+
           npx vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
           npx vercel build --prod --token="$VERCEL_TOKEN"
           npx vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"
+
+      - name: Post-deploy smoke test (${{ matrix.app }})
+        if: steps.vercel-deploy.outputs.skipped != 'true'
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          SMOKE_URL="${{ vars[format('VERCEL_SMOKE_URL_{0}', matrix.app)] }}"
+          if [ -z "$SMOKE_URL" ]; then
+            echo "No smoke-test URL configured for ${{ matrix.app }} (set repo variable VERCEL_SMOKE_URL_${{ matrix.app }}) — skipping smoke test."
+            exit 0
+          fi
+
+          echo "Smoke-testing $SMOKE_URL ..."
+          ATTEMPTS=8
+          for i in $(seq 1 $ATTEMPTS); do
+            CODE=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 "$SMOKE_URL" || echo "000")
+            if [ "$CODE" = "200" ]; then
+              echo "Smoke test passed on attempt $i/$ATTEMPTS (HTTP $CODE)."
+              exit 0
+            fi
+            echo "Attempt $i/$ATTEMPTS: HTTP $CODE. Retrying in 5s..."
+            sleep 5
+          done
+
+          echo "::error::Post-deploy smoke test FAILED for ${{ matrix.app }} after $ATTEMPTS attempts."
+
+          PREVIOUS_DEPLOYMENT_URL="${{ steps.vercel-deploy.outputs.previous_deployment_url }}"
+          if [ -z "$PREVIOUS_DEPLOYMENT_URL" ]; then
+            echo "::error::No previous known-good deployment was captured — cannot auto-rollback. Roll back manually from the Vercel dashboard."
+            exit 1
+          fi
+
+          echo "Rolling back ${{ matrix.app }} to https://$PREVIOUS_DEPLOYMENT_URL ..."
+          npx vercel rollback "https://$PREVIOUS_DEPLOYMENT_URL" --token="$VERCEL_TOKEN" --yes
+          echo "::error::Rolled back ${{ matrix.app }} to https://$PREVIOUS_DEPLOYMENT_URL. Investigate the failed deployment before retrying."
+          exit 1

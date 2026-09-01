@@ -565,7 +565,9 @@ async function main() {
     data: { permissions: { set: pmPermSlugs.map((s) => ({ id: createdPermissions[s] })) } },
   });
 
-  // Client gets basic read/create order perms, plus read + upload access to their own documents
+  // Client gets basic read/create order perms, plus read + upload access to their own documents.
+  // 'projects.read' is scoped to only the client's own project(s) in ProjectsService —
+  // this permission alone does not grant visibility into other clients' projects.
   const clientPermSlugs = [
     'services.view',
     'packages.view',
@@ -574,6 +576,7 @@ async function main() {
     'documents.read',
     'documents.upload',
     'dashboard.view',
+    'projects.read',
   ];
   await prisma.role.update({
     where: { id: createdRoles['CLIENT'] },

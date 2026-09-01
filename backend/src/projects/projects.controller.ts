@@ -28,7 +28,7 @@ export class ProjectsController {
 
   @Get()
   @Permissions('projects.read', 'projects.manage')
-  @ApiOperation({ summary: 'List all projects with optional filters and pagination' })
+  @ApiOperation({ summary: 'List projects with optional filters and pagination (clients only ever see their own)' })
   @ApiQuery({ name: 'clientId', required: false })
   @ApiQuery({ name: 'status', enum: ProjectStatusEnum, required: false })
   @ApiQuery({ name: 'managerId', required: false })
@@ -36,21 +36,22 @@ export class ProjectsController {
   @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiResponse({ status: 200, description: 'Paginated project list' })
   async findAll(
+    @CurrentUser() user: JwtPayload,
     @Query('clientId') clientId?: string,
     @Query('status') status?: ProjectStatusEnum,
     @Query('managerId') managerId?: string,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page = 1,
     @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit = 20,
   ) {
-    return this.projectsService.findAll(clientId, status, managerId, page, limit);
+    return this.projectsService.findAllForRequester(user, clientId, status, managerId, page, limit);
   }
 
   @Get(':id')
   @Permissions('projects.read', 'projects.manage')
-  @ApiOperation({ summary: 'Get project details with milestones, tasks, deliverables, and timeline' })
+  @ApiOperation({ summary: 'Get project details with milestones, tasks, deliverables, and timeline (clients only ever see their own)' })
   @ApiResponse({ status: 200, description: 'Project detail returned' })
-  async findOne(@Param('id', ParseUUIDPipe) id: string) {
-    return this.projectsService.findOne(id);
+  async findOne(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: JwtPayload) {
+    return this.projectsService.findOneForRequester(id, user);
   }
 
   @Post(':id/recalculate-progress')
