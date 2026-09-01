@@ -234,12 +234,19 @@ jobs:
           # Capture the deployment currently live in production BEFORE deploying a
           # new one, so there is a known-good target to roll back to if the
           # post-deploy smoke test (next step) finds the new deployment unhealthy.
+          # Uses the documented REST API directly (GET /v7/deployments) rather than
+          # `vercel ls --json`, whose output shape isn't a stable/documented bare
+          # array and previously broke this exact lookup.
           # Best-effort: if this lookup fails, the deploy still proceeds — an
           # automatic rollback just won't be possible and manual intervention
           # would be needed instead.
-          PREVIOUS_DEPLOYMENT_URL=$(npx vercel ls --token="$VERCEL_TOKEN" --environment production --json --limit 1 2>/dev/null | jq -r '.[0].url // empty')
-          echo "Previous known-good deployment: ${PREVIOUS_DEPLOYMENT_URL:-none captured}"
-          echo "previous_deployment_url=$PREVIOUS_DEPLOYMENT_URL" >> "$GITHUB_OUTPUT"
+          DEPLOYMENTS_JSON=$(curl -sf --max-time 15 \
+            -H "Authorization: Bearer $VERCEL_TOKEN" \
+            "https://api.vercel.com/v7/deployments?projectId=$VERCEL_PROJECT_ID&target=production&state=READY&limit=1$( [ -n "$VERCEL_ORG_ID" ] && printf '&teamId=%s' "$VERCEL_ORG_ID" )" \
+            2>/dev/null || echo '{}')
+          PREVIOUS_DEPLOYMENT_ID=$(echo "$DEPLOYMENTS_JSON" | jq -r '.deployments[0].uid // empty')
+          echo "Previous known-good deployment: ${PREVIOUS_DEPLOYMENT_ID:-none captured}"
+          echo "previous_deployment_id=$PREVIOUS_DEPLOYMENT_ID" >> "$GITHUB_OUTPUT"
 
           npx vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
           npx vercel build --prod --token="$VERCEL_TOKEN"
@@ -270,13 +277,13 @@ jobs:
 
           echo "::error::Post-deploy smoke test FAILED for ${{ matrix.app }} after $ATTEMPTS attempts."
 
-          PREVIOUS_DEPLOYMENT_URL="${{ steps.vercel-deploy.outputs.previous_deployment_url }}"
-          if [ -z "$PREVIOUS_DEPLOYMENT_URL" ]; then
+          PREVIOUS_DEPLOYMENT_ID="${{ steps.vercel-deploy.outputs.previous_deployment_id }}"
+          if [ -z "$PREVIOUS_DEPLOYMENT_ID" ]; then
             echo "::error::No previous known-good deployment was captured — cannot auto-rollback. Roll back manually from the Vercel dashboard."
             exit 1
           fi
 
-          echo "Rolling back ${{ matrix.app }} to https://$PREVIOUS_DEPLOYMENT_URL ..."
-          npx vercel rollback "https://$PREVIOUS_DEPLOYMENT_URL" --token="$VERCEL_TOKEN" --yes
-          echo "::error::Rolled back ${{ matrix.app }} to https://$PREVIOUS_DEPLOYMENT_URL. Investigate the failed deployment before retrying."
+          echo "Rolling back ${{ matrix.app }} to deployment $PREVIOUS_DEPLOYMENT_ID ..."
+          npx vercel rollback "$PREVIOUS_DEPLOYMENT_ID" --token="$VERCEL_TOKEN" --yes
+          echo "::error::Rolled back ${{ matrix.app }} to deployment $PREVIOUS_DEPLOYMENT_ID. Investigate the failed deployment before retrying."
           exit 1
