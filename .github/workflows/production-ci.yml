@@ -250,7 +250,13 @@ jobs:
 
           npx vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
           npx vercel build --prod --token="$VERCEL_TOKEN"
-          npx vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"
+          # --archive=tgz uploads the whole build as one compressed file instead of
+          # hundreds of individual files. Vercel's free-tier upload cap is 5000
+          # FILES/day (not deployments) — a single uncompressed Next.js deploy can
+          # burn 800+ of that on its own, so a handful of deploys in one day can
+          # trip "DeploymentError: ... code: api-upload-free". Archiving collapses
+          # each deploy's cost to ~1 file against that cap.
+          npx vercel deploy --prebuilt --prod --archive=tgz --token="$VERCEL_TOKEN"
 
       - name: Post-deploy smoke test (${{ matrix.app }})
         if: steps.vercel-deploy.outputs.skipped != 'true'

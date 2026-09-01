@@ -3,7 +3,7 @@
 > Auto-managed digest for Aider and other CLIs that `read:` this file. Your notes above the markers are safe.
 
 <!-- SKILLGOD:START v1.1 -->
-# SkillGod Project Memory (auto-generated — do not edit; updated 2026-09-01 16:53)
+# SkillGod Project Memory (auto-generated — do not edit; updated 2026-09-01 18:13)
 
 # SkillGod Active
 
@@ -22,20 +22,20 @@ After completing **meaningful** work (decisions, architecture, non-obvious fixes
 ## SkillGod health
 - version: 1.0.1+794a995
 - project_id: `visha-90fc8883`
-- last inject: 2026-09-01T16:52:44 (runtime)
+- last inject: 2026-09-01T18:12:59 (runtime)
 - last capture: never (-)
 - markers: SKILLGOD:START v1.1
 
 ## Project memory
 
 ## Decisions
+- {"filePath": "c:\\Users\\visha\\simbolonew\\.github\\workflows\\production-ci.yml", "oldString": " npx vercel pull --yes --environment=production --token=\"$VERCEL_TOKEN\"\n npx ve
+- {"bytes": 346708, "code": 200, "codeText": "OK", "result": "# Vercel's Upload Rate Limit Explanation\n\nBased on the discussion, the \"5000\" in Vercel's `api-upload-free` rate lim
 - {"stdout": " const json = await res.json();\n // The backend's global TransformInterceptor wraps every response in\n // { success, message, data }. Unwrap it here, once, so every c
 - {"content":"---\ntitle: Controlling GitHub Autodeploys\ndescription: Learn how to configure GitHub autodeployments.\n---\n\n[Services linked to a GitHub repository](/services#deplo
 - {"stdout": "\nVercel CLI 59.5.0 (Node.js 22.18.0)\n\n â–² vercel rollback url|deploymentId [options]\n\n Quickly revert back to a previous deployment \n\n Commands:
 - {"results":[{"breadcrumb":"Build & deploy > Deployment Actions > Rollback","content":"A deployment rollback will revert to the previously successful deployment. Both the Docker\nim
 - {"stdout": "Redeploy the latest deployment of a service\n\nUsage: railway.exe redeploy [OPTIONS]\n\nOptions:\n -s, --service <SERVICE> The service ID/name to redeploy from\n -e, --
-- {"filePath": "c:\\Users\\visha\\simbolonew\\backend\\src\\ai\\ai.service.ts", "oldString": " async search(dto: AiSearchDto) {\n const query = dto.query.toLowerCase();\n const cache
-- {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\admin\\src\\services\\api.ts", "oldString": " packages: {\n getAll: async () => fetchFromApi('/packages', { method: 'GET' }),\n cr
 
 ## Notes
 

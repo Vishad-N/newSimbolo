@@ -9,7 +9,7 @@ export const PACKAGE_ILLUSTRATION_PATHS = [
   ECOMMERCE_ILLUSTRATION_URL,
   "/images/services/ecommerce_1784887873510.png",
   "/images/services/email_marketing_1784887958663.png",
-  "/images/services/google_ads_1784887852918.png",
+  "/images/services/google_ads_1784887852918-Photoroom.png",
   "/images/services/graphic_design_1784887863706.png",
   "/images/services/meta-ads.png",
   "/images/services/mobile_app_development_1784887912184.png",
@@ -25,7 +25,7 @@ export const PACKAGE_ILLUSTRATION_PATHS = [
 const packageIllustrationPaths = new Set<string>(PACKAGE_ILLUSTRATION_PATHS);
 
 const serviceIllustrationFallbacks: ReadonlyArray<readonly [string, string]> = [
-  ["google", "/images/services/google_ads_1784887852918.png"],
+  ["google", "/images/services/google_ads_1784887852918-Photoroom.png"],
   ["meta", "/images/services/meta-ads.png"],
   ["seo", "/images/services/seo.png"],
   ["shopify", "/images/services/shopify_development_1784887883421.png"],
