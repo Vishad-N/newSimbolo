@@ -442,6 +442,9 @@ export const api = {
   },
   caseStudies: {
     getAll: async () => fetchFromApi('/case-studies', { method: 'GET' }),
+    getCategories: async () => fetchFromApi('/case-studies/categories', { method: 'GET' }),
+    createCategory: async (data: { name: string; description?: string }) =>
+      fetchFromApi('/case-studies/categories', { method: 'POST', body: JSON.stringify(data) }),
     create: async (data: any) => fetchFromApi('/case-studies', { method: 'POST', body: JSON.stringify(data) }),
     update: async (id: string, data: any) => fetchFromApi(`/case-studies/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
     delete: async (id: string) => fetchFromApi(`/case-studies/${id}`, { method: 'DELETE' }),

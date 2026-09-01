@@ -46,10 +46,18 @@ export function ExpandedPackageModal({ pkg, isOpen, onClose, defaultBilling = "m
   const hasDiscount = isYearly && currentPrice && standardMonthly > monthlyEquivalent;
   const discountPercent = hasDiscount ? Math.round(((standardMonthly - monthlyEquivalent) / standardMonthly) * 100) : 0;
 
-  return (
+  // AnimatePresence tracks mount/unmount by cloning its children — a React
+  // Portal object isn't a normal element it can clone, so putting createPortal
+  // directly inside {isOpen && ...} silently produces no DOM output even
+  // though the portal itself is constructed successfully. Portalling a STABLE
+  // wrapper instead, with AnimatePresence's conditional child living inside
+  // it, keeps AnimatePresence operating on plain elements as it expects.
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
     <AnimatePresence>
-      {isOpen && typeof document !== "undefined" && createPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 md:p-12">
+      {isOpen && (
+        <div key={pkg.id} className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 md:p-12">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -229,10 +237,10 @@ export function ExpandedPackageModal({ pkg, isOpen, onClose, defaultBilling = "m
             <MascotMessage pkgName={pkg.name} />
             </div>
           </motion.div>
-        </div>,
-        document.body
+        </div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }
 

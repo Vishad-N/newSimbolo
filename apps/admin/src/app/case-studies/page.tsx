@@ -34,6 +34,9 @@ export default function CaseStudiesManagerPage() {
   const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
   const [coverImagePreview, setCoverImagePreview] = useState<string | null>(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [isAddingCategory, setIsAddingCategory] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [isCreatingCategory, setIsCreatingCategory] = useState(false);
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -41,9 +44,9 @@ export default function CaseStudiesManagerPage() {
     try {
       const [csRes, catRes] = await Promise.all([
         api.caseStudies.getAll(),
-        fetch(`${api.config.baseURL}/case-studies/categories`).then(r => r.json())
+        api.caseStudies.getCategories()
       ]) as [any, any];
-      
+
       setCategories(getDataArray(catRes));
 
       const mappedData: CaseStudyData[] = getDataArray<any>(csRes).map((cs: any) => ({

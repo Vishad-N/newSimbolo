@@ -1,10 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { services } from "@/data/landing";
 import { ServiceCard } from "@/components/ui/ServiceCard";
 
 export function FeaturedServices() {
+  const router = useRouter();
+
   return (
     <section className="mx-auto max-w-[1290px] border-t border-white/10 px-4 pt-4 sm:px-8 lg:px-10">
       <div className="mb-4 flex items-center justify-between">
@@ -28,6 +31,7 @@ export function FeaturedServices() {
             rating={service.rating}
             accent={service.accent as any}
             delay={index * 0.05}
+            onClick={() => router.push("/packages")}
           />
         ))}
       </div>
