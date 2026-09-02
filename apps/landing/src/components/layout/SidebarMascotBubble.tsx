@@ -6,16 +6,16 @@ import { MessageSquare } from "lucide-react";
 import Link from "next/link";
 
 const MESSAGES = [
-  "👋 What are we building today?",
-  "🚀 Ready to grow your business?",
-  "📈 Need more traffic?",
-  "🎨 Let's create something amazing.",
-  "💡 Looking for the right service?",
-  "🎬 Need a killer video edit?",
-  "🌐 Ready to launch your website?",
-  "📊 Let's scale your brand.",
-  "🔍 Want better search rankings?",
-  "💬 Tell us your business goals.",
+  { text: "👋 What are we building today?", href: "/contact" },
+  { text: "🚀 Ready to grow your business?", href: "/contact" },
+  { text: "📈 Need more traffic?", href: "/services/seo" },
+  { text: "🎨 Let's create something amazing.", href: "/services/graphic-design" },
+  { text: "💡 Looking for the right service?", href: "/services" },
+  { text: "🎬 Need a killer video edit?", href: "/services/video-editing" },
+  { text: "🌐 Ready to launch your website?", href: "/services/website-design" },
+  { text: "📊 Let's scale your brand.", href: "/services" },
+  { text: "🔍 Want better search rankings?", href: "/services/seo" },
+  { text: "💬 Tell us your business goals.", href: "/contact" },
 ];
 
 export function SidebarMascotBubble({ isExpanded = true }: { isExpanded?: boolean }) {
@@ -35,9 +35,11 @@ export function SidebarMascotBubble({ isExpanded = true }: { isExpanded?: boolea
 
   if (!isExpanded) return null;
 
+  const current = MESSAGES[currentIndex];
+
   return (
     <div className="relative mt-2 px-5 pb-4 z-10">
-      <Link href="/services/ai-match">
+      <Link href={current.href}>
         <motion.div
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
@@ -61,7 +63,7 @@ export function SidebarMascotBubble({ isExpanded = true }: { isExpanded?: boolea
                 transition={{ duration: 0.3 }}
                 className="text-[0.75rem] font-medium leading-snug text-white/80"
               >
-                {MESSAGES[currentIndex]}
+                {current.text}
               </motion.p>
             </AnimatePresence>
           </div>

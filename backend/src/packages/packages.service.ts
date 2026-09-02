@@ -55,14 +55,20 @@ export class PackagesService extends BaseService {
   }
 
   async createPackage(dto: CreatePackageDto, createdBy?: string): Promise<Package> {
-    const slug = this.generateSlug(dto.name);
+    const service = this.checkEntityExists(
+      await this.prisma.service.findUnique({ where: { id: dto.serviceId } }),
+      'Service',
+      dto.serviceId,
+    );
+
+    // Prefixed with the service slug so the same tier name (e.g. "Starter", "Growth")
+    // can be reused across different services — plain generateSlug(name) alone would
+    // collide the moment a second service defines a package with the same name.
+    const slug = `${service.slug}-${this.generateSlug(dto.name)}`;
     const existing = await this.prisma.package.findUnique({ where: { slug } });
     if (existing) {
       throw new CustomConflictException(`Package with name "${dto.name}" or slug "${slug}" already exists`);
     }
-
-    const service = await this.prisma.service.findUnique({ where: { id: dto.serviceId } });
-    this.checkEntityExists(service, 'Service', dto.serviceId);
 
     const created = await this.prisma.package.create({
       data: {
@@ -70,6 +76,7 @@ export class PackagesService extends BaseService {
         slug,
         description: dto.description || null,
         illustration: dto.isAddon ? null : dto.illustration || null,
+        thumbnailUrl: dto.isAddon ? null : dto.thumbnailUrl || null,
         type: dto.type || 'STARTER',
         serviceId: dto.serviceId,
         basePrice: dto.basePrice !== undefined ? dto.basePrice : 0.0,
@@ -86,21 +93,32 @@ export class PackagesService extends BaseService {
   }
 
   async updatePackage(id: string, dto: UpdatePackageDto, updatedBy?: string): Promise<Package> {
-    const pkg = this.checkEntityExists(await this.prisma.package.findUnique({ where: { id } }), 'Package', id);
+    const pkg = this.checkEntityExists(
+      await this.prisma.package.findUnique({ where: { id }, include: { service: true } }),
+      'Package',
+      id,
+    );
 
+    let serviceSlug = pkg.service.slug;
+    let serviceIdChanged = false;
     if (dto.serviceId && dto.serviceId !== pkg.serviceId) {
-      const service = await this.prisma.service.findUnique({ where: { id: dto.serviceId } });
-      this.checkEntityExists(service, 'Service', dto.serviceId);
+      const nextService = this.checkEntityExists(
+        await this.prisma.service.findUnique({ where: { id: dto.serviceId } }),
+        'Service',
+        dto.serviceId,
+      );
+      serviceSlug = nextService.slug;
+      serviceIdChanged = true;
     }
 
     let slug = pkg.slug;
-    if (dto.name && dto.name !== pkg.name) {
-      slug = this.generateSlug(dto.name);
+    if ((dto.name && dto.name !== pkg.name) || serviceIdChanged) {
+      slug = `${serviceSlug}-${this.generateSlug(dto.name || pkg.name)}`;
       const conflict = await this.prisma.package.findFirst({
         where: { slug, id: { not: id } },
       });
       if (conflict) {
-        throw new CustomConflictException(`Package name "${dto.name}" already exists`);
+        throw new CustomConflictException(`Package name "${dto.name || pkg.name}" already exists for this service`);
       }
     }
 
@@ -112,8 +130,9 @@ export class PackagesService extends BaseService {
         ...(dto.name !== undefined && { name: dto.name, slug }),
         ...(dto.description !== undefined && { description: dto.description }),
         ...(willBeAddon
-          ? { illustration: null }
+          ? { illustration: null, thumbnailUrl: null }
           : dto.illustration !== undefined && { illustration: dto.illustration }),
+        ...(!willBeAddon && dto.thumbnailUrl !== undefined && { thumbnailUrl: dto.thumbnailUrl }),
         ...(dto.type !== undefined && { type: dto.type }),
         ...(dto.serviceId !== undefined && { serviceId: dto.serviceId }),
         ...(dto.basePrice !== undefined && { basePrice: dto.basePrice }),
@@ -147,6 +166,7 @@ export class PackagesService extends BaseService {
         description: dto.description || null,
         packageId: dto.packageId,
         isIncluded: dto.isIncluded !== undefined ? dto.isIncluded : true,
+        kind: dto.kind || 'FEATURE',
         limitValue: dto.limitValue || null,
         sortOrder: dto.sortOrder !== undefined ? dto.sortOrder : 0,
       },

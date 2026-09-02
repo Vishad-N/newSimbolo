@@ -12,6 +12,7 @@ interface PackageFeatureRecord {
 
 interface LandingPackageRecord {
   id: string;
+  slug: string;
   name: string;
   description?: string | null;
   basePrice: number;
@@ -64,7 +65,10 @@ export async function fetchMappedPackages(serviceSlug: string, mockFallback: Sha
             isPopular: pkg.isPopular,
             badge: pkg.isPopular ? "Most Popular" : undefined,
             buttonText: "Choose Plan",
-            buttonLink: "?auth=register&checkout=" + pkg.id,
+            // /checkout and the backend's GET /packages/:slug both look packages up by
+            // slug, not id — using pkg.id here would 404 and silently fall back to a
+            // ₹0 "Custom Package" at checkout.
+            buttonLink: "?auth=register&checkout=" + pkg.slug,
             features: pkg.features?.map((feature) => feature.name) || [],
           };
         });

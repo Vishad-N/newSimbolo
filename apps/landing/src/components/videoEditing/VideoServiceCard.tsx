@@ -77,15 +77,7 @@ export function VideoServiceCard({ service, onPreview, index }: VideoServiceCard
             ))}
           </div>
 
-          <div className="flex items-end justify-between border-t border-white/10 pt-4">
-            <div>
-              <p className="font-heading text-[0.7rem] font-semibold uppercase tracking-wider text-white/40">Starting From</p>
-              <p className="font-heading mt-0.5 flex items-baseline gap-1 text-[1.25rem] font-black text-white">
-                {service.currency === "INR" ? "₹" : "$"}{service.hourlyRate}
-                <span className="text-[0.75rem] font-medium text-white/50">/ Hour</span>
-              </p>
-            </div>
-            
+          <div className="flex items-center justify-end border-t border-white/10 pt-4">
             <Link
               href={service.ctaLink || `/contact?service=${service.slug}`}
               className="font-heading rounded-[6px] bg-white/10 px-4 py-2 text-[0.8rem] font-bold text-white transition hover:bg-[var(--accent)] hover:text-black"

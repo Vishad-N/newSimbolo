@@ -281,6 +281,11 @@ enum PackageTypeEnum {
   CUSTOM
 }
 
+enum PackageFeatureKindEnum {
+  FEATURE
+  DELIVERABLE
+}
+
 enum RoleTypeEnum {
   SYSTEM
   CUSTOM
@@ -849,6 +854,7 @@ model Package {
   embedding       Unsupported("vector(768)")?
   description     String?
   illustration    String?
+  thumbnailUrl    String?
   type            PackageTypeEnum             @default(STARTER)
   serviceId       String                      @db.Uuid
   basePrice       Float                       @default(0.0)
@@ -885,15 +891,16 @@ model Package {
 /// Relationships: Belongs to Package.
 /// Business responsibility: Details package scope and quantitative limitations.
 model PackageFeature {
-  id          String   @id @default(uuid()) @db.Uuid
+  id          String                  @id @default(uuid()) @db.Uuid
   name        String
   description String?
-  packageId   String   @db.Uuid
-  isIncluded  Boolean  @default(true)
+  packageId   String                  @db.Uuid
+  isIncluded  Boolean                 @default(true)
+  kind        PackageFeatureKindEnum  @default(FEATURE)
   limitValue  String?
-  sortOrder   Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  sortOrder   Int                     @default(0)
+  createdAt   DateTime                @default(now())
+  updatedAt   DateTime                @updatedAt
 
   package Package @relation(fields: [packageId], references: [id], onDelete: Cascade)
 
@@ -1825,6 +1832,9 @@ model CaseStudyMetric {
   id               String   @id @default(uuid()) @db.Uuid
   label            String
   value            String
+  prefix           String?
+  suffix           String?
+  accent           String?
   changePercentage String?
   caseStudyId      String   @db.Uuid
   sortOrder        Int      @default(0)

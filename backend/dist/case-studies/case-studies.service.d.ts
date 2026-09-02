@@ -10,7 +10,7 @@ export declare class CaseStudiesService extends BaseService {
     private readonly prisma;
     constructor(prisma: PrismaService);
     private generateSlug;
-    getCaseStudies(categoryId?: string, serviceId?: string, search?: string, status?: CaseStudyStatusEnum): Promise<CaseStudy[]>;
+    getCaseStudies(categoryId?: string, serviceId?: string, search?: string, status?: CaseStudyStatusEnum | 'ALL'): Promise<CaseStudy[]>;
     getCaseStudyBySlug(slug: string): Promise<CaseStudy>;
     createCaseStudy(dto: CreateCaseStudyDto, createdBy?: string): Promise<CaseStudy>;
     updateCaseStudy(id: string, dto: UpdateCaseStudyDto, updatedBy?: string): Promise<CaseStudy>;

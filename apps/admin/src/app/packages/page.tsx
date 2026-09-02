@@ -3,8 +3,11 @@
 import { useState, useEffect } from "react";
 import { DataTable } from "@/components/DataTable";
 import { PackageIllustrationSelect } from "@/components/packages/PackageIllustrationSelect";
+import { ImageUploader } from "@/components/forms/ImageUploader";
 import { Plus, Package as PackageIcon, RefreshCw, Trash, X } from "lucide-react";
 import { api } from "@/services/api";
+
+type PackageFeatureKind = "FEATURE" | "DELIVERABLE";
 
 interface ServiceOption {
   id: string;
@@ -15,6 +18,7 @@ interface ServiceOption {
 interface PackageFeatureItem {
   id: string;
   name: string;
+  kind?: PackageFeatureKind;
 }
 
 interface PackageApiRecord {
@@ -22,6 +26,7 @@ interface PackageApiRecord {
   name: string;
   description?: string | null;
   illustration?: string | null;
+  thumbnailUrl?: string | null;
   type?: PackageTier;
   basePrice?: number;
   isPopular?: boolean;
@@ -42,6 +47,7 @@ interface PackageData {
   name: string;
   description: string;
   illustration: string;
+  thumbnailUrl: string;
   type: string;
   price: string;
   serviceName: string;
@@ -56,11 +62,11 @@ interface PackageFormData {
   name: string;
   description: string;
   illustration: string;
+  thumbnailUrl: string;
   serviceId: string;
   basePrice: number;
   type: PackageTier;
   isPopular: boolean;
-  isAddon: boolean;
 }
 
 interface ServiceFormData {
@@ -74,11 +80,11 @@ const emptyPackageForm: PackageFormData = {
   name: "",
   description: "",
   illustration: "",
+  thumbnailUrl: "",
   serviceId: "",
   basePrice: 0,
   type: "STARTER",
   isPopular: false,
-  isAddon: false,
 };
 const emptyServiceForm: ServiceFormData = { name: "", shortDescription: "", type: "RETAINER", basePrice: 0 };
 
@@ -120,6 +126,8 @@ export default function PackagesPage() {
   const [packageFeatures, setPackageFeatures] = useState<PackageFeatureItem[]>([]);
   const [featureInput, setFeatureInput] = useState("");
   const [isSavingFeature, setIsSavingFeature] = useState(false);
+  const [deliverableInput, setDeliverableInput] = useState("");
+  const [isSavingDeliverable, setIsSavingDeliverable] = useState(false);
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -137,6 +145,7 @@ export default function PackagesPage() {
         name: pkg.name,
         description: pkg.description || "",
         illustration: pkg.illustration || "",
+        thumbnailUrl: pkg.thumbnailUrl || "",
         type: pkg.type || "N/A",
         price: `INR ${pkg.basePrice?.toLocaleString() || 0}`,
         serviceName: pkg.service?.name || "Unknown Service",
@@ -177,6 +186,7 @@ export default function PackagesPage() {
     setModalError(null);
     setPackageFeatures([]);
     setFeatureInput("");
+    setDeliverableInput("");
     setIsModalOpen(true);
   };
 
@@ -185,18 +195,19 @@ export default function PackagesPage() {
     setNewPkg({
       name: item.name,
       description: item.description,
-      illustration: item.isAddon ? "" : item.illustration,
+      illustration: item.illustration,
+      thumbnailUrl: item.thumbnailUrl,
       serviceId: item.serviceId,
       basePrice: item.basePrice,
       type: item.type as PackageTier,
       isPopular: item.featured,
-      isAddon: item.isAddon,
     });
     setNewService(emptyServiceForm);
     setIsServiceFormOpen(false);
     setModalError(null);
     setPackageFeatures(item.features);
     setFeatureInput("");
+    setDeliverableInput("");
     setIsModalOpen(true);
   };
 
@@ -233,8 +244,8 @@ export default function PackagesPage() {
       setModalError("Create or select a linked service before saving the package.");
       return;
     }
-    if (!newPkg.isAddon && !newPkg.illustration) {
-      setModalError("Select one of the available package illustrations before saving.");
+    if (!newPkg.thumbnailUrl && !newPkg.illustration) {
+      setModalError("Upload a thumbnail image or select one of the available package illustrations before saving.");
       return;
     }
 
@@ -243,12 +254,12 @@ export default function PackagesPage() {
       const payload = {
         name: newPkg.name,
         description: newPkg.description.trim(),
-        illustration: newPkg.isAddon ? null : newPkg.illustration,
+        illustration: newPkg.illustration || null,
+        thumbnailUrl: newPkg.thumbnailUrl || null,
         serviceId: newPkg.serviceId,
         basePrice: Number(newPkg.basePrice),
         type: newPkg.type,
         isPopular: newPkg.isPopular,
-        isAddon: newPkg.isAddon,
         billingInterval: "monthly"
       };
       if (editingPackageId) {
@@ -267,31 +278,38 @@ export default function PackagesPage() {
     }
   };
 
-  const handleAddFeature = async () => {
-    const name = featureInput.trim();
+  const addPackageBullet = async (kind: PackageFeatureKind, name: string) => {
     if (!name || !editingPackageId) return;
 
-    setIsSavingFeature(true);
+    const setSaving = kind === "DELIVERABLE" ? setIsSavingDeliverable : setIsSavingFeature;
+    const clearInput = kind === "DELIVERABLE" ? setDeliverableInput : setFeatureInput;
+    const sortOrder = packageFeatures.filter((feature) => (feature.kind || "FEATURE") === kind).length;
+
+    setSaving(true);
     setModalError(null);
     try {
       const created = await api.packages.addFeature({
         name,
         packageId: editingPackageId,
-        sortOrder: packageFeatures.length,
+        kind,
+        sortOrder,
       }) as PackageFeatureItem;
       setPackageFeatures((current) => [...current, created]);
-      setFeatureInput("");
+      clearInput("");
       setData((current) =>
         current.map((pkg) =>
           pkg.id === editingPackageId ? { ...pkg, features: [...pkg.features, created] } : pkg,
         ),
       );
     } catch (err: unknown) {
-      setModalError(getErrorMessage(err, "Failed to add feature"));
+      setModalError(getErrorMessage(err, `Failed to add ${kind === "DELIVERABLE" ? "deliverable" : "feature"}`));
     } finally {
-      setIsSavingFeature(false);
+      setSaving(false);
     }
   };
+
+  const handleAddFeature = () => addPackageBullet("FEATURE", featureInput.trim());
+  const handleAddDeliverable = () => addPackageBullet("DELIVERABLE", deliverableInput.trim());
 
   const handleDeleteFeature = async (featureId: string) => {
     try {
@@ -469,13 +487,16 @@ export default function PackagesPage() {
                   </button>
                 </div>
               )}
-              {!newPkg.isAddon && (
-                <div>
-                  <label className="block text-sm text-gray-400 mb-1">Package Illustration</label>
-                  <PackageIllustrationSelect value={newPkg.illustration} onChange={(illustration) => setNewPkg({...newPkg, illustration})} />
-                  <p className="mt-1 text-xs text-gray-500">Choose from the illustrations already included with the landing website.</p>
-                </div>
-              )}
+              <div>
+                <label className="block text-sm text-gray-400 mb-1">Package Thumbnail</label>
+                <ImageUploader value={newPkg.thumbnailUrl} onChange={(thumbnailUrl) => setNewPkg({...newPkg, thumbnailUrl})} folder="packages" />
+                <p className="mt-1 text-xs text-gray-500">Upload a new PNG or browse images already uploaded to the media library. Takes priority over the illustration below.</p>
+              </div>
+              <div>
+                <label className="block text-sm text-gray-400 mb-1">Package Illustration</label>
+                <PackageIllustrationSelect value={newPkg.illustration} onChange={(illustration) => setNewPkg({...newPkg, illustration})} />
+                <p className="mt-1 text-xs text-gray-500">Used only if no custom thumbnail image is set above.</p>
+              </div>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <label className="block text-sm text-gray-400 mb-1">Base Price (INR)</label>
@@ -496,25 +517,15 @@ export default function PackagesPage() {
                   <input type="checkbox" id="popular" checked={newPkg.isPopular} onChange={e => setNewPkg({...newPkg, isPopular: e.target.checked})} className="w-4 h-4 rounded bg-white/5 border-white/10 text-primary focus:ring-primary/20" />
                   <label htmlFor="popular" className="text-sm text-gray-400">Mark as Popular</label>
                 </div>
-                <div className="flex items-center gap-2">
-                  <input type="checkbox" id="addon" checked={newPkg.isAddon} onChange={e => {
-                    const isAddon = e.target.checked;
-                    setNewPkg((currentPackage) => ({
-                      ...currentPackage,
-                      isAddon,
-                      illustration: isAddon ? "" : currentPackage.illustration,
-                    }));
-                  }} className="w-4 h-4 rounded bg-white/5 border-white/10 text-purple-500 focus:ring-purple-500/20" />
-                  <label htmlFor="addon" className="text-sm text-gray-400 font-medium">Is this a Service Add-on?</label>
-                </div>
               </div>
               <div>
-                <label className="block text-sm text-gray-400 mb-1">Feature Bullet Points</label>
+                <label className="block text-sm text-gray-400 mb-1">Everything Included</label>
+                <p className="mb-2 text-xs text-gray-500">Shown as the checkmark list on the expanded package details.</p>
                 {editingPackageId ? (
                   <div className="space-y-2">
-                    {packageFeatures.length > 0 && (
+                    {packageFeatures.filter((feature) => (feature.kind || "FEATURE") === "FEATURE").length > 0 && (
                       <ul className="space-y-1.5">
-                        {packageFeatures.map((feature) => (
+                        {packageFeatures.filter((feature) => (feature.kind || "FEATURE") === "FEATURE").map((feature) => (
                           <li key={feature.id} className="flex items-center justify-between gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5">
                             <span className="text-sm text-white">{feature.name}</span>
                             <button
@@ -555,6 +566,56 @@ export default function PackagesPage() {
                   </div>
                 ) : (
                   <p className="text-xs text-gray-500">Save the package first, then reopen it to add feature bullet points.</p>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm text-gray-400 mb-1">Monthly Deliverables</label>
+                <p className="mb-2 text-xs text-gray-500">Shown as the numbered list on the expanded package details.</p>
+                {editingPackageId ? (
+                  <div className="space-y-2">
+                    {packageFeatures.filter((feature) => feature.kind === "DELIVERABLE").length > 0 && (
+                      <ul className="space-y-1.5">
+                        {packageFeatures.filter((feature) => feature.kind === "DELIVERABLE").map((feature) => (
+                          <li key={feature.id} className="flex items-center justify-between gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5">
+                            <span className="text-sm text-white">{feature.name}</span>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteFeature(feature.id)}
+                              className="p-1 text-gray-400 hover:text-red-400 transition-colors"
+                              aria-label={`Remove deliverable ${feature.name}`}
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        className="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white"
+                        value={deliverableInput}
+                        onChange={e => setDeliverableInput(e.target.value)}
+                        onKeyDown={e => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            handleAddDeliverable();
+                          }
+                        }}
+                        placeholder="e.g. 5 Reels per Month"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleAddDeliverable}
+                        disabled={isSavingDeliverable || !deliverableInput.trim()}
+                        className="px-4 py-2 bg-white/10 hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors shrink-0"
+                      >
+                        {isSavingDeliverable ? "Adding..." : "Add"}
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-xs text-gray-500">Save the package first, then reopen it to add monthly deliverables.</p>
                 )}
               </div>
               {modalError && (

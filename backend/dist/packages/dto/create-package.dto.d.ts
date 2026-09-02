@@ -3,6 +3,7 @@ export declare class CreatePackageDto {
     name: string;
     description?: string;
     illustration?: string | null;
+    thumbnailUrl?: string | null;
     type?: PackageTypeEnum;
     serviceId: string;
     basePrice?: number;

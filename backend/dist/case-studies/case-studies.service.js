@@ -29,7 +29,10 @@ let CaseStudiesService = class CaseStudiesService extends base_service_1.BaseSer
     }
     async getCaseStudies(categoryId, serviceId, search, status) {
         const where = { deletedAt: null };
-        if (status) {
+        if (status === 'ALL') {
+            // No status filter — used by the admin case studies manager to show drafts too.
+        }
+        else if (status) {
             where.status = status;
         }
         else {
@@ -199,6 +202,9 @@ let CaseStudiesService = class CaseStudiesService extends base_service_1.BaseSer
             data: {
                 label: dto.label,
                 value: dto.value,
+                prefix: dto.prefix || null,
+                suffix: dto.suffix || null,
+                accent: dto.accent || null,
                 changePercentage: dto.changePercentage || null,
                 caseStudyId: dto.caseStudyId,
                 sortOrder: dto.sortOrder !== undefined ? dto.sortOrder : 0,

@@ -42,6 +42,15 @@ export class CaseStudiesController {
     return this.caseStudiesService.getCaseStudies(categoryId, serviceId, search, status);
   }
 
+  @ApiBearerAuth()
+  @Get('admin/all')
+  @Permissions('casestudies.manage', 'content.read')
+  @ApiOperation({ summary: 'Get every case study regardless of status, including drafts (admin)' })
+  @ApiResponse({ status: 200, description: 'Case studies returned' })
+  async getAllCaseStudiesForAdmin() {
+    return this.caseStudiesService.getCaseStudies(undefined, undefined, undefined, 'ALL');
+  }
+
   @Public()
   @Get(':slug')
   @ApiOperation({ summary: 'Get detailed case study by slug including KPIs and before/after sliders (public)' })

@@ -186,6 +186,7 @@ export declare class SubscriptionsService extends BaseService {
                 sortOrder: number;
                 isIncluded: boolean;
                 packageId: string;
+                kind: import(".prisma/client").$Enums.PackageFeatureKindEnum;
                 limitValue: string | null;
             }[];
         } & {
@@ -206,6 +207,7 @@ export declare class SubscriptionsService extends BaseService {
             gstRate: number | null;
             taxCategory: string | null;
             illustration: string | null;
+            thumbnailUrl: string | null;
             billingInterval: string;
             isPopular: boolean;
             isAddon: boolean;
@@ -408,6 +410,7 @@ export declare class SubscriptionsService extends BaseService {
             gstRate: number | null;
             taxCategory: string | null;
             illustration: string | null;
+            thumbnailUrl: string | null;
             billingInterval: string;
             isPopular: boolean;
             isAddon: boolean;

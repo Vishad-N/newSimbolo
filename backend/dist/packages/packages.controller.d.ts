@@ -26,6 +26,7 @@ export declare class PackagesController {
         gstRate: number | null;
         taxCategory: string | null;
         illustration: string | null;
+        thumbnailUrl: string | null;
         billingInterval: string;
         isPopular: boolean;
         isAddon: boolean;
@@ -49,6 +50,7 @@ export declare class PackagesController {
         gstRate: number | null;
         taxCategory: string | null;
         illustration: string | null;
+        thumbnailUrl: string | null;
         billingInterval: string;
         isPopular: boolean;
         isAddon: boolean;
@@ -72,6 +74,7 @@ export declare class PackagesController {
         gstRate: number | null;
         taxCategory: string | null;
         illustration: string | null;
+        thumbnailUrl: string | null;
         billingInterval: string;
         isPopular: boolean;
         isAddon: boolean;
@@ -95,6 +98,7 @@ export declare class PackagesController {
         gstRate: number | null;
         taxCategory: string | null;
         illustration: string | null;
+        thumbnailUrl: string | null;
         billingInterval: string;
         isPopular: boolean;
         isAddon: boolean;
@@ -112,6 +116,7 @@ export declare class PackagesController {
         sortOrder: number;
         isIncluded: boolean;
         packageId: string;
+        kind: import(".prisma/client").$Enums.PackageFeatureKindEnum;
         limitValue: string | null;
     }>;
     deleteFeature(id: string): Promise<{

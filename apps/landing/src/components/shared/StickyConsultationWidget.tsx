@@ -27,8 +27,8 @@ export function StickyConsultationWidget() {
           className="fixed bottom-6 right-[5.5rem] z-50 flex items-center"
         >
           <div className="relative flex overflow-hidden rounded-full border border-[var(--accent)]/30 bg-[var(--surface)] shadow-[0_10px_40px_rgba(34,211,238,0.2)] backdrop-blur-xl">
-            <Link 
-              href="?auth=register&checkout=consultation"
+            <Link
+              href="/contact"
               className="group flex items-center gap-3 px-5 py-2.5 transition hover:bg-[var(--accent)]/10"
             >
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--accent)]/20 text-[var(--accent)] transition-colors group-hover:bg-[var(--accent)] group-hover:text-black">

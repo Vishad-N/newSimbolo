@@ -396,6 +396,7 @@ export const api = {
   // Services Catalog & Packages
   services: {
     getAll: async () => fetchFromApi('/services', { method: 'GET' }),
+    getBySlug: async (slug: string) => fetchFromApi(`/services/${encodeURIComponent(slug)}`, { method: 'GET' }),
     create: async (data: any) => fetchFromApi('/services', { method: 'POST', body: JSON.stringify(data) }),
     update: async (id: string, data: any) => fetchFromApi(`/services/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
     delete: async (id: string) => fetchFromApi(`/services/${id}`, { method: 'DELETE' }),
@@ -405,9 +406,12 @@ export const api = {
     create: async (data: any) => fetchFromApi('/packages', { method: 'POST', body: JSON.stringify(data) }),
     update: async (id: string, data: any) => fetchFromApi(`/packages/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
     delete: async (id: string) => fetchFromApi(`/packages/${id}`, { method: 'DELETE' }),
-    addFeature: async (data: { name: string; packageId: string; description?: string; isIncluded?: boolean; limitValue?: string; sortOrder?: number }) =>
+    addFeature: async (data: { name: string; packageId: string; description?: string; isIncluded?: boolean; kind?: "FEATURE" | "DELIVERABLE"; limitValue?: string; sortOrder?: number }) =>
       fetchFromApi('/packages/features', { method: 'POST', body: JSON.stringify(data) }),
     deleteFeature: async (id: string) => fetchFromApi(`/packages/features/${id}`, { method: 'DELETE' }),
+    upsertPricing: async (data: { packageId: string; currency?: string; price: number; billingPeriod?: string; discountPercentage?: number }) =>
+      fetchFromApi('/packages/pricings', { method: 'POST', body: JSON.stringify(data) }),
+    deletePricing: async (id: string) => fetchFromApi(`/packages/pricings/${id}`, { method: 'DELETE' }),
   },
   clients: {
     getAll: async () => fetchFromApi('/clients', { method: 'GET' }),
@@ -441,13 +445,16 @@ export const api = {
     delete: async (id: string) => fetchFromApi(`/blogs/${id}`, { method: 'DELETE' }),
   },
   caseStudies: {
-    getAll: async () => fetchFromApi('/case-studies', { method: 'GET' }),
+    getAll: async () => fetchFromApi('/case-studies/admin/all', { method: 'GET' }),
     getCategories: async () => fetchFromApi('/case-studies/categories', { method: 'GET' }),
     createCategory: async (data: { name: string; description?: string }) =>
       fetchFromApi('/case-studies/categories', { method: 'POST', body: JSON.stringify(data) }),
     create: async (data: any) => fetchFromApi('/case-studies', { method: 'POST', body: JSON.stringify(data) }),
     update: async (id: string, data: any) => fetchFromApi(`/case-studies/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
     delete: async (id: string) => fetchFromApi(`/case-studies/${id}`, { method: 'DELETE' }),
+    addMetric: async (data: { label: string; value: string; changePercentage?: string; prefix?: string; suffix?: string; accent?: string; caseStudyId: string; sortOrder?: number }) =>
+      fetchFromApi('/case-studies/metrics', { method: 'POST', body: JSON.stringify(data) }),
+    deleteMetric: async (id: string) => fetchFromApi(`/case-studies/metrics/${id}`, { method: 'DELETE' }),
   },
   portfolio: {
     getAll: async () => fetchFromApi('/portfolio', { method: 'GET' }),

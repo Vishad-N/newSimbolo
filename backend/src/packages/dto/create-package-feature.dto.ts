@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
+import { IsBoolean, IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
+import { PackageFeatureKindEnum } from '@prisma/client';
 
 export class CreatePackageFeatureDto {
   @ApiProperty({ example: 'Dedicated Account Manager', description: 'Feature name' })
@@ -20,6 +21,15 @@ export class CreatePackageFeatureDto {
   @IsOptional()
   @IsBoolean()
   isIncluded?: boolean;
+
+  @ApiPropertyOptional({
+    enum: PackageFeatureKindEnum,
+    default: PackageFeatureKindEnum.FEATURE,
+    description: 'FEATURE renders under "Everything Included", DELIVERABLE renders under "Monthly Deliverables"',
+  })
+  @IsOptional()
+  @IsEnum(PackageFeatureKindEnum)
+  kind?: PackageFeatureKindEnum;
 
   @ApiPropertyOptional({ example: '5 Campaigns / month', description: 'Quantitative limit string' })
   @IsOptional()

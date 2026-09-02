@@ -7,6 +7,7 @@ import type { MarketingPackage, PackageTheme } from "@/types/packages";
 interface BackendPackageFeature {
   name?: string;
   isIncluded?: boolean;
+  kind?: "FEATURE" | "DELIVERABLE";
 }
 
 interface BackendPackagePricing {
@@ -20,6 +21,7 @@ interface BackendPackage {
   slug?: string;
   description?: string | null;
   illustration?: string | null;
+  thumbnailUrl?: string | null;
   type?: string;
   basePrice?: number;
   isPopular?: boolean;
@@ -66,9 +68,13 @@ export function mapBackendPackage(pkg: BackendPackage, index: number): Marketing
   const monthlyPricing = pkg.pricings?.find((pricing) => pricing.billingPeriod?.toLowerCase() === "monthly");
   const yearlyPricing = pkg.pricings?.find((pricing) => pricing.billingPeriod?.toLowerCase() === "yearly");
   const includedFeatures = (pkg.features ?? [])
-    .filter((feature) => feature.isIncluded !== false && Boolean(feature.name?.trim()))
+    .filter((feature) => (feature.kind ?? "FEATURE") === "FEATURE" && feature.isIncluded !== false && Boolean(feature.name?.trim()))
+    .map((feature) => feature.name!.trim());
+  const configuredDeliverables = (pkg.features ?? [])
+    .filter((feature) => feature.kind === "DELIVERABLE" && Boolean(feature.name?.trim()))
     .map((feature) => feature.name!.trim());
   const features = includedFeatures.length > 0 ? includedFeatures : DEFAULT_FEATURES;
+  const deliverables = configuredDeliverables.length > 0 ? configuredDeliverables : features;
   const description = pkg.description?.trim() || `${serviceName} support designed for your business goals.`;
 
   return {
@@ -83,9 +89,9 @@ export function mapBackendPackage(pkg: BackendPackage, index: number): Marketing
     badge: pkg.isPopular ? "Most Popular" : undefined,
     rating: 5,
     icon: pkg.type === "ENTERPRISE" ? "crown" : "rocket",
-    illustration: resolvePackageIllustration(pkg.illustration, `${serviceName} ${pkg.service?.slug ?? ""}`),
+    illustration: pkg.thumbnailUrl?.trim() || resolvePackageIllustration(pkg.illustration, `${serviceName} ${pkg.service?.slug ?? ""}`),
     features,
-    deliverables: features,
+    deliverables,
     idealFor: [pkg.type ? `${pkg.type.toLowerCase().replaceAll("_", " ")} businesses` : "Growing businesses"],
     featured: Boolean(pkg.isPopular),
     status: "published",

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Check, ChevronRight, MessageSquare } from "lucide-react";
+import { ArrowRight, Check, ChevronRight, Phone } from "lucide-react";
 import { motion } from "framer-motion";
 import type { ElementType, ReactNode } from "react";
 
@@ -103,10 +103,17 @@ export function ServiceHero({
               {primaryCta.text}
               <ArrowRight className="h-4 w-4 shrink-0" />
             </Link>
-            <Link href={secondaryCta.href} className="inline-flex h-11 items-center justify-center gap-2.5 rounded-[8px] border border-[var(--accent)]/50 px-6 text-[0.88rem] font-heading font-medium text-white transition duration-300 hover:bg-[var(--accent-glow)]">
-              <MessageSquare className="h-4 w-4 shrink-0" />
-              {secondaryCta.text}
-            </Link>
+            {secondaryCta.href.startsWith("tel:") ? (
+              <a href={secondaryCta.href} className="inline-flex h-11 items-center justify-center gap-2.5 rounded-[8px] border border-[var(--accent)]/50 px-6 text-[0.88rem] font-heading font-medium text-white transition duration-300 hover:bg-[var(--accent-glow)]">
+                <Phone className="h-4 w-4 shrink-0" />
+                {secondaryCta.text}
+              </a>
+            ) : (
+              <Link href={secondaryCta.href} className="inline-flex h-11 items-center justify-center gap-2.5 rounded-[8px] border border-[var(--accent)]/50 px-6 text-[0.88rem] font-heading font-medium text-white transition duration-300 hover:bg-[var(--accent-glow)]">
+                <Phone className="h-4 w-4 shrink-0" />
+                {secondaryCta.text}
+              </Link>
+            )}
           </div>
         </motion.div>
 

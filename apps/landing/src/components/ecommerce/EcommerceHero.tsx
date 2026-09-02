@@ -85,11 +85,11 @@ export function EcommerceHero({ benefits }: EcommerceHeroProps) {
       benefits={benefits}
       primaryCta={{
         text: "Get Free Consultation",
-        href: "?auth=register&checkout=ecommerce-consultation",
+        href: "/contact?service=ecommerce",
       }}
       secondaryCta={{
         text: "Talk To Expert",
-        href: "?auth=register&checkout=ecommerce-expert",
+        href: "tel:+918982911880",
       }}
       visual={<HeroVisual />}
     />

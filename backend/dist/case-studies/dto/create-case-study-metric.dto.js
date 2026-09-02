@@ -17,10 +17,13 @@ class CreateCaseStudyMetricDto {
     label;
     value;
     changePercentage;
+    prefix;
+    suffix;
+    accent;
     caseStudyId;
     sortOrder;
     static _OPENAPI_METADATA_FACTORY() {
-        return { label: { required: true, type: () => String }, value: { required: true, type: () => String }, changePercentage: { required: false, type: () => String }, caseStudyId: { required: true, type: () => String, format: "uuid" }, sortOrder: { required: false, type: () => Number } };
+        return { label: { required: true, type: () => String }, value: { required: true, type: () => String }, changePercentage: { required: false, type: () => String }, prefix: { required: false, type: () => String }, suffix: { required: false, type: () => String }, accent: { required: false, type: () => String }, caseStudyId: { required: true, type: () => String, format: "uuid" }, sortOrder: { required: false, type: () => Number } };
     }
 }
 exports.CreateCaseStudyMetricDto = CreateCaseStudyMetricDto;
@@ -42,6 +45,24 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CreateCaseStudyMetricDto.prototype, "changePercentage", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ example: '+', description: 'Symbol shown before the value (e.g. "+", "$")' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateCaseStudyMetricDto.prototype, "prefix", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ example: '%', description: 'Symbol shown after the value (e.g. "%", "/mo")' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateCaseStudyMetricDto.prototype, "suffix", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ example: 'green', description: 'Accent color for the KPI number (primary, cyan, green, blue)' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateCaseStudyMetricDto.prototype, "accent", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({ example: 'c0a80123-4567-89ab-cdef-0123456789ab', description: 'CaseStudy UUID' }),
     (0, class_validator_1.IsUUID)('4'),

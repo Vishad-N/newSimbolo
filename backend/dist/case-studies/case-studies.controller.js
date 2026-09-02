@@ -37,6 +37,9 @@ let CaseStudiesController = class CaseStudiesController {
     async getCaseStudies(categoryId, serviceId, search, status) {
         return this.caseStudiesService.getCaseStudies(categoryId, serviceId, search, status);
     }
+    async getAllCaseStudiesForAdmin() {
+        return this.caseStudiesService.getCaseStudies(undefined, undefined, undefined, 'ALL');
+    }
     async getCaseStudyBySlug(slug) {
         return this.caseStudiesService.getCaseStudyBySlug(slug);
     }
@@ -98,6 +101,16 @@ __decorate([
     __metadata("design:paramtypes", [String, String, String, String]),
     __metadata("design:returntype", Promise)
 ], CaseStudiesController.prototype, "getCaseStudies", null);
+__decorate([
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, common_1.Get)('admin/all'),
+    (0, permissions_decorator_1.Permissions)('casestudies.manage', 'content.read'),
+    (0, swagger_1.ApiOperation)({ summary: 'Get every case study regardless of status, including drafts (admin)' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Case studies returned' }),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], CaseStudiesController.prototype, "getAllCaseStudiesForAdmin", null);
 __decorate([
     (0, public_decorator_1.Public)(),
     (0, common_1.Get)(':slug'),

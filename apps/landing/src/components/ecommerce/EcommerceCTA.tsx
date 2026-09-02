@@ -56,7 +56,7 @@ export function EcommerceCTA() {
           className="mt-10 flex flex-col items-center gap-6 sm:flex-row"
         >
           <Link
-            href="?auth=register&checkout=ecommerce"
+            href="/contact?service=ecommerce"
             className="group flex h-14 items-center justify-center gap-3 rounded-full bg-[var(--accent)] px-8 text-[1rem] font-black text-black transition-all hover:scale-105 hover:bg-[var(--accent-hover)] hover:shadow-[0_0_30px_var(--accent-glow)]"
           >
             Launch Your Store

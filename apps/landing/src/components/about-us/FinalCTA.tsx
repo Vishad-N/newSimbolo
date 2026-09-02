@@ -1,16 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, MessageSquare } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 type CTAProps = {
   title: string;
   subtitle: string;
   primaryButton: { text: string; href: string };
-  secondaryButton: { text: string; href: string };
 };
 
-export function FinalCTA({ title, subtitle, primaryButton, secondaryButton }: CTAProps) {
+export function FinalCTA({ title, subtitle, primaryButton }: CTAProps) {
   return (
     <section className="pt-4 pb-16 md:py-24 px-6 relative z-10 overflow-hidden">
       <div className="absolute inset-0 z-0 pointer-events-none">
@@ -30,10 +29,6 @@ export function FinalCTA({ title, subtitle, primaryButton, secondaryButton }: CT
             <Link href={primaryButton.href} className="inline-flex h-14 w-full sm:w-auto items-center justify-center gap-3 rounded-xl bg-[var(--primary)] px-10 text-lg font-heading font-semibold text-white transition duration-300 hover:bg-[var(--primary-hover)] hover:-translate-y-1 hover:shadow-[0_15px_35px_var(--primary-glow)] active:bg-[var(--primary-active)]">
               {primaryButton.text}
               <ArrowRight className="h-5 w-5 shrink-0" />
-            </Link>
-            <Link href={secondaryButton.href} className="inline-flex h-14 w-full sm:w-auto items-center justify-center gap-3 rounded-xl border border-white/20 bg-white/5 px-10 text-lg font-heading font-medium text-white transition duration-300 hover:bg-white/10 hover:border-white/30">
-              <MessageSquare className="h-5 w-5 shrink-0" />
-              {secondaryButton.text}
             </Link>
           </div>
         </div>

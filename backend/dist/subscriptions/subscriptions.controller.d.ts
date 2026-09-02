@@ -257,6 +257,7 @@ export declare class SubscriptionsController {
                 sortOrder: number;
                 isIncluded: boolean;
                 packageId: string;
+                kind: import(".prisma/client").$Enums.PackageFeatureKindEnum;
                 limitValue: string | null;
             }[];
         } & {
@@ -277,6 +278,7 @@ export declare class SubscriptionsController {
             gstRate: number | null;
             taxCategory: string | null;
             illustration: string | null;
+            thumbnailUrl: string | null;
             billingInterval: string;
             isPopular: boolean;
             isAddon: boolean;
@@ -406,6 +408,7 @@ export declare class SubscriptionsController {
             gstRate: number | null;
             taxCategory: string | null;
             illustration: string | null;
+            thumbnailUrl: string | null;
             billingInterval: string;
             isPopular: boolean;
             isAddon: boolean;

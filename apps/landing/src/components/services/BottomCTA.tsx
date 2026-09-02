@@ -20,15 +20,15 @@ export function BottomCTA() {
         </p>
 
         <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-          <Link
-            href="?auth=register&checkout=custom"
+          <a
+            href="tel:+918982911880"
  className="group flex h-14 w-full items-center justify-center gap-2 rounded-full bg-[var(--primary)] px-8 text-[1rem] font-bold text-[#ffffff] transition-all duration-300 hover:bg-[var(--primary-hover)] hover:-translate-y-[2px] hover:shadow-[0_12px_28px_var(--primary-glow)] active:bg-[var(--primary-active)] sm:w-auto"
           >
             Talk To Expert
             <Phone className="h-4 w-4 transition-transform group-hover:rotate-12" />
-          </Link>
+          </a>
           <Link
-            href="/free-audit"
+            href="/contact"
             className="group flex h-14 w-full items-center justify-center gap-2 rounded-full border border-white/20 bg-white/5 px-8 text-[1rem] font-bold text-white backdrop-blur-sm transition-all duration-300 hover:bg-white/10 sm:w-auto"
           >
             Get Free Consultation

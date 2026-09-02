@@ -105,11 +105,11 @@ export function VideoEditingHero({ benefits }: VideoEditingHeroProps) {
       benefits={benefits}
       primaryCta={{
         text: "Get Free Video Audit",
-        href: "?auth=register&checkout=video-editing-audit",
+        href: "/contact?service=video-editing",
       }}
       secondaryCta={{
         text: "Talk to Expert",
-        href: "?auth=register&checkout=video-editing-expert",
+        href: "tel:+918982911880",
       }}
       visual={<HeroVisual />}
     />

@@ -17,6 +17,21 @@ export class CreateCaseStudyMetricDto {
   @IsString()
   changePercentage?: string;
 
+  @ApiPropertyOptional({ example: '+', description: 'Symbol shown before the value (e.g. "+", "$")' })
+  @IsOptional()
+  @IsString()
+  prefix?: string;
+
+  @ApiPropertyOptional({ example: '%', description: 'Symbol shown after the value (e.g. "%", "/mo")' })
+  @IsOptional()
+  @IsString()
+  suffix?: string;
+
+  @ApiPropertyOptional({ example: 'green', description: 'Accent color for the KPI number (primary, cyan, green, blue)' })
+  @IsOptional()
+  @IsString()
+  accent?: string;
+
   @ApiProperty({ example: 'c0a80123-4567-89ab-cdef-0123456789ab', description: 'CaseStudy UUID' })
   @IsUUID('4')
   caseStudyId!: string;

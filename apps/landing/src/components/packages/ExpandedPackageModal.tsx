@@ -175,12 +175,12 @@ export function ExpandedPackageModal({ pkg, isOpen, onClose, defaultBilling = "m
                   Buy Now
                   <ArrowRight className="h-4 w-4" />
                 </Link>
-                <Link
-                  href="?auth=register&checkout=custom"
+                <a
+                  href="tel:+918982911880"
                   className="flex h-12 w-full items-center justify-center rounded-[8px] border border-white/10 bg-transparent text-[0.95rem] font-bold text-white transition-colors hover:bg-white/5"
                 >
                   Talk to an Expert
-                </Link>
+                </a>
               </div>
 
             </div>

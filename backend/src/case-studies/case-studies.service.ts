@@ -32,10 +32,12 @@ export class CaseStudiesService extends BaseService {
     categoryId?: string,
     serviceId?: string,
     search?: string,
-    status?: CaseStudyStatusEnum,
+    status?: CaseStudyStatusEnum | 'ALL',
   ): Promise<CaseStudy[]> {
     const where: any = { deletedAt: null };
-    if (status) {
+    if (status === 'ALL') {
+      // No status filter — used by the admin case studies manager to show drafts too.
+    } else if (status) {
       where.status = status;
     } else {
       where.status = CaseStudyStatusEnum.PUBLISHED;
@@ -221,6 +223,9 @@ export class CaseStudiesService extends BaseService {
       data: {
         label: dto.label,
         value: dto.value,
+        prefix: dto.prefix || null,
+        suffix: dto.suffix || null,
+        accent: dto.accent || null,
         changePercentage: dto.changePercentage || null,
         caseStudyId: dto.caseStudyId,
         sortOrder: dto.sortOrder !== undefined ? dto.sortOrder : 0,

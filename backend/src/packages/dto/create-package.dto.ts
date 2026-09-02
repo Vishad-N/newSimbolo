@@ -28,6 +28,15 @@ export class CreatePackageDto {
   @IsIn(PACKAGE_ILLUSTRATION_PATHS)
   illustration?: string | null;
 
+  @ApiPropertyOptional({
+    example: 'https://res.cloudinary.com/demo/image/upload/v1/packages/growth-pro.png',
+    nullable: true,
+    description: 'Custom thumbnail image uploaded via the media library. Takes priority over `illustration` when set.',
+  })
+  @IsOptional()
+  @IsString()
+  thumbnailUrl?: string | null;
+
   @ApiPropertyOptional({ enum: PackageTypeEnum, default: PackageTypeEnum.STARTER })
   @IsOptional()
   @IsEnum(PackageTypeEnum)

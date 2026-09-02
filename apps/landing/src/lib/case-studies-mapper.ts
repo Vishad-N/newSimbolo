@@ -45,7 +45,7 @@ export async function fetchMappedCaseStudies(mockFallback: CaseStudy[], isFeatur
         prefix: m.prefix,
         suffix: m.suffix,
         accent: m.accent || "blue",
-        displayOrder: m.displayOrder || 0
+        displayOrder: m.sortOrder || 0
       })) : [],
       beforeAfter: [],
       timeline: [],

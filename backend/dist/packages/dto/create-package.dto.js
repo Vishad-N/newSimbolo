@@ -19,6 +19,7 @@ class CreatePackageDto {
     name;
     description;
     illustration;
+    thumbnailUrl;
     type;
     serviceId;
     basePrice;
@@ -27,7 +28,7 @@ class CreatePackageDto {
     isAddon;
     isCustom;
     static _OPENAPI_METADATA_FACTORY() {
-        return { name: { required: true, type: () => String }, description: { required: false, type: () => String }, illustration: { required: false, type: () => String, nullable: true, enum: package_illustrations_1.PACKAGE_ILLUSTRATION_PATHS }, type: { required: false, enum: ["CUSTOM", "STARTER", "PROFESSIONAL", "ENTERPRISE"] }, serviceId: { required: true, type: () => String, format: "uuid" }, basePrice: { required: false, type: () => Number, minimum: 0 }, billingInterval: { required: false, type: () => String }, isPopular: { required: false, type: () => Boolean }, isAddon: { required: false, type: () => Boolean }, isCustom: { required: false, type: () => Boolean } };
+        return { name: { required: true, type: () => String }, description: { required: false, type: () => String }, illustration: { required: false, type: () => String, nullable: true, enum: package_illustrations_1.PACKAGE_ILLUSTRATION_PATHS }, thumbnailUrl: { required: false, type: () => String, nullable: true }, type: { required: false, enum: ["CUSTOM", "STARTER", "PROFESSIONAL", "ENTERPRISE"] }, serviceId: { required: true, type: () => String, format: "uuid" }, basePrice: { required: false, type: () => Number, minimum: 0 }, billingInterval: { required: false, type: () => String }, isPopular: { required: false, type: () => Boolean }, isAddon: { required: false, type: () => Boolean }, isCustom: { required: false, type: () => Boolean } };
     }
 }
 exports.CreatePackageDto = CreatePackageDto;
@@ -58,6 +59,16 @@ __decorate([
     (0, class_validator_1.IsIn)(package_illustrations_1.PACKAGE_ILLUSTRATION_PATHS),
     __metadata("design:type", Object)
 ], CreatePackageDto.prototype, "illustration", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({
+        example: 'https://res.cloudinary.com/demo/image/upload/v1/packages/growth-pro.png',
+        nullable: true,
+        description: 'Custom thumbnail image uploaded via the media library. Takes priority over `illustration` when set.',
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", Object)
+], CreatePackageDto.prototype, "thumbnailUrl", void 0);
 __decorate([
     (0, swagger_1.ApiPropertyOptional)({ enum: client_1.PackageTypeEnum, default: client_1.PackageTypeEnum.STARTER }),
     (0, class_validator_1.IsOptional)(),

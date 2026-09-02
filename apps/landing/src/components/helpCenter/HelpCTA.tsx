@@ -48,7 +48,7 @@ export function HelpCTA() {
             Chat on WhatsApp
           </Link>
           <Link
-            href="?auth=register&checkout=consultation"
+            href="/contact"
             className="group flex h-14 w-full sm:w-auto flex-1 items-center justify-center gap-3 rounded-[12px] bg-[var(--accent)] border border-[var(--accent)] px-6 text-[0.95rem] font-bold text-black transition-all hover:bg-[var(--accent-hover)] hover:shadow-[0_0_20px_var(--accent-glow)]"
           >
             <CalendarDays className="h-5 w-5" />

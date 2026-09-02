@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { Loader2, UploadCloud, Image as ImageIcon, Check, X } from "lucide-react";
 import { cn } from "@/utils/utils";
-import { getDataArray } from "@/services/api";
+import { api, getDataArray } from "@/services/api";
 
 interface MediaAsset {
   id: string;
@@ -33,7 +33,7 @@ export function MediaSelector({ onSelect, triggerText = "Select Media", triggerI
   const fetchAssets = async () => {
     setTimeout(() => setIsLoading(true), 0);
     try {
-      const url = folder ? `/api/website-media?folder=${folder}` : "/api/website-media";
+      const url = folder ? `${api.config.baseURL}/website-media?folder=${folder}` : `${api.config.baseURL}/website-media`;
       const res = await fetch(url, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('admin_token')}`
@@ -68,7 +68,7 @@ export function MediaSelector({ onSelect, triggerText = "Select Media", triggerI
     }
 
     try {
-      const res = await fetch("/api/website-media/upload", {
+      const res = await fetch(`${api.config.baseURL}/website-media/upload`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${localStorage.getItem('admin_token')}`

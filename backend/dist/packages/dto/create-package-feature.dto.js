@@ -13,15 +13,17 @@ exports.CreatePackageFeatureDto = void 0;
 const openapi = require("@nestjs/swagger");
 const swagger_1 = require("@nestjs/swagger");
 const class_validator_1 = require("class-validator");
+const client_1 = require("@prisma/client");
 class CreatePackageFeatureDto {
     name;
     description;
     packageId;
     isIncluded;
+    kind;
     limitValue;
     sortOrder;
     static _OPENAPI_METADATA_FACTORY() {
-        return { name: { required: true, type: () => String }, description: { required: false, type: () => String }, packageId: { required: true, type: () => String, format: "uuid" }, isIncluded: { required: false, type: () => Boolean }, limitValue: { required: false, type: () => String }, sortOrder: { required: false, type: () => Number } };
+        return { name: { required: true, type: () => String }, description: { required: false, type: () => String }, packageId: { required: true, type: () => String, format: "uuid" }, isIncluded: { required: false, type: () => Boolean }, kind: { required: false, enum: ["FEATURE", "DELIVERABLE"] }, limitValue: { required: false, type: () => String }, sortOrder: { required: false, type: () => Number } };
     }
 }
 exports.CreatePackageFeatureDto = CreatePackageFeatureDto;
@@ -48,6 +50,16 @@ __decorate([
     (0, class_validator_1.IsBoolean)(),
     __metadata("design:type", Boolean)
 ], CreatePackageFeatureDto.prototype, "isIncluded", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({
+        enum: client_1.PackageFeatureKindEnum,
+        default: client_1.PackageFeatureKindEnum.FEATURE,
+        description: 'FEATURE renders under "Everything Included", DELIVERABLE renders under "Monthly Deliverables"',
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsEnum)(client_1.PackageFeatureKindEnum),
+    __metadata("design:type", String)
+], CreatePackageFeatureDto.prototype, "kind", void 0);
 __decorate([
     (0, swagger_1.ApiPropertyOptional)({ example: '5 Campaigns / month', description: 'Quantitative limit string' }),
     (0, class_validator_1.IsOptional)(),

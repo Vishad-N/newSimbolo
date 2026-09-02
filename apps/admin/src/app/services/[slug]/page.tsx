@@ -3,8 +3,13 @@
 import { use } from "react";
 import { LayoutTemplate, Eye } from "lucide-react";
 import { ServicePageConfigEditor } from "@/components/editors/ServicePageConfigEditor";
+import { PricingTiersEditor } from "@/components/editors/PricingTiersEditor";
 import { getWebsiteUrl } from "@/utils/utils";
 import Link from "next/link";
+
+// Only these service pages render the standalone 4-tier pricing grid
+// (PricingSection / SeoPackages / MetaAdsClientPage) on the live site.
+const SLUGS_WITH_PRICING_TIERS = ["seo", "google-ads", "meta-ads", "website-design", "ecommerce"];
 
 export default function IndividualServiceEditor({ params }: { params: Promise<{ slug: string }> }) {
   // Use React.use() to unwrap the params promise since Next 15+ App Router passes params as a promise
@@ -29,6 +34,10 @@ export default function IndividualServiceEditor({ params }: { params: Promise<{ 
           <Eye className="w-4 h-4" /> Preview Live
         </Link>
       </div>
+
+      {SLUGS_WITH_PRICING_TIERS.includes(resolvedParams.slug) && (
+        <PricingTiersEditor slug={resolvedParams.slug} />
+      )}
 
       <ServicePageConfigEditor slug={resolvedParams.slug} />
     </div>

@@ -40,6 +40,28 @@ export declare class CaseStudiesController {
         results: string;
         clientName: string;
     }[]>;
+    getAllCaseStudiesForAdmin(): Promise<{
+        id: string;
+        createdAt: Date;
+        status: import(".prisma/client").$Enums.CaseStudyStatusEnum;
+        updatedAt: Date;
+        deletedAt: Date | null;
+        createdBy: string | null;
+        updatedBy: string | null;
+        title: string;
+        slug: string;
+        summary: string;
+        industry: string | null;
+        serviceId: string | null;
+        categoryId: string | null;
+        seoPageId: string | null;
+        coverImageId: string | null;
+        publishDate: Date | null;
+        challenge: string;
+        solution: string;
+        results: string;
+        clientName: string;
+    }[]>;
     getCaseStudyBySlug(slug: string): Promise<{
         id: string;
         createdAt: Date;
@@ -126,9 +148,12 @@ export declare class CaseStudiesController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        prefix: string | null;
         sortOrder: number;
         label: string;
         changePercentage: string | null;
+        suffix: string | null;
+        accent: string | null;
         caseStudyId: string;
     }>;
     deleteMetric(id: string): Promise<{

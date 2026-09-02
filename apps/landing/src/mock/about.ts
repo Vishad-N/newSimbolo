@@ -133,8 +133,7 @@ export const aboutData = {
   cta: {
     title: "Ready to Grow Your Business?",
     subtitle: "Let's build something amazing together.",
-    primaryButton: { text: "Start Your Project", href: "/#contact" },
-    secondaryButton: { text: "Contact Us", href: "/#contact" }
+    primaryButton: { text: "Start Your Project", href: "/contact" }
   },
   seo: {
     title: "About Us | The Simbolo",
