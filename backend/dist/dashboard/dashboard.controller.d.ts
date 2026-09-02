@@ -1,4 +1,5 @@
 import { DashboardService } from './dashboard.service';
+import { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
 export declare class DashboardController {
     private readonly dashboardService;
     constructor(dashboardService: DashboardService);
@@ -130,7 +131,7 @@ export declare class DashboardController {
             method: string | null;
             currency: string;
             orderId: string | null;
-            amount: number;
+            amount: import("@prisma/client/runtime/library").Decimal;
             paymentNumber: string;
             gatewayProvider: string;
             gatewayTransactionId: string | null;
@@ -143,16 +144,16 @@ export declare class DashboardController {
         byStatus: {
             status: import(".prisma/client").$Enums.PaymentStatusEnum;
             count: number;
-            amount: number;
+            amount: number | import("@prisma/client/runtime/library").Decimal;
         }[];
         byProvider: {
             provider: string;
             count: number;
-            amount: number;
+            amount: number | import("@prisma/client/runtime/library").Decimal;
         }[];
         dailyRevenue: {
             createdAt: Date;
-            amount: number;
+            amount: import("@prisma/client/runtime/library").Decimal;
         }[];
     }>;
     getAdminPendingInvoices(page?: number, limit?: number): Promise<{
@@ -202,8 +203,8 @@ export declare class DashboardController {
             type: import(".prisma/client").$Enums.InvoiceTypeEnum;
             currency: string;
             clientId: string;
-            totalAmount: number;
-            taxAmount: number;
+            totalAmount: import("@prisma/client/runtime/library").Decimal;
+            taxAmount: import("@prisma/client/runtime/library").Decimal;
             orderId: string | null;
             dueDate: Date;
             invoiceNumber: string;
@@ -216,11 +217,11 @@ export declare class DashboardController {
             reverseCharge: boolean;
             issueDate: Date;
             paidDate: Date | null;
-            subtotal: number;
-            cgstAmount: number;
-            sgstAmount: number;
-            igstAmount: number;
-            totalTax: number;
+            subtotal: import("@prisma/client/runtime/library").Decimal;
+            cgstAmount: import("@prisma/client/runtime/library").Decimal;
+            sgstAmount: import("@prisma/client/runtime/library").Decimal;
+            igstAmount: import("@prisma/client/runtime/library").Decimal;
+            totalTax: import("@prisma/client/runtime/library").Decimal;
             subscriptionId: string | null;
             pdfAssetId: string | null;
             pdfUrl: string | null;
@@ -290,7 +291,7 @@ export declare class DashboardController {
             method: string | null;
             currency: string;
             orderId: string | null;
-            amount: number;
+            amount: import("@prisma/client/runtime/library").Decimal;
             paymentNumber: string;
             gatewayProvider: string;
             gatewayTransactionId: string | null;
@@ -368,8 +369,8 @@ export declare class DashboardController {
                 type: import(".prisma/client").$Enums.InvoiceTypeEnum;
                 currency: string;
                 clientId: string;
-                totalAmount: number;
-                taxAmount: number;
+                totalAmount: import("@prisma/client/runtime/library").Decimal;
+                taxAmount: import("@prisma/client/runtime/library").Decimal;
                 orderId: string | null;
                 dueDate: Date;
                 invoiceNumber: string;
@@ -382,11 +383,11 @@ export declare class DashboardController {
                 reverseCharge: boolean;
                 issueDate: Date;
                 paidDate: Date | null;
-                subtotal: number;
-                cgstAmount: number;
-                sgstAmount: number;
-                igstAmount: number;
-                totalTax: number;
+                subtotal: import("@prisma/client/runtime/library").Decimal;
+                cgstAmount: import("@prisma/client/runtime/library").Decimal;
+                sgstAmount: import("@prisma/client/runtime/library").Decimal;
+                igstAmount: import("@prisma/client/runtime/library").Decimal;
+                totalTax: import("@prisma/client/runtime/library").Decimal;
                 subscriptionId: string | null;
                 pdfAssetId: string | null;
                 pdfUrl: string | null;
@@ -412,7 +413,7 @@ export declare class DashboardController {
         totalOrders: number;
         totalClients: number;
     }>;
-    getClientDashboard(clientId: string): Promise<{
+    getClientDashboard(clientId: string, user: JwtPayload): Promise<{
         metrics: {
             activeProjects: number;
             pendingDeliverables: number;
@@ -447,7 +448,7 @@ export declare class DashboardController {
             deliverableId: string | null;
         }[];
     }>;
-    getClientBillingDashboard(clientId: string): Promise<{
+    getClientBillingDashboard(clientId: string, user: JwtPayload): Promise<{
         paymentHistory: ({
             order: {
                 orderNumber: string;
@@ -462,7 +463,7 @@ export declare class DashboardController {
             method: string | null;
             currency: string;
             orderId: string | null;
-            amount: number;
+            amount: import("@prisma/client/runtime/library").Decimal;
             paymentNumber: string;
             gatewayProvider: string;
             gatewayTransactionId: string | null;
@@ -481,8 +482,8 @@ export declare class DashboardController {
             type: import(".prisma/client").$Enums.InvoiceTypeEnum;
             currency: string;
             clientId: string;
-            totalAmount: number;
-            taxAmount: number;
+            totalAmount: import("@prisma/client/runtime/library").Decimal;
+            taxAmount: import("@prisma/client/runtime/library").Decimal;
             orderId: string | null;
             dueDate: Date;
             invoiceNumber: string;
@@ -495,11 +496,11 @@ export declare class DashboardController {
             reverseCharge: boolean;
             issueDate: Date;
             paidDate: Date | null;
-            subtotal: number;
-            cgstAmount: number;
-            sgstAmount: number;
-            igstAmount: number;
-            totalTax: number;
+            subtotal: import("@prisma/client/runtime/library").Decimal;
+            cgstAmount: import("@prisma/client/runtime/library").Decimal;
+            sgstAmount: import("@prisma/client/runtime/library").Decimal;
+            igstAmount: import("@prisma/client/runtime/library").Decimal;
+            totalTax: import("@prisma/client/runtime/library").Decimal;
             subscriptionId: string | null;
             pdfAssetId: string | null;
             pdfUrl: string | null;
@@ -537,7 +538,7 @@ export declare class DashboardController {
         }) | null;
         unreadNotificationsCount: number;
     }>;
-    getClientWidgets(clientId: string): Promise<{
+    getClientWidgets(clientId: string, user: JwtPayload): Promise<{
         activeProjects: number;
         pendingDeliverables: number;
         upcomingMeetings: number;
@@ -566,7 +567,7 @@ export declare class DashboardController {
             method: string | null;
             currency: string;
             orderId: string | null;
-            amount: number;
+            amount: import("@prisma/client/runtime/library").Decimal;
             paymentNumber: string;
             gatewayProvider: string;
             gatewayTransactionId: string | null;
@@ -585,8 +586,8 @@ export declare class DashboardController {
             type: import(".prisma/client").$Enums.InvoiceTypeEnum;
             currency: string;
             clientId: string;
-            totalAmount: number;
-            taxAmount: number;
+            totalAmount: import("@prisma/client/runtime/library").Decimal;
+            taxAmount: import("@prisma/client/runtime/library").Decimal;
             orderId: string | null;
             dueDate: Date;
             invoiceNumber: string;
@@ -599,11 +600,11 @@ export declare class DashboardController {
             reverseCharge: boolean;
             issueDate: Date;
             paidDate: Date | null;
-            subtotal: number;
-            cgstAmount: number;
-            sgstAmount: number;
-            igstAmount: number;
-            totalTax: number;
+            subtotal: import("@prisma/client/runtime/library").Decimal;
+            cgstAmount: import("@prisma/client/runtime/library").Decimal;
+            sgstAmount: import("@prisma/client/runtime/library").Decimal;
+            igstAmount: import("@prisma/client/runtime/library").Decimal;
+            totalTax: import("@prisma/client/runtime/library").Decimal;
             subscriptionId: string | null;
             pdfAssetId: string | null;
             pdfUrl: string | null;

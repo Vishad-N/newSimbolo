@@ -38,6 +38,7 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 import { fetchMappedPackages } from "@/lib/package-mapper";
+import { fetchMappedFaqs, fetchMappedTestimonials } from "@/lib/content-mapper";
 import { landingApi } from "@/lib/api";
 
 const jsonLd = {
@@ -55,15 +56,17 @@ const jsonLd = {
 };
 
 export default async function MetaAdsPage() {
-  const [livePackages, liveConfig] = await Promise.all([
+  const [livePackages, liveConfig, liveFaqs, liveTestimonials] = await Promise.all([
     fetchMappedPackages('meta-ads', []),
     landingApi.getServicePageConfig('meta-ads', null),
+    fetchMappedFaqs([]),
+    fetchMappedTestimonials([]),
   ]);
 
   return (
     <>
       <Script id="meta-ads-jsonld" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <MetaAdsClientPage livePackages={livePackages} liveConfig={liveConfig} />
+      <MetaAdsClientPage livePackages={livePackages} liveConfig={liveConfig} liveFaqs={liveFaqs} liveTestimonials={liveTestimonials} />
     </>
   );
 }

@@ -19,6 +19,7 @@ const affiliate_service_1 = require("../affiliate/services/affiliate.service");
 const affiliate_settings_service_1 = require("../affiliate/services/affiliate-settings.service");
 const commission_service_1 = require("../affiliate/services/commission.service");
 const notifications_service_1 = require("../notifications/notifications.service");
+const invoices_service_1 = require("../invoices/invoices.service");
 let PaymentsService = class PaymentsService extends base_service_1.BaseService {
     prisma;
     razorpayGateway;
@@ -26,7 +27,8 @@ let PaymentsService = class PaymentsService extends base_service_1.BaseService {
     affiliateSettingsService;
     commissionService;
     notificationsService;
-    constructor(prisma, razorpayGateway, affiliateService, affiliateSettingsService, commissionService, notificationsService) {
+    invoicesService;
+    constructor(prisma, razorpayGateway, affiliateService, affiliateSettingsService, commissionService, notificationsService, invoicesService) {
         super('PaymentsService');
         this.prisma = prisma;
         this.razorpayGateway = razorpayGateway;
@@ -34,6 +36,7 @@ let PaymentsService = class PaymentsService extends base_service_1.BaseService {
         this.affiliateSettingsService = affiliateSettingsService;
         this.commissionService = commissionService;
         this.notificationsService = notificationsService;
+        this.invoicesService = invoicesService;
     }
     generatePaymentNumber() {
         const timestamp = Date.now().toString(36).toUpperCase();
@@ -83,7 +86,7 @@ let PaymentsService = class PaymentsService extends base_service_1.BaseService {
         const currency = dto.currency ?? order.currency ?? 'INR';
         // The gateway call is deliberately OUTSIDE any DB transaction — an external HTTP
         // call cannot be rolled back, so it is sequenced between the two DB writes.
-        const gatewayOrder = await this.razorpayGateway.createOrder(order.netAmount, currency, receipt);
+        const gatewayOrder = await this.razorpayGateway.createOrder(Number(order.netAmount), currency, receipt);
         const paymentNumber = this.generatePaymentNumber();
         const payment = await this.prisma.$transaction(async (tx) => {
             const created = await tx.payment.create({
@@ -114,15 +117,16 @@ let PaymentsService = class PaymentsService extends base_service_1.BaseService {
      * NEVER trusts client-side payment status.
      */
     async verifyPayment(dto, verifiedBy) {
-        const payment = await this.prisma.payment.findFirst({
-            where: { gatewayOrderId: dto.razorpayOrderId },
-            include: { order: { include: { client: true } } },
-        });
+        const payment = await this.loadPaymentWithOrder(dto.razorpayOrderId);
         if (!payment) {
             throw new common_1.NotFoundException(`No payment found for Razorpay order: ${dto.razorpayOrderId}`);
         }
         if (payment.status === client_1.PaymentStatusEnum.SUCCESSFUL) {
-            throw new common_1.BadRequestException('Payment already verified and recorded');
+            // Idempotent: the webhook may have already recorded this payment before the
+            // client's own verify call arrives. From the payer's perspective this IS a
+            // success, so return the payment rather than a 400 — an error here would
+            // make a successful payment look like a failure to the customer.
+            return payment;
         }
         const { isValid, transactionId } = this.razorpayGateway.verifyPaymentSignature(dto.razorpayOrderId, dto.razorpayPaymentId, dto.razorpaySignature);
         if (!isValid) {
@@ -144,33 +148,50 @@ let PaymentsService = class PaymentsService extends base_service_1.BaseService {
             });
             throw new common_1.ForbiddenException('Payment signature verification failed');
         }
-        // Program settings are read outside the transaction to keep it short.
+        return this.finalizeSuccessfulPayment(payment, transactionId, verifiedBy);
+    }
+    /**
+     * Records a captured payment exactly once, no matter which of the two
+     * independent paths gets there first: the client's own POST /payments/verify,
+     * or Razorpay's payment.captured webhook. Both call this same method instead
+     * of each running their own partial version, so subscription creation,
+     * commission settlement, notifications, and invoicing can never be skipped
+     * (if one path wins the race) or run twice (if both fire).
+     *
+     * Idempotency is enforced by the conditional update below — `updateMany` with
+     * `status: { not: SUCCESSFUL }` only affects a row for whichever caller gets
+     * there first, even under a genuine concurrent race, since Postgres resolves
+     * the two UPDATEs serially. The loser sees `count === 0` and just returns the
+     * already-settled payment instead of re-running any side effects.
+     */
+    async finalizeSuccessfulPayment(payment, gatewayTransactionId, verifiedBy) {
         const affiliateSettings = await this.affiliateSettingsService.get();
-        // Successful payment — update records.
-        // Converted from a batched array transaction to an interactive one so the
-        // affiliate commission can settle inside the SAME transaction as the payment
-        // and order state changes. The set of writes below is otherwise unchanged.
-        const { updatedPayment, settledCommission } = await this.prisma.$transaction(async (tx) => {
-            const updated = await tx.payment.update({
-                where: { id: payment.id },
+        const result = await this.prisma.$transaction(async (tx) => {
+            const { count } = await tx.payment.updateMany({
+                where: { id: payment.id, status: { not: client_1.PaymentStatusEnum.SUCCESSFUL } },
                 data: {
                     status: client_1.PaymentStatusEnum.SUCCESSFUL,
-                    gatewayTransactionId: transactionId,
+                    gatewayTransactionId,
                     paidAt: new Date(),
                     updatedBy: verifiedBy ?? null,
                 },
             });
+            if (count === 0) {
+                // Another caller (webhook or client verify) already finalized this
+                // payment concurrently — nothing left to do here.
+                return { alreadyFinalized: true };
+            }
             await tx.transaction.create({
                 data: {
-                    transactionId: this.generateTransactionId(),
+                    transactionId: gatewayTransactionId,
                     type: 'PAYMENT_CAPTURED',
                     amount: payment.amount,
                     currency: payment.currency,
                     status: 'SUCCESS',
                     paymentId: payment.id,
                     metadata: JSON.stringify({
-                        razorpayPaymentId: dto.razorpayPaymentId,
-                        razorpayOrderId: dto.razorpayOrderId,
+                        gatewayTransactionId,
+                        gatewayOrderId: payment.gatewayOrderId,
                     }),
                 },
             });
@@ -197,7 +218,7 @@ let PaymentsService = class PaymentsService extends base_service_1.BaseService {
                         subscriptionNumber: `SUB-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`,
                         clientId: payment.order.clientId,
                         packageId: payment.order.packageId,
-                        price: payment.amount,
+                        price: Number(payment.amount),
                         currency: payment.currency,
                         status: 'ACTIVE',
                         interval: 'MONTHLY',
@@ -206,17 +227,17 @@ let PaymentsService = class PaymentsService extends base_service_1.BaseService {
                     },
                 });
             }
-            // Affiliate commission settlement.
-            // Idempotency note: re-verifying an already-SUCCESSFUL payment is rejected by
-            // the early-exit check above ("Payment already verified and recorded"), so this
-            // block cannot run twice for the same payment. settleCommissionOnPaymentSuccess
-            // only matches PENDING commissions, giving a second layer of protection.
             let settled = null;
             if (payment.orderId) {
                 settled = await this.commissionService.settleCommissionOnPaymentSuccess(tx, payment.orderId, affiliateSettings);
             }
-            return { updatedPayment: updated, settledCommission: settled };
+            const updated = await tx.payment.findUniqueOrThrow({ where: { id: payment.id } });
+            return { alreadyFinalized: false, updatedPayment: updated, settledCommission: settled };
         });
+        if (result.alreadyFinalized) {
+            return this.prisma.payment.findUniqueOrThrow({ where: { id: payment.id } });
+        }
+        const { updatedPayment, settledCommission } = result;
         // Notifications are fired after commit — never inside the transaction.
         if (settledCommission?.commission) {
             try {
@@ -236,8 +257,26 @@ let PaymentsService = class PaymentsService extends base_service_1.BaseService {
                 this.logger.error(`Failed to notify affiliate of commission: ${error.message}`);
             }
         }
+        // Invoice record creation — after commit, best-effort, never fails the payment.
+        // The PDF itself is generated on demand (GET /invoices/:id/pdf), not here.
+        if (payment.orderId) {
+            try {
+                await this.invoicesService.createFromOrder(payment.orderId);
+                this.logger.log(`✅ Invoice record created for Order ${payment.orderId}`);
+            }
+            catch (error) {
+                this.logger.error(`❌ Failed to create invoice for Order ${payment.orderId}: ${error.message}`);
+            }
+        }
         this.logger.log(`✅ Payment verified: ${payment.paymentNumber} (₹${payment.amount})`);
         return updatedPayment;
+    }
+    /** Shared payment-with-relations loader so the webhook and verifyPayment fetch identically shaped records. */
+    async loadPaymentWithOrder(gatewayOrderId) {
+        return this.prisma.payment.findFirst({
+            where: { gatewayOrderId },
+            include: { order: { include: { client: true } } },
+        });
     }
     async findAll(clientId, status, page = 1, limit = 20) {
         const where = {};
@@ -298,6 +337,7 @@ exports.PaymentsService = PaymentsService = __decorate([
         affiliate_service_1.AffiliateService,
         affiliate_settings_service_1.AffiliateSettingsService,
         commission_service_1.CommissionService,
-        notifications_service_1.NotificationsService])
+        notifications_service_1.NotificationsService,
+        invoices_service_1.InvoicesService])
 ], PaymentsService);
 //# sourceMappingURL=payments.service.js.map

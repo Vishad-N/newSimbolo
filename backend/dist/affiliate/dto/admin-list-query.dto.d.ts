@@ -19,6 +19,12 @@ export declare class AdminSalesListQueryDto extends PaginationQueryDto {
     affiliateId?: string;
 }
 export declare class CreateAffiliateEmployeeDto {
-    userId: string;
+    userId?: string;
+    email?: string;
+    firstName?: string;
+    lastName?: string;
+    password?: string;
+    countryCode?: string;
+    phone?: string;
     commissionRate?: number;
 }

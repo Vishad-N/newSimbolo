@@ -38,17 +38,21 @@ let CommissionService = class CommissionService extends base_service_1.BaseServi
      *   GRAND_TOTAL             -> order.netAmount + order.taxAmount      (what the customer pays)
      */
     computeCommissionBase(order, basis) {
+        const totalAmount = Number(order.totalAmount);
+        const discountAmount = Number(order.discountAmount);
+        const netAmount = Number(order.netAmount);
+        const taxAmount = Number(order.taxAmount);
         switch (basis) {
             case client_1.CommissionCalculationBasisEnum.SUBTOTAL:
-                return (0, money_util_1.roundCurrency)(order.totalAmount);
+                return (0, money_util_1.roundCurrency)(totalAmount);
             case client_1.CommissionCalculationBasisEnum.SUBTOTAL_AFTER_DISCOUNT:
-                return (0, money_util_1.roundCurrency)(order.totalAmount - order.discountAmount);
+                return (0, money_util_1.roundCurrency)(totalAmount - discountAmount);
             case client_1.CommissionCalculationBasisEnum.TAXABLE_AMOUNT:
-                return (0, money_util_1.roundCurrency)(order.netAmount);
+                return (0, money_util_1.roundCurrency)(netAmount);
             case client_1.CommissionCalculationBasisEnum.GRAND_TOTAL:
-                return (0, money_util_1.roundCurrency)(order.netAmount + order.taxAmount);
+                return (0, money_util_1.roundCurrency)(netAmount + taxAmount);
             default:
-                return (0, money_util_1.roundCurrency)(order.netAmount);
+                return (0, money_util_1.roundCurrency)(netAmount);
         }
     }
     /**

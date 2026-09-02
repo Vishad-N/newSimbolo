@@ -1,6 +1,7 @@
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { CreateStaffUserDto } from './dto/create-staff-user.dto';
 import { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
 import { UserStatusEnum } from '@prisma/client';
 export declare class UsersController {
@@ -124,6 +125,18 @@ export declare class UsersController {
             limit: number;
             totalPages: number;
         };
+    }>;
+    createStaffUser(dto: CreateStaffUserDto, user: JwtPayload): Promise<{
+        email: string;
+        role: {
+            id: string;
+            name: string;
+            slug: string;
+        };
+        id: string;
+        firstName: string;
+        lastName: string;
+        status: import(".prisma/client").$Enums.UserStatusEnum;
     }>;
     findOne(id: string): Promise<{
         email: string;

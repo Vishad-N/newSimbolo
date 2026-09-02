@@ -153,7 +153,7 @@ export declare class ClientsController {
             status: import(".prisma/client").$Enums.OrderStatusEnum;
             currency: string;
             orderNumber: string;
-            totalAmount: number;
+            totalAmount: import("@prisma/client/runtime/library").Decimal;
         }[];
     }>;
     create(dto: CreateClientDto, user: JwtPayload): Promise<{

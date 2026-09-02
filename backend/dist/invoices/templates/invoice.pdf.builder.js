@@ -71,7 +71,9 @@ async function buildInvoicePdf(data) {
         fromY += 14;
         doc.text(`State Code: ${data.supplierStateCode || '23'}`, 350, fromY);
         fromY += 14;
-        doc.font('Helvetica-Bold').text('GSTIN: [SUPPLIER_GSTIN]', 350, fromY); // Replace with env var later if needed
+        if (data.supplierGstin) {
+            doc.font('Helvetica-Bold').text(`GSTIN: ${data.supplierGstin}`, 350, fromY);
+        }
         // ── Line Items Table ──────────────────────────────────────────
         const tableTop = 290;
         const tableLeft = 50;

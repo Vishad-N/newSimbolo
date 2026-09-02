@@ -77,10 +77,10 @@ export declare class AffiliateMeController {
                 };
                 currency: string;
                 orderNumber: string;
-                totalAmount: number;
-                taxAmount: number;
-                discountAmount: number;
-                netAmount: number;
+                totalAmount: import("@prisma/client/runtime/library").Decimal;
+                taxAmount: import("@prisma/client/runtime/library").Decimal;
+                discountAmount: import("@prisma/client/runtime/library").Decimal;
+                netAmount: import("@prisma/client/runtime/library").Decimal;
             };
             affiliate: {
                 id: string;
@@ -107,7 +107,7 @@ export declare class AffiliateMeController {
                 status: import(".prisma/client").$Enums.OrderStatusEnum;
                 currency: string;
                 orderNumber: string;
-                netAmount: number;
+                netAmount: import("@prisma/client/runtime/library").Decimal;
             };
             affiliate: {
                 user: {
@@ -178,41 +178,20 @@ export declare class AffiliateMeController {
         };
     }>;
     getMyWithdrawals(user: any, page: number, limit: number, status?: WithdrawalStatusEnum): Promise<{
-        data: ({
-            affiliate: {
-                user: {
-                    email: string;
-                    id: string;
-                    firstName: string;
-                    lastName: string;
-                };
-                id: string;
-                affiliateCode: string;
-            };
-            payoutMethod: {
-                id: string;
-                type: import(".prisma/client").$Enums.PayoutMethodTypeEnum;
-                maskedDetails: string;
-                last4: string | null;
-            } | null;
-        } & {
+        data: {
             id: string;
-            createdAt: Date;
-            status: import(".prisma/client").$Enums.WithdrawalStatusEnum;
-            updatedAt: Date;
-            metadata: import("@prisma/client/runtime/library").JsonValue | null;
-            amount: number;
             affiliateId: string;
-            razorpayContactId: string | null;
-            razorpayFundAccountId: string | null;
-            walletId: string;
+            employeeName: string;
+            employeeCode: string;
+            amount: number;
+            status: import(".prisma/client").$Enums.WithdrawalStatusEnum;
             requestedAt: Date;
             scheduledAt: Date | null;
             processedAt: Date | null;
+            payoutMethod: string | null;
             razorpayPayoutId: string | null;
-            payoutMethodId: string | null;
             failureReason: string | null;
-        })[];
+        }[];
         meta: {
             total: number;
             page: number;
@@ -228,13 +207,13 @@ export declare class AffiliateMeController {
         metadata: import("@prisma/client/runtime/library").JsonValue | null;
         amount: number;
         affiliateId: string;
-        razorpayContactId: string | null;
-        razorpayFundAccountId: string | null;
         walletId: string;
         requestedAt: Date;
         scheduledAt: Date | null;
         processedAt: Date | null;
         razorpayPayoutId: string | null;
+        razorpayContactId: string | null;
+        razorpayFundAccountId: string | null;
         payoutMethodId: string | null;
         failureReason: string | null;
     }>;
@@ -245,9 +224,9 @@ export declare class AffiliateMeController {
         updatedAt: Date;
         type: import(".prisma/client").$Enums.PayoutMethodTypeEnum;
         affiliateId: string;
-        isDefault: boolean;
         razorpayContactId: string | null;
         razorpayFundAccountId: string | null;
+        isDefault: boolean;
         maskedDetails: string;
         last4: string | null;
         verifiedAt: Date | null;
@@ -259,9 +238,9 @@ export declare class AffiliateMeController {
         updatedAt: Date;
         type: import(".prisma/client").$Enums.PayoutMethodTypeEnum;
         affiliateId: string;
-        isDefault: boolean;
         razorpayContactId: string | null;
         razorpayFundAccountId: string | null;
+        isDefault: boolean;
         maskedDetails: string;
         last4: string | null;
         verifiedAt: Date | null;
@@ -273,9 +252,9 @@ export declare class AffiliateMeController {
         updatedAt: Date;
         type: import(".prisma/client").$Enums.PayoutMethodTypeEnum;
         affiliateId: string;
-        isDefault: boolean;
         razorpayContactId: string | null;
         razorpayFundAccountId: string | null;
+        isDefault: boolean;
         maskedDetails: string;
         last4: string | null;
         verifiedAt: Date | null;

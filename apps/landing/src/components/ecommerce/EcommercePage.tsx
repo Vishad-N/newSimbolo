@@ -31,11 +31,15 @@ import { SharedPackage } from "@/types/shared";
 interface EcommercePageProps {
   livePackages?: SharedPackage[];
   liveProjects?: any[];
+  liveFaqs?: any[];
+  liveTestimonials?: any[];
 }
 
-export function EcommercePage({ livePackages, liveProjects }: EcommercePageProps) {
+export function EcommercePage({ livePackages, liveProjects, liveFaqs, liveTestimonials }: EcommercePageProps) {
   const packages = livePackages && livePackages.length > 0 ? livePackages : ecommercePackages;
   const projects = liveProjects && liveProjects.length > 0 ? liveProjects : ecommerceProjects;
+  const faqs = liveFaqs && liveFaqs.length > 0 ? liveFaqs : ecommerceFaqs;
+  const testimonials = liveTestimonials && liveTestimonials.length > 0 ? liveTestimonials : ecommerceTestimonials;
 
   return (
     <>
@@ -88,12 +92,12 @@ export function EcommercePage({ livePackages, liveProjects }: EcommercePageProps
 
           {/* 9. Testimonials */}
           <SectionCard className="p-5 sm:p-8">
-            <EcommerceTestimonials testimonials={ecommerceTestimonials} />
+            <EcommerceTestimonials testimonials={testimonials} />
           </SectionCard>
 
           {/* 10. FAQ */}
           <div className="mt-8">
-            <FAQSection title="E-Commerce FAQs" faqs={ecommerceFaqs} />
+            <FAQSection title="E-Commerce FAQs" faqs={faqs} />
           </div>
 
           {/* 11. Final CTA */}

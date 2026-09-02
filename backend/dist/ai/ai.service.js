@@ -49,20 +49,20 @@ let AiService = class AiService extends base_service_1.BaseService {
             return cached;
         }
         this.logger.log(`Cache miss for query: ${query}. Performing hybrid search...`);
-        let queryEmbedding = [];
-        try {
-            // 2. Generate Embedding for Query
-            queryEmbedding = await this.embeddingService.getEmbedding(query);
-        }
-        catch (e) {
-            this.logger.warn(`Failed to generate embedding for query: ${query}. Falling back to keyword search only.`);
-        }
-        let services = [];
-        let packages = [];
-        const keywordPattern = `%${query}%`;
-        const [hasServicesTable, hasPackagesTable] = await Promise.all([
+        // 2. Everything below is independent until the catalog queries need the
+        // embedding vector, so run it all concurrently instead of one round trip
+        // at a time — this alone removes 3 sequential DB/network round trips.
+        const [queryEmbedding, hasServicesTable, hasPackagesTable, experts] = await Promise.all([
+            this.embeddingService.getEmbedding(query).catch(() => {
+                this.logger.warn(`Failed to generate embedding for query: ${query}. Falling back to keyword search only.`);
+                return [];
+            }),
             this.tableExists('services'),
             this.tableExists('packages'),
+            this.prisma.user.findMany({
+                where: { role: { name: { in: ['CONTENT_MANAGER', 'PROJECT_MANAGER', 'MARKETING_MANAGER', 'ADMIN'] } } },
+                take: 10,
+            }),
         ]);
         if (!hasServicesTable) {
             this.logger.warn('AI search skipped services lookup because table "services" does not exist.');
@@ -70,35 +70,41 @@ let AiService = class AiService extends base_service_1.BaseService {
         if (!hasPackagesTable) {
             this.logger.warn('AI search skipped packages lookup because table "packages" does not exist.');
         }
+        const keywordPattern = `%${query}%`;
+        let services = [];
+        let packages = [];
+        const catalogFetches = [];
         if (queryEmbedding.length > 0) {
             const vectorString = `[${queryEmbedding.join(',')}]`;
-            // 3. Hybrid Search Services
             if (hasServicesTable) {
-                services = await this.queryCatalogTable(`
+                catalogFetches.push(this.queryCatalogTable(`
           SELECT id, name, "shortDescription",
           COALESCE(1 - (embedding <=> $1::vector), 0) as similarity,
           (CASE WHEN name ILIKE $2 THEN 0.5 ELSE 0 END) as keyword_score
           FROM "services"
           ORDER BY COALESCE(1 - (embedding <=> $1::vector), 0) + (CASE WHEN name ILIKE $2 THEN 0.5 ELSE 0 END) DESC
           LIMIT 5
-        `, [vectorString, keywordPattern], 'services');
+        `, [vectorString, keywordPattern], 'services').then((rows) => {
+                    services = rows;
+                }));
             }
-            // 4. Hybrid Search Packages
             if (hasPackagesTable) {
-                packages = await this.queryCatalogTable(`
+                catalogFetches.push(this.queryCatalogTable(`
           SELECT id, name, description,
           COALESCE(1 - (embedding <=> $1::vector), 0) as similarity,
           (CASE WHEN name ILIKE $2 THEN 0.5 ELSE 0 END) as keyword_score
           FROM "packages"
           ORDER BY COALESCE(1 - (embedding <=> $1::vector), 0) + (CASE WHEN name ILIKE $2 THEN 0.5 ELSE 0 END) DESC
           LIMIT 5
-        `, [vectorString, keywordPattern], 'packages');
+        `, [vectorString, keywordPattern], 'packages').then((rows) => {
+                    packages = rows;
+                }));
             }
         }
         else {
             // Fallback to purely keyword if embedding fails
             if (hasServicesTable) {
-                services = await this.queryCatalogTable(`
+                catalogFetches.push(this.queryCatalogTable(`
           SELECT id, name, "shortDescription",
           0 as similarity,
           (CASE WHEN name ILIKE $1 THEN 0.5 ELSE 0 END) as keyword_score
@@ -106,10 +112,12 @@ let AiService = class AiService extends base_service_1.BaseService {
           WHERE name ILIKE $1 OR "shortDescription" ILIKE $1
           ORDER BY keyword_score DESC
           LIMIT 5
-        `, [keywordPattern], 'services');
+        `, [keywordPattern], 'services').then((rows) => {
+                    services = rows;
+                }));
             }
             if (hasPackagesTable) {
-                packages = await this.queryCatalogTable(`
+                catalogFetches.push(this.queryCatalogTable(`
           SELECT id, name, description,
           0 as similarity,
           (CASE WHEN name ILIKE $1 THEN 0.5 ELSE 0 END) as keyword_score
@@ -117,43 +125,64 @@ let AiService = class AiService extends base_service_1.BaseService {
           WHERE name ILIKE $1 OR description ILIKE $1
           ORDER BY keyword_score DESC
           LIMIT 5
-        `, [keywordPattern], 'packages');
+        `, [keywordPattern], 'packages').then((rows) => {
+                    packages = rows;
+                }));
             }
         }
-        // 5. Experts
-        const experts = await this.prisma.user.findMany({
-            where: {
-                role: {
-                    name: { in: ['CONTENT_MANAGER', 'PROJECT_MANAGER', 'MARKETING_MANAGER', 'ADMIN'] },
-                },
-            },
-            take: 10,
-        });
+        await Promise.all(catalogFetches);
         const contextExperts = experts.map((e) => ({
             id: e.id,
             name: `${e.firstName} ${e.lastName}`,
             title: 'Digital Marketing Expert',
             imageUrl: e.avatarUrl || `https://i.pravatar.cc/150?u=${e.id}`,
         }));
-        // 6. Gemini Generation
-        const prompt = (0, search_prompt_1.buildSearchPrompt)(query, {
-            services,
-            packages,
-            experts: contextExperts,
-            reviews: [],
-        });
+        // 3. Gemini Generation — only asked for the parts that genuinely need
+        // reasoning (summary/matchPercentage/recommendedService/recommendedPackage/
+        // suggestions). Experts and relatedServices are data we already have, so
+        // they're assembled deterministically below instead of round-tripped
+        // through the model as structured JSON, which cuts generation time.
+        const prompt = (0, search_prompt_1.buildSearchPrompt)(query, { services, packages });
         let result;
         try {
-            result = await this.provider.search(prompt);
+            const llmResult = await this.provider.search(prompt);
+            result = {
+                ...llmResult,
+                experts: this.toExpertList(contextExperts),
+                reviews: [],
+                relatedServices: this.toRelatedServices(services),
+            };
         }
         catch (error) {
             const message = error instanceof Error ? error.message : 'Unknown Gemini search error';
             this.logger.warn(`Gemini search failed. Returning deterministic fallback response. ${message}`);
             result = this.buildFallbackSearchResponse(query, services, packages, contextExperts);
         }
-        // 7. Store in Cache (TTL 1 hour = 3600 seconds)
+        // 4. Store in Cache (TTL 1 hour = 3600 seconds)
         await this.cacheService.set(cacheKey, result, 3600);
         return result;
+    }
+    toExpertList(contextExperts) {
+        return contextExperts.slice(0, 3).map((expert) => ({
+            ...expert,
+            rating: 4.8,
+            projectsCompleted: 0,
+            specialization: 'Digital marketing',
+            responseTime: 'Within 24 hours',
+            hourlyPrice: 0,
+            isSimboloExpert: true,
+            skills: ['SEO', 'Strategy', 'Content'],
+            experience: 'Verified Simbolo expert',
+            availability: 'Available',
+        }));
+    }
+    toRelatedServices(services) {
+        return services.slice(0, 3).map((service) => ({
+            id: service.id,
+            title: service.name,
+            description: service.shortDescription || '',
+            icon: 'search',
+        }));
     }
     async tableExists(tableName) {
         const result = await this.prisma.$queryRawUnsafe('SELECT to_regclass($1) IS NOT NULL AS "exists"', tableName);

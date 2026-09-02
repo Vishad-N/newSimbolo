@@ -115,17 +115,61 @@ __decorate([
 ], AdminSalesListQueryDto.prototype, "affiliateId", void 0);
 class CreateAffiliateEmployeeDto {
     userId;
+    email;
+    firstName;
+    lastName;
+    password;
+    countryCode;
+    phone;
     commissionRate;
     static _OPENAPI_METADATA_FACTORY() {
-        return { userId: { required: true, type: () => String, format: "uuid" }, commissionRate: { required: false, type: () => Number, minimum: 0, maximum: 100 } };
+        return { userId: { required: false, type: () => String, format: "uuid" }, email: { required: false, type: () => String, format: "email" }, firstName: { required: false, type: () => String }, lastName: { required: false, type: () => String }, password: { required: false, type: () => String, minLength: 8 }, countryCode: { required: false, type: () => String }, phone: { required: false, type: () => String }, commissionRate: { required: false, type: () => Number, minimum: 0, maximum: 100 } };
     }
 }
 exports.CreateAffiliateEmployeeDto = CreateAffiliateEmployeeDto;
 __decorate([
     (0, swagger_1.ApiPropertyOptional)({ description: 'Existing user ID to convert into a sales employee' }),
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsUUID)(),
     __metadata("design:type", String)
 ], CreateAffiliateEmployeeDto.prototype, "userId", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'New employee email. Required when userId is omitted.' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsEmail)(),
+    __metadata("design:type", String)
+], CreateAffiliateEmployeeDto.prototype, "email", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'New employee first name. Required when userId is omitted.' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateAffiliateEmployeeDto.prototype, "firstName", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'New employee last name. Required when userId is omitted.' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateAffiliateEmployeeDto.prototype, "lastName", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'New employee password. Required when userId is omitted.' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MinLength)(8),
+    __metadata("design:type", String)
+], CreateAffiliateEmployeeDto.prototype, "password", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'New employee phone country code, e.g. +91' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateAffiliateEmployeeDto.prototype, "countryCode", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'New employee phone number' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateAffiliateEmployeeDto.prototype, "phone", void 0);
 __decorate([
     (0, swagger_1.ApiPropertyOptional)({ description: 'Commission percentage override. Defaults to program default.' }),
     (0, class_validator_1.IsOptional)(),

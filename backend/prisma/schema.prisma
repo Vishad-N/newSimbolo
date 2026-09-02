@@ -1927,6 +1927,80 @@ model PortfolioCategory {
   @@map("portfolio_categories")
 }
 
+enum VideoPreviewTypeEnum {
+  YOUTUBE
+  INSTAGRAM
+  VIMEO
+  DIRECT
+}
+
+enum VideoCatalogComplexityEnum {
+  LOW
+  MEDIUM
+  HIGH
+  EXPERT
+}
+
+enum VideoCatalogStatusEnum {
+  PUBLISHED
+  HIDDEN
+  ARCHIVED
+}
+
+/// Purpose: Filterable category tag for the video editing service catalog (e.g. "Social Media", "YouTube").
+/// Relationships: Many-to-many with VideoCatalogItem.
+/// Business responsibility: Powers the category filter tabs on the public video editing services page.
+model VideoCatalogCategory {
+  id           String   @id @default(uuid()) @db.Uuid
+  name         String   @unique
+  slug         String   @unique
+  displayOrder Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  items VideoCatalogItem[]
+
+  @@index([slug])
+  @@map("video_catalog_categories")
+}
+
+/// Purpose: A single video editing service offering shown as a card on the public video editing page (e.g. "Instagram Reels & TikToks").
+/// Relationships: Many-to-many with VideoCatalogCategory.
+/// Business responsibility: Drives the public video editing catalog — pricing, preview video, and marketing copy per offering.
+model VideoCatalogItem {
+  id                  String                     @id @default(uuid()) @db.Uuid
+  title               String
+  slug                String                     @unique
+  thumbnail           String
+  previewType         VideoPreviewTypeEnum       @default(YOUTUBE)
+  previewUrl          String
+  shortDescription    String
+  fullDescription     String?
+  hourlyRate          Float                      @default(0.0)
+  currency            String                     @default("INR")
+  estimatedDelivery   String?
+  recommendedDuration String?
+  complexity          VideoCatalogComplexityEnum @default(MEDIUM)
+  tags                String[]                   @default([])
+  badge               String?
+  status              VideoCatalogStatusEnum     @default(PUBLISHED)
+  featured            Boolean                    @default(false)
+  displayOrder        Int                        @default(0)
+  ctaText             String?
+  ctaLink             String?
+  createdAt           DateTime                   @default(now())
+  updatedAt           DateTime                   @updatedAt
+  deletedAt           DateTime?
+  createdBy           String?
+  updatedBy           String?
+
+  categories VideoCatalogCategory[]
+
+  @@index([slug])
+  @@index([status])
+  @@map("video_catalog_items")
+}
+
 /// Purpose: Client review, rating, and testimonial quote.
 /// Relationships: Belongs to ClientProfile, CaseStudy. References MediaAsset avatar.
 /// Business responsibility: Builds social proof and trust across landing pages.

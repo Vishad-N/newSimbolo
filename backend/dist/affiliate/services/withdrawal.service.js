@@ -8,6 +8,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var WithdrawalService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WithdrawalService = void 0;
 const common_1 = require("@nestjs/common");
@@ -19,6 +20,7 @@ const notifications_service_1 = require("../../notifications/notifications.servi
 const razorpayx_provider_1 = require("./razorpayx.provider");
 const wallet_service_1 = require("./wallet.service");
 let WithdrawalService = class WithdrawalService extends base_service_1.BaseService {
+    static { WithdrawalService_1 = this; }
     prisma;
     walletService;
     razorpayx;
@@ -39,6 +41,34 @@ let WithdrawalService = class WithdrawalService extends base_service_1.BaseServi
             actorUserId,
         });
     }
+    static ADMIN_WITHDRAWAL_INCLUDE = {
+        payoutMethod: { select: { id: true, type: true, maskedDetails: true, last4: true } },
+        affiliate: {
+            select: {
+                id: true,
+                affiliateCode: true,
+                user: { select: { id: true, firstName: true, lastName: true, email: true } },
+            },
+        },
+    };
+    /** Flattens the nested Prisma row into the shape the admin withdrawals table renders. */
+    toAdminRow(w) {
+        const name = [w.affiliate.user.firstName, w.affiliate.user.lastName].filter(Boolean).join(' ') || w.affiliate.user.email;
+        return {
+            id: w.id,
+            affiliateId: w.affiliateId,
+            employeeName: name,
+            employeeCode: w.affiliate.affiliateCode,
+            amount: w.amount,
+            status: w.status,
+            requestedAt: w.requestedAt,
+            scheduledAt: w.scheduledAt,
+            processedAt: w.processedAt,
+            payoutMethod: w.payoutMethod ? `${w.payoutMethod.type} •••• ${w.payoutMethod.last4 ?? ''}`.trim() : null,
+            razorpayPayoutId: w.razorpayPayoutId,
+            failureReason: w.failureReason,
+        };
+    }
     async list(params) {
         const page = params.page ?? 1;
         const limit = params.limit ?? 20;
@@ -47,44 +77,26 @@ let WithdrawalService = class WithdrawalService extends base_service_1.BaseServi
             where.affiliateId = params.affiliateId;
         if (params.status)
             where.status = params.status;
-        const [data, total] = await Promise.all([
+        const [rows, total] = await Promise.all([
             this.prisma.withdrawal.findMany({
                 where,
-                include: {
-                    payoutMethod: { select: { id: true, type: true, maskedDetails: true, last4: true } },
-                    affiliate: {
-                        select: {
-                            id: true,
-                            affiliateCode: true,
-                            user: { select: { id: true, firstName: true, lastName: true, email: true } },
-                        },
-                    },
-                },
+                include: WithdrawalService_1.ADMIN_WITHDRAWAL_INCLUDE,
                 skip: (page - 1) * limit,
                 take: limit,
                 orderBy: { requestedAt: 'desc' },
             }),
             this.prisma.withdrawal.count({ where }),
         ]);
-        return { data, meta: { total, page, limit, totalPages: Math.ceil(total / limit) } };
+        return { data: rows.map((r) => this.toAdminRow(r)), meta: { total, page, limit, totalPages: Math.ceil(total / limit) } };
     }
     async findOne(id, scopeAffiliateId) {
         const withdrawal = await this.prisma.withdrawal.findFirst({
             where: { id, ...(scopeAffiliateId ? { affiliateId: scopeAffiliateId } : {}) },
-            include: {
-                payoutMethod: { select: { id: true, type: true, maskedDetails: true, last4: true } },
-                affiliate: {
-                    select: {
-                        id: true,
-                        affiliateCode: true,
-                        user: { select: { id: true, firstName: true, lastName: true, email: true } },
-                    },
-                },
-            },
+            include: WithdrawalService_1.ADMIN_WITHDRAWAL_INCLUDE,
         });
         if (!withdrawal)
             throw new common_1.NotFoundException(`Withdrawal ${id} not found`);
-        return withdrawal;
+        return this.toAdminRow(withdrawal);
     }
     // ── Admin actions ─────────────────────────────────────────────────────────
     /** PENDING -> SCHEDULED. Funds stay held; the sweep or an admin then processes it. */
@@ -236,7 +248,7 @@ let WithdrawalService = class WithdrawalService extends base_service_1.BaseServi
     }
 };
 exports.WithdrawalService = WithdrawalService;
-exports.WithdrawalService = WithdrawalService = __decorate([
+exports.WithdrawalService = WithdrawalService = WithdrawalService_1 = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [prisma_service_1.PrismaService,
         wallet_service_1.WalletService,

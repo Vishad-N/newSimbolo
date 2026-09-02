@@ -19,6 +19,7 @@ const sessions_service_1 = require("../sessions/sessions.service");
 const client_1 = require("@prisma/client");
 const bcrypt = require("bcrypt");
 const custom_exceptions_1 = require("../common/exceptions/custom.exceptions");
+const custom_exceptions_2 = require("../common/exceptions/custom.exceptions");
 let UsersService = UsersService_1 = class UsersService extends base_service_1.BaseService {
     prisma;
     auditService;
@@ -78,6 +79,45 @@ let UsersService = UsersService_1 = class UsersService extends base_service_1.Ba
                 totalPages: Math.ceil(total / limit),
             },
         };
+    }
+    async createStaffUser(dto, createdBy) {
+        this.logger.debug(`Creating staff user account: ${dto.email}`);
+        const existing = await this.prisma.user.findUnique({ where: { email: dto.email } });
+        if (existing) {
+            throw new custom_exceptions_2.CustomConflictException(`A user with email "${dto.email}" already exists`);
+        }
+        const role = await this.prisma.role.findUnique({ where: { id: dto.roleId } });
+        if (!role) {
+            throw new custom_exceptions_1.BusinessException('Assigned role does not exist.');
+        }
+        const passwordHash = await bcrypt.hash(dto.password, 12);
+        const user = await this.prisma.user.create({
+            data: {
+                email: dto.email,
+                passwordHash,
+                firstName: dto.firstName,
+                lastName: dto.lastName,
+                roleId: dto.roleId,
+                status: client_1.UserStatusEnum.ACTIVE,
+                createdBy,
+            },
+            select: {
+                id: true,
+                email: true,
+                firstName: true,
+                lastName: true,
+                status: true,
+                role: { select: { id: true, name: true, slug: true } },
+            },
+        });
+        await this.auditService.logEvent({
+            userId: createdBy,
+            action: 'STAFF_USER_CREATED',
+            entityType: 'User',
+            entityId: user.id,
+            newValue: { email: user.email, roleId: dto.roleId },
+        });
+        return user;
     }
     async findByEmail(email) {
         this.logger.debug(`Searching user by email: ${email}`);

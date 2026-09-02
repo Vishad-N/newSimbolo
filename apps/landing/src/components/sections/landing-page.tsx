@@ -8,7 +8,13 @@ import { Hero } from "@/components/sections/hero";
 import { InfoCards } from "@/components/sections/info-cards";
 import { SearchResults } from "@/components/sections/search-results";
 
-export function LandingPage() {
+interface LandingPageProps {
+  heroData?: { title?: string; highlightedText?: string; subtitle?: string };
+  whyChooseUs?: { id: string; title: string; iconName: string }[];
+  testimonial?: { quote: string; name: string; role: string; rating: number };
+}
+
+export function LandingPage({ heroData, whyChooseUs, testimonial }: LandingPageProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryParam = searchParams.get("q");
@@ -45,9 +51,9 @@ export function LandingPage() {
     <>
       {!hasSearched ? (
         <>
-          <Hero onSearch={handleSearch} />
+          <Hero onSearch={handleSearch} data={heroData} />
           <FeaturedServices />
-          <InfoCards />
+          <InfoCards whyChooseUs={whyChooseUs} testimonial={testimonial} />
           <BrandSection />
         </>
       ) : (

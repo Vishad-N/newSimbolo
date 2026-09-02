@@ -2,6 +2,10 @@ import type { Metadata } from "next";
 import { LandingPage } from "@/components/sections/landing-page";
 import { Suspense } from "react";
 import Script from "next/script";
+import { landingApi } from "@/lib/api";
+import { fetchMappedTestimonials } from "@/lib/content-mapper";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "The Simbolo | AI-Powered Marketing Match",
@@ -43,12 +47,21 @@ const jsonLd = {
   priceRange: "₹₹",
 };
 
-export default function Home() {
+export default async function Home() {
+  const [homepageData, featuredTestimonials] = await Promise.all([
+    landingApi.getHomepage(null) as Promise<Record<string, any> | null>,
+    fetchMappedTestimonials([], true),
+  ]);
+
   return (
     <>
       <Script id="json-ld-organization" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <Suspense fallback={null}>
-        <LandingPage />
+        <LandingPage
+          heroData={homepageData?.hero}
+          whyChooseUs={homepageData?.whyChooseUs}
+          testimonial={featuredTestimonials[0]}
+        />
       </Suspense>
     </>
   );

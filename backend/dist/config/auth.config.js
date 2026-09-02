@@ -1,10 +1,17 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const crypto_1 = require("crypto");
 const config_1 = require("@nestjs/config");
+// Production boot already fails fast if JWT_SECRET/JWT_REFRESH_SECRET are missing
+// or look like placeholders (see env.validation.ts). This fallback exists only for
+// local dev convenience when NODE_ENV isn't 'production' — it's generated fresh per
+// process instead of a fixed string, so it can never be the same known secret two
+// environments (or an attacker reading this public repo) could both end up using.
+const devFallbackSecret = () => (0, crypto_1.randomBytes)(32).toString('hex');
 exports.default = (0, config_1.registerAs)('auth', () => ({
-    jwtSecret: process.env.JWT_SECRET || 'default-secret-change-me',
+    jwtSecret: process.env.JWT_SECRET || devFallbackSecret(),
     jwtExpiresIn: process.env.JWT_EXPIRES_IN || '15m',
-    jwtRefreshSecret: process.env.JWT_REFRESH_SECRET || 'default-refresh-secret-change-me',
+    jwtRefreshSecret: process.env.JWT_REFRESH_SECRET || devFallbackSecret(),
     jwtRefreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
     bcryptRounds: parseInt(process.env.BCRYPT_ROUNDS || '12', 10),
     googleClientId: process.env.GOOGLE_CLIENT_ID || 'mock-google-client-id',

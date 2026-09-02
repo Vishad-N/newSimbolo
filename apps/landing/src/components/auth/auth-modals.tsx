@@ -462,17 +462,42 @@ function RegisterModal({ onClose }: { onClose: () => void }) {
         throw new Error(Array.isArray(payload.message) ? payload.message.join(" ") : payload.message || "Unable to register.");
       }
 
+      // /auth/register only creates the account and sends a verification email — it
+      // never returns tokens. Without logging in right here, the browser would be sent
+      // to checkout (or the dashboard) with no session at all: payment creation would
+      // 401, and the dashboard would show "locked" since no subscription could ever be
+      // created. The backend allows login before email verification (only SUSPENDED/
+      // INACTIVE accounts are blocked), so auto-login with the same credentials to
+      // bridge real tokens through, exactly like the login flow does.
+      const loginResponse = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: normalizeEmail(formData.email),
+          password: formData.password,
+        }),
+      });
+      const loginPayload = await loginResponse.json();
+      const authentication = loginPayload.data || loginPayload;
+
       setIsLoading(false);
       setIsSuccess(true);
+
+      const checkoutPackage = searchParams.get("checkout");
+      const next = checkoutPackage ? `/checkout?package=${encodeURIComponent(checkoutPackage)}` : "/dashboard";
+
       setTimeout(() => {
-        const checkoutPackage = searchParams.get("checkout");
-        if (checkoutPackage) {
-          window.location.href = `${DASHBOARD_URL}/checkout?package=${checkoutPackage}`;
+        if (loginResponse.ok && authentication.accessToken && authentication.refreshToken) {
+          redirectToDashboard(authentication, next);
         } else {
-          // Since it's a new registration, they definitely don't have an active plan
-          window.location.href = `/packages`;
+          // Auto-login failed unexpectedly (e.g. account got suspended between register
+          // and login) — fall back to sending them to sign in manually instead of a
+          // silently unauthenticated checkout/dashboard visit.
+          const newParams = new URLSearchParams(searchParams.toString());
+          newParams.set("auth", "login");
+          window.location.href = `?${newParams.toString()}`;
         }
-      }, 2000);
+      }, 1500);
     } catch (registerError) {
       setError(registerError instanceof Error ? registerError.message : "Unable to register.");
       setIsLoading(false);
@@ -497,7 +522,9 @@ function RegisterModal({ onClose }: { onClose: () => void }) {
           <CheckCircle2 className="h-10 w-10 text-green-400" />
         </motion.div>
         <h2 className="mb-2 text-2xl font-bold text-white">Registration Successful!</h2>
-        <p className="text-sm text-[var(--muted)]">Redirecting you to dashboard...</p>
+        <p className="text-sm text-[var(--muted)]">
+          {searchParams.get("checkout") ? "Taking you to checkout..." : "Redirecting you to dashboard..."}
+        </p>
       </div>
     );
   }

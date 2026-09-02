@@ -12,14 +12,13 @@ const webhooks_controller_1 = require("./webhooks.controller");
 const webhooks_service_1 = require("./webhooks.service");
 const payments_module_1 = require("../payments/payments.module");
 const prisma_module_1 = require("../prisma/prisma.module");
-const invoices_module_1 = require("../invoices/invoices.module");
 const affiliate_module_1 = require("../affiliate/affiliate.module");
 let WebhooksModule = class WebhooksModule {
 };
 exports.WebhooksModule = WebhooksModule;
 exports.WebhooksModule = WebhooksModule = __decorate([
     (0, common_1.Module)({
-        imports: [prisma_module_1.PrismaModule, payments_module_1.PaymentsModule, invoices_module_1.InvoicesModule, affiliate_module_1.AffiliateModule],
+        imports: [prisma_module_1.PrismaModule, payments_module_1.PaymentsModule, affiliate_module_1.AffiliateModule],
         controllers: [webhooks_controller_1.WebhooksController],
         providers: [webhooks_service_1.WebhooksService],
     })

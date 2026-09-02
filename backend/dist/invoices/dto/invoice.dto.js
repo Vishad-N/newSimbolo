@@ -20,8 +20,10 @@ class InvoiceItemDto {
     description;
     quantity;
     unitPrice;
+    sacCode;
+    gstRate;
     static _OPENAPI_METADATA_FACTORY() {
-        return { name: { required: true, type: () => String }, description: { required: false, type: () => String }, quantity: { required: true, type: () => Number, minimum: 1 }, unitPrice: { required: true, type: () => Number, minimum: 1 } };
+        return { name: { required: true, type: () => String }, description: { required: false, type: () => String }, quantity: { required: true, type: () => Number, minimum: 1 }, unitPrice: { required: true, type: () => Number, minimum: 1 }, sacCode: { required: false, type: () => String }, gstRate: { required: false, type: () => Number, minimum: 0 } };
     }
 }
 exports.InvoiceItemDto = InvoiceItemDto;
@@ -49,6 +51,19 @@ __decorate([
     (0, class_validator_1.IsPositive)(),
     __metadata("design:type", Number)
 ], InvoiceItemDto.prototype, "unitPrice", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'SAC (Services Accounting Code) for this line item', example: '998314' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], InvoiceItemDto.prototype, "sacCode", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: "This line item's GST rate; falls back to the invoice-level taxPercentage, then 18", example: 18 }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.Min)(0),
+    __metadata("design:type", Number)
+], InvoiceItemDto.prototype, "gstRate", void 0);
 class CreateInvoiceDto {
     clientId;
     orderId;

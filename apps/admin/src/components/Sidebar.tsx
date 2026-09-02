@@ -65,6 +65,7 @@ const navigation: NavItem[] = [
       },
       { name: "Packages", href: "/packages", icon: Package },
       { name: "Portfolio", href: "/portfolio", icon: Briefcase },
+      { name: "Video Catalog", href: "/video-catalog", icon: Video },
       { name: "FAQs", href: "/faqs", icon: HelpCircle },
       { name: "Technology Stack", href: "/technologies", icon: Cpu },
       { name: "Industries", href: "/industries", icon: Building },

@@ -5,12 +5,17 @@ import { Navbar } from "@/components/layout/navbar";
 import { Sidebar } from "@/components/layout/sidebar";
 import { AuthModals } from "@/components/auth/auth-modals";
 
-export function AppLayout({ children }: { children: ReactNode }) {
+interface AppLayoutProps {
+  children: ReactNode;
+  navigationData?: Record<string, any> | null;
+}
+
+export function AppLayout({ children, navigationData }: AppLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-[var(--background)] text-white flex flex-col">
-      <Sidebar open={sidebarOpen} onToggle={() => setSidebarOpen((open) => !open)} />
+      <Sidebar open={sidebarOpen} onToggle={() => setSidebarOpen((open) => !open)} navigationData={navigationData} />
       <main className="relative flex-1 lg:pl-[250px]">
         <Navbar />
         {children}

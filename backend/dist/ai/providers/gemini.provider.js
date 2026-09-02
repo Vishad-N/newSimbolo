@@ -82,42 +82,6 @@ let GeminiProvider = GeminiProvider_1 = class GeminiProvider {
                 matchPercentage: { type: generative_ai_1.SchemaType.INTEGER, description: 'A match percentage score up to 99.' },
                 recommendedService: { type: generative_ai_1.SchemaType.STRING, description: 'The name of the most recommended service.' },
                 recommendedPackage: { type: generative_ai_1.SchemaType.STRING, description: 'The name of the most recommended package.' },
-                experts: {
-                    type: generative_ai_1.SchemaType.ARRAY,
-                    items: {
-                        type: generative_ai_1.SchemaType.OBJECT,
-                        properties: {
-                            id: { type: generative_ai_1.SchemaType.STRING },
-                            name: { type: generative_ai_1.SchemaType.STRING },
-                            title: { type: generative_ai_1.SchemaType.STRING },
-                            rating: { type: generative_ai_1.SchemaType.NUMBER },
-                            projectsCompleted: { type: generative_ai_1.SchemaType.INTEGER },
-                            specialization: { type: generative_ai_1.SchemaType.STRING },
-                            responseTime: { type: generative_ai_1.SchemaType.STRING },
-                            hourlyPrice: { type: generative_ai_1.SchemaType.NUMBER },
-                            imageUrl: { type: generative_ai_1.SchemaType.STRING },
-                            isSimboloExpert: { type: generative_ai_1.SchemaType.BOOLEAN },
-                            skills: { type: generative_ai_1.SchemaType.ARRAY, items: { type: generative_ai_1.SchemaType.STRING } },
-                            experience: { type: generative_ai_1.SchemaType.STRING },
-                            availability: { type: generative_ai_1.SchemaType.STRING },
-                        },
-                        required: [
-                            'id',
-                            'name',
-                            'title',
-                            'rating',
-                            'projectsCompleted',
-                            'specialization',
-                            'responseTime',
-                            'hourlyPrice',
-                            'imageUrl',
-                            'isSimboloExpert',
-                            'skills',
-                            'experience',
-                            'availability',
-                        ],
-                    },
-                },
                 suggestions: {
                     type: generative_ai_1.SchemaType.ARRAY,
                     items: {
@@ -129,46 +93,8 @@ let GeminiProvider = GeminiProvider_1 = class GeminiProvider {
                         required: ['id', 'label'],
                     },
                 },
-                reviews: {
-                    type: generative_ai_1.SchemaType.ARRAY,
-                    items: {
-                        type: generative_ai_1.SchemaType.OBJECT,
-                        properties: {
-                            id: { type: generative_ai_1.SchemaType.STRING },
-                            name: { type: generative_ai_1.SchemaType.STRING },
-                            avatarUrl: { type: generative_ai_1.SchemaType.STRING },
-                            rating: { type: generative_ai_1.SchemaType.INTEGER },
-                            servicePurchased: { type: generative_ai_1.SchemaType.STRING },
-                            content: { type: generative_ai_1.SchemaType.STRING },
-                            date: { type: generative_ai_1.SchemaType.STRING },
-                        },
-                        required: ['id', 'name', 'avatarUrl', 'rating', 'servicePurchased', 'content', 'date'],
-                    },
-                },
-                relatedServices: {
-                    type: generative_ai_1.SchemaType.ARRAY,
-                    items: {
-                        type: generative_ai_1.SchemaType.OBJECT,
-                        properties: {
-                            id: { type: generative_ai_1.SchemaType.STRING },
-                            title: { type: generative_ai_1.SchemaType.STRING },
-                            description: { type: generative_ai_1.SchemaType.STRING },
-                            icon: { type: generative_ai_1.SchemaType.STRING },
-                        },
-                        required: ['id', 'title', 'description', 'icon'],
-                    },
-                },
             },
-            required: [
-                'summary',
-                'matchPercentage',
-                'recommendedService',
-                'recommendedPackage',
-                'experts',
-                'suggestions',
-                'reviews',
-                'relatedServices',
-            ],
+            required: ['summary', 'matchPercentage', 'recommendedService', 'recommendedPackage', 'suggestions'],
         };
     }
 };

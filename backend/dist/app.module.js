@@ -82,6 +82,7 @@ const assets_module_1 = require("./assets/assets.module");
 const website_team_module_1 = require("./website-team/website-team.module");
 const leads_module_1 = require("./leads/leads.module");
 const service_page_config_module_1 = require("./service-page-config/service-page-config.module");
+const video_catalog_module_1 = require("./video-catalog/video-catalog.module");
 // Sales Employee / Affiliate Commission & Wallet system
 const affiliate_module_1 = require("./affiliate/affiliate.module");
 let AppModule = class AppModule {
@@ -167,6 +168,7 @@ exports.AppModule = AppModule = __decorate([
             website_team_module_1.WebsiteTeamModule,
             leads_module_1.LeadsModule,
             service_page_config_module_1.ServicePageConfigModule,
+            video_catalog_module_1.VideoCatalogModule,
         ],
         providers: [
             {

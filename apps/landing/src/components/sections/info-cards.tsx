@@ -3,8 +3,31 @@
 import { motion } from "framer-motion";
 import { BarChart3, Mail, Quote, UserRound, Users } from "lucide-react";
 import { chooseItems } from "@/data/landing";
+import { DynamicIcon } from "@/utils/icon-mapper";
 
-export function InfoCards() {
+interface InfoCardsProps {
+  whyChooseUs?: { id: string; title: string; iconName: string }[];
+  testimonial?: { quote: string; name: string; role: string; rating: number };
+}
+
+const fallbackTestimonial = {
+  quote: "We got 450 leads in just one month. Amazing results!",
+  name: "Dental Clinic",
+  role: "Mumbai",
+  rating: 5,
+};
+
+export function InfoCards({ whyChooseUs, testimonial }: InfoCardsProps) {
+  const items =
+    whyChooseUs && whyChooseUs.length > 0
+      ? whyChooseUs.map((entry) => ({
+          label: entry.title,
+          icon: (props: { className?: string }) => <DynamicIcon name={entry.iconName} {...props} />,
+        }))
+      : chooseItems;
+
+  const activeTestimonial = testimonial ?? fallbackTestimonial;
+
   return (
     <section className="mx-auto grid max-w-[1290px] gap-4 px-4 pt-5 sm:px-8 lg:grid-cols-[1fr_1.28fr_0.84fr] lg:px-10">
       <motion.article
@@ -15,7 +38,7 @@ export function InfoCards() {
       >
         <h2 className="mb-5 text-[1.35rem] font-extrabold">Why Choose The Simbolo?</h2>
         <div className="grid gap-x-6 gap-y-4 sm:grid-cols-2">
-          {chooseItems.map((item) => (
+          {items.map((item) => (
             <div key={item.label} className="flex items-center gap-3 text-[0.88rem] text-white">
               <item.icon className="h-5 w-5 shrink-0 text-[#2DD4BF]" />
               {item.label}
@@ -64,11 +87,14 @@ export function InfoCards() {
         <div className="grid grid-cols-[58px_1fr] gap-4">
           <Quote className="h-12 w-12 fill-[#2DD4BF] text-[#2DD4BF]" />
           <div>
-            <p className="mb-4 text-[1rem] leading-6 text-white">We got 450 leads in just one month. Amazing results!</p>
-            <div className="mb-3 flex gap-1 text-[#14B8A6]">★★★★★</div>
-            <p className="font-semibold text-white">- Dental Clinic, <span className="text-[#2DD4BF]">Mumbai</span></p>
+            <p className="mb-4 text-[1rem] leading-6 text-white">{activeTestimonial.quote}</p>
+            <div className="mb-3 flex gap-1 text-[#14B8A6]">{"★".repeat(activeTestimonial.rating)}</div>
+            <p className="font-semibold text-white">
+              - {activeTestimonial.name}
+              {activeTestimonial.role && <>, <span className="text-[#2DD4BF]">{activeTestimonial.role}</span></>}
+            </p>
           </div>
-          <div className="grid h-14 w-14 place-items-center rounded-full border border-white/[0.14] bg-white text-xl font-extrabold text-[#0B1120] shadow-[0_12px_24px_rgba(0,0,0,0.22)]">S</div>
+          <div className="grid h-14 w-14 place-items-center rounded-full border border-white/[0.14] bg-white text-xl font-extrabold text-[#0B1120] shadow-[0_12px_24px_rgba(0,0,0,0.22)]">{activeTestimonial.name.charAt(0).toUpperCase()}</div>
         </div>
       </motion.article>
     </section>

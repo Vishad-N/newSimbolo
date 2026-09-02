@@ -30,7 +30,10 @@ let RazorpayGateway = class RazorpayGateway extends base_service_1.BaseService {
         this.configService = configService;
         this.keyId = this.configService.get('razorpay.keyId', 'mock-razorpay-key-id');
         this.keySecret = this.configService.get('razorpay.keySecret', 'mock-razorpay-key-secret');
-        this.isMockMode = this.keyId.startsWith('mock-') || this.keyId.startsWith('rzp_test_') === false;
+        // A real Razorpay key ID is always "rzp_test_..." or "rzp_live_..." — the previous
+        // check only accepted "rzp_test_", which meant a real LIVE key would incorrectly
+        // fall through to mock mode and silently never process a real payment.
+        this.isMockMode = !this.keyId || this.keyId.startsWith('mock-');
         if (!this.isMockMode) {
             this.razorpayInstance = new Razorpay({ key_id: this.keyId, key_secret: this.keySecret });
             this.logger.log('💳 Razorpay gateway initialized in LIVE mode');

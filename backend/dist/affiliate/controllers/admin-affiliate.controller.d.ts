@@ -12,44 +12,20 @@ export declare class AdminAffiliateController {
     private readonly sweepService;
     constructor(affiliateService: AffiliateService, withdrawalService: WithdrawalService, settingsService: AffiliateSettingsService, sweepService: CommissionSweepService);
     listEmployees(query: AdminAffiliateListQueryDto): Promise<{
-        data: ({
-            user: {
-                email: string;
-                id: string;
-                firstName: string;
-                lastName: string;
-            };
-            wallet: {
-                id: string;
-                createdAt: Date;
-                updatedAt: Date;
-                version: number;
-                affiliateId: string;
-                pendingBalance: number;
-                availableBalance: number;
-                lifetimeEarned: number;
-                lifetimeWithdrawn: number;
-            } | null;
-            _count: {
-                commissions: number;
-            };
-        } & {
+        data: {
             id: string;
-            createdAt: Date;
             userId: string;
-            status: import(".prisma/client").$Enums.AffiliateStatusEnum;
-            updatedAt: Date;
-            deletedAt: Date | null;
-            createdBy: string | null;
-            updatedBy: string | null;
-            commissionRate: number;
+            name: string;
+            email: string;
             affiliateCode: string;
-            commissionBasisDefault: import(".prisma/client").$Enums.CommissionCalculationBasisEnum | null;
-            totalEarnings: number;
-            pendingBalance: number;
-            paidBalance: number;
-            isEligibleForCommission: boolean;
-        })[];
+            status: import(".prisma/client").$Enums.AffiliateStatusEnum;
+            ordersCount: number;
+            salesTotal: number;
+            commissionTotal: number;
+            walletAvailable: number;
+            walletPending: number;
+            lifetimeWithdrawn: number;
+        }[];
         meta: {
             total: number;
             page: number;
@@ -58,6 +34,63 @@ export declare class AdminAffiliateController {
         };
     }>;
     getEmployee(id: string): Promise<{
+        commissions: ({
+            order: {
+                id: string;
+                status: import(".prisma/client").$Enums.OrderStatusEnum;
+                orderNumber: string;
+            };
+        } & {
+            id: string;
+            createdAt: Date;
+            status: import(".prisma/client").$Enums.CommissionStatusEnum;
+            updatedAt: Date;
+            metadata: import("@prisma/client/runtime/library").JsonValue | null;
+            currency: string;
+            orderId: string;
+            paymentId: string | null;
+            affiliateId: string;
+            commissionRate: number;
+            commissionAmount: number;
+            commissionBaseAmount: number;
+            reversedAmount: number | null;
+            employeeCodeSnapshot: string;
+            calculationBasis: import(".prisma/client").$Enums.CommissionCalculationBasisEnum;
+            eligibleAt: Date | null;
+            creditedAt: Date | null;
+            reversedAt: Date | null;
+        })[];
+        withdrawals: {
+            id: string;
+            createdAt: Date;
+            status: import(".prisma/client").$Enums.WithdrawalStatusEnum;
+            updatedAt: Date;
+            metadata: import("@prisma/client/runtime/library").JsonValue | null;
+            amount: number;
+            affiliateId: string;
+            walletId: string;
+            requestedAt: Date;
+            scheduledAt: Date | null;
+            processedAt: Date | null;
+            razorpayPayoutId: string | null;
+            razorpayContactId: string | null;
+            razorpayFundAccountId: string | null;
+            payoutMethodId: string | null;
+            failureReason: string | null;
+        }[];
+        walletTransactions: never[] | {
+            id: string;
+            createdAt: Date;
+            type: import(".prisma/client").$Enums.WalletTransactionTypeEnum;
+            description: string | null;
+            metadata: import("@prisma/client/runtime/library").JsonValue | null;
+            amount: number;
+            walletId: string;
+            balanceBefore: number;
+            balanceAfter: number;
+            referenceType: string;
+            referenceId: string;
+        }[];
         user: {
             email: string;
             id: string;
@@ -82,14 +115,13 @@ export declare class AdminAffiliateController {
             updatedAt: Date;
             type: import(".prisma/client").$Enums.PayoutMethodTypeEnum;
             affiliateId: string;
-            isDefault: boolean;
             razorpayContactId: string | null;
             razorpayFundAccountId: string | null;
+            isDefault: boolean;
             maskedDetails: string;
             last4: string | null;
             verifiedAt: Date | null;
         }[];
-    } & {
         id: string;
         createdAt: Date;
         userId: string;
@@ -157,6 +189,9 @@ export declare class AdminAffiliateController {
         paidBalance: number;
         isEligibleForCommission: boolean;
     }>;
+    deleteEmployee(id: string, user: any): Promise<{
+        deleted: true;
+    }>;
     listSales(query: AdminSalesListQueryDto): Promise<{
         data: {
             order: {
@@ -177,10 +212,10 @@ export declare class AdminAffiliateController {
                 };
                 currency: string;
                 orderNumber: string;
-                totalAmount: number;
-                taxAmount: number;
-                discountAmount: number;
-                netAmount: number;
+                totalAmount: import("@prisma/client/runtime/library").Decimal;
+                taxAmount: import("@prisma/client/runtime/library").Decimal;
+                discountAmount: import("@prisma/client/runtime/library").Decimal;
+                netAmount: import("@prisma/client/runtime/library").Decimal;
             };
             affiliate: {
                 id: string;
@@ -207,7 +242,7 @@ export declare class AdminAffiliateController {
                 status: import(".prisma/client").$Enums.OrderStatusEnum;
                 currency: string;
                 orderNumber: string;
-                netAmount: number;
+                netAmount: import("@prisma/client/runtime/library").Decimal;
             };
             affiliate: {
                 user: {
@@ -246,41 +281,20 @@ export declare class AdminAffiliateController {
         };
     }>;
     listWithdrawals(query: AdminWithdrawalListQueryDto): Promise<{
-        data: ({
-            affiliate: {
-                user: {
-                    email: string;
-                    id: string;
-                    firstName: string;
-                    lastName: string;
-                };
-                id: string;
-                affiliateCode: string;
-            };
-            payoutMethod: {
-                id: string;
-                type: import(".prisma/client").$Enums.PayoutMethodTypeEnum;
-                maskedDetails: string;
-                last4: string | null;
-            } | null;
-        } & {
+        data: {
             id: string;
-            createdAt: Date;
-            status: import(".prisma/client").$Enums.WithdrawalStatusEnum;
-            updatedAt: Date;
-            metadata: import("@prisma/client/runtime/library").JsonValue | null;
-            amount: number;
             affiliateId: string;
-            razorpayContactId: string | null;
-            razorpayFundAccountId: string | null;
-            walletId: string;
+            employeeName: string;
+            employeeCode: string;
+            amount: number;
+            status: import(".prisma/client").$Enums.WithdrawalStatusEnum;
             requestedAt: Date;
             scheduledAt: Date | null;
             processedAt: Date | null;
+            payoutMethod: string | null;
             razorpayPayoutId: string | null;
-            payoutMethodId: string | null;
             failureReason: string | null;
-        })[];
+        }[];
         meta: {
             total: number;
             page: number;
@@ -289,38 +303,17 @@ export declare class AdminAffiliateController {
         };
     }>;
     getWithdrawal(id: string): Promise<{
-        affiliate: {
-            user: {
-                email: string;
-                id: string;
-                firstName: string;
-                lastName: string;
-            };
-            id: string;
-            affiliateCode: string;
-        };
-        payoutMethod: {
-            id: string;
-            type: import(".prisma/client").$Enums.PayoutMethodTypeEnum;
-            maskedDetails: string;
-            last4: string | null;
-        } | null;
-    } & {
         id: string;
-        createdAt: Date;
-        status: import(".prisma/client").$Enums.WithdrawalStatusEnum;
-        updatedAt: Date;
-        metadata: import("@prisma/client/runtime/library").JsonValue | null;
-        amount: number;
         affiliateId: string;
-        razorpayContactId: string | null;
-        razorpayFundAccountId: string | null;
-        walletId: string;
+        employeeName: string;
+        employeeCode: string;
+        amount: number;
+        status: import(".prisma/client").$Enums.WithdrawalStatusEnum;
         requestedAt: Date;
         scheduledAt: Date | null;
         processedAt: Date | null;
+        payoutMethod: string | null;
         razorpayPayoutId: string | null;
-        payoutMethodId: string | null;
         failureReason: string | null;
     }>;
     approve(id: string, user: any): Promise<{
@@ -331,13 +324,13 @@ export declare class AdminAffiliateController {
         metadata: import("@prisma/client/runtime/library").JsonValue | null;
         amount: number;
         affiliateId: string;
-        razorpayContactId: string | null;
-        razorpayFundAccountId: string | null;
         walletId: string;
         requestedAt: Date;
         scheduledAt: Date | null;
         processedAt: Date | null;
         razorpayPayoutId: string | null;
+        razorpayContactId: string | null;
+        razorpayFundAccountId: string | null;
         payoutMethodId: string | null;
         failureReason: string | null;
     }>;
@@ -349,13 +342,13 @@ export declare class AdminAffiliateController {
         metadata: import("@prisma/client/runtime/library").JsonValue | null;
         amount: number;
         affiliateId: string;
-        razorpayContactId: string | null;
-        razorpayFundAccountId: string | null;
         walletId: string;
         requestedAt: Date;
         scheduledAt: Date | null;
         processedAt: Date | null;
         razorpayPayoutId: string | null;
+        razorpayContactId: string | null;
+        razorpayFundAccountId: string | null;
         payoutMethodId: string | null;
         failureReason: string | null;
     }>;
@@ -367,13 +360,13 @@ export declare class AdminAffiliateController {
         metadata: import("@prisma/client/runtime/library").JsonValue | null;
         amount: number;
         affiliateId: string;
-        razorpayContactId: string | null;
-        razorpayFundAccountId: string | null;
         walletId: string;
         requestedAt: Date;
         scheduledAt: Date | null;
         processedAt: Date | null;
         razorpayPayoutId: string | null;
+        razorpayContactId: string | null;
+        razorpayFundAccountId: string | null;
         payoutMethodId: string | null;
         failureReason: string | null;
     }>;
@@ -385,13 +378,13 @@ export declare class AdminAffiliateController {
         metadata: import("@prisma/client/runtime/library").JsonValue | null;
         amount: number;
         affiliateId: string;
-        razorpayContactId: string | null;
-        razorpayFundAccountId: string | null;
         walletId: string;
         requestedAt: Date;
         scheduledAt: Date | null;
         processedAt: Date | null;
         razorpayPayoutId: string | null;
+        razorpayContactId: string | null;
+        razorpayFundAccountId: string | null;
         payoutMethodId: string | null;
         failureReason: string | null;
     }>;
@@ -427,26 +420,18 @@ export declare class AdminAffiliateController {
     }>;
     runSweep(): Promise<import("../services/commission-sweep.service").SweepResult>;
     overview(): Promise<{
-        totalSales: {
-            count: number;
-            amount: number;
-        };
-        totalAffiliateSales: {
-            count: number;
-            amount: number;
-        };
+        totalSales: number | import("@prisma/client/runtime/library").Decimal;
+        totalAffiliateSales: number;
         activeEmployees: number;
         totalCommission: number;
         pendingCommission: number;
         availableWalletLiability: number;
         heldWalletLiability: number;
-        pendingWithdrawals: {
-            count: number;
-            amount: number;
-        };
-        paidWithdrawals: {
-            count: number;
-            amount: number;
-        };
+        pendingWithdrawals: number;
+        paidWithdrawals: number;
+        totalSalesCount: number;
+        totalAffiliateSalesCount: number;
+        pendingWithdrawalsCount: number;
+        paidWithdrawalsCount: number;
     }>;
 }

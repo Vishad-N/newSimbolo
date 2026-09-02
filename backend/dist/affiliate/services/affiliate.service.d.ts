@@ -3,7 +3,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { BaseService } from '../../shared/abstractions/base.service';
 import { AuditService } from '../../shared/audit/audit.service';
 import { AffiliateSettingsService } from './affiliate-settings.service';
-import { AdminAffiliateListQueryDto } from '../dto/admin-list-query.dto';
+import { AdminAffiliateListQueryDto, CreateAffiliateEmployeeDto } from '../dto/admin-list-query.dto';
 export type AffiliateWithUser = Affiliate & {
     user: {
         id: string;
@@ -103,10 +103,10 @@ export declare class AffiliateService extends BaseService {
                 };
                 currency: string;
                 orderNumber: string;
-                totalAmount: number;
-                taxAmount: number;
-                discountAmount: number;
-                netAmount: number;
+                totalAmount: Prisma.Decimal;
+                taxAmount: Prisma.Decimal;
+                discountAmount: Prisma.Decimal;
+                netAmount: Prisma.Decimal;
             };
             affiliate: {
                 id: string;
@@ -133,7 +133,7 @@ export declare class AffiliateService extends BaseService {
                 status: import(".prisma/client").$Enums.OrderStatusEnum;
                 currency: string;
                 orderNumber: string;
-                netAmount: number;
+                netAmount: Prisma.Decimal;
             };
             affiliate: {
                 user: {
@@ -195,10 +195,10 @@ export declare class AffiliateService extends BaseService {
                 };
                 currency: string;
                 orderNumber: string;
-                totalAmount: number;
-                taxAmount: number;
-                discountAmount: number;
-                netAmount: number;
+                totalAmount: Prisma.Decimal;
+                taxAmount: Prisma.Decimal;
+                discountAmount: Prisma.Decimal;
+                netAmount: Prisma.Decimal;
             };
             affiliate: {
                 id: string;
@@ -230,7 +230,7 @@ export declare class AffiliateService extends BaseService {
                 status: import(".prisma/client").$Enums.OrderStatusEnum;
                 currency: string;
                 orderNumber: string;
-                netAmount: number;
+                netAmount: Prisma.Decimal;
             };
             affiliate: {
                 user: {
@@ -268,45 +268,25 @@ export declare class AffiliateService extends BaseService {
             totalPages: number;
         };
     }>;
+    /**
+     * Flat row shape for the admin employee table/DataTable — deliberately NOT the raw
+     * nested Prisma shape, to match what the admin dashboard renders directly.
+     */
     listEmployees(query: AdminAffiliateListQueryDto): Promise<{
-        data: ({
-            user: {
-                email: string;
-                id: string;
-                firstName: string;
-                lastName: string;
-            };
-            wallet: {
-                id: string;
-                createdAt: Date;
-                updatedAt: Date;
-                version: number;
-                affiliateId: string;
-                pendingBalance: number;
-                availableBalance: number;
-                lifetimeEarned: number;
-                lifetimeWithdrawn: number;
-            } | null;
-            _count: {
-                commissions: number;
-            };
-        } & {
+        data: {
             id: string;
-            createdAt: Date;
             userId: string;
-            status: import(".prisma/client").$Enums.AffiliateStatusEnum;
-            updatedAt: Date;
-            deletedAt: Date | null;
-            createdBy: string | null;
-            updatedBy: string | null;
-            commissionRate: number;
+            name: string;
+            email: string;
             affiliateCode: string;
-            commissionBasisDefault: import(".prisma/client").$Enums.CommissionCalculationBasisEnum | null;
-            totalEarnings: number;
-            pendingBalance: number;
-            paidBalance: number;
-            isEligibleForCommission: boolean;
-        })[];
+            status: import(".prisma/client").$Enums.AffiliateStatusEnum;
+            ordersCount: number;
+            salesTotal: number;
+            commissionTotal: number;
+            walletAvailable: number;
+            walletPending: number;
+            lifetimeWithdrawn: number;
+        }[];
         meta: {
             total: number;
             page: number;
@@ -314,7 +294,70 @@ export declare class AffiliateService extends BaseService {
             totalPages: number;
         };
     }>;
+    /**
+     * Full employee detail for the admin dashboard. Commission/wallet-ledger/withdrawal
+     * history are embedded directly on the response (most recent 100 each) rather than
+     * requiring separate paginated calls, since the admin detail page renders them as
+     * simple, non-paginated tables.
+     */
     getEmployee(id: string): Promise<{
+        commissions: ({
+            order: {
+                id: string;
+                status: import(".prisma/client").$Enums.OrderStatusEnum;
+                orderNumber: string;
+            };
+        } & {
+            id: string;
+            createdAt: Date;
+            status: import(".prisma/client").$Enums.CommissionStatusEnum;
+            updatedAt: Date;
+            metadata: Prisma.JsonValue | null;
+            currency: string;
+            orderId: string;
+            paymentId: string | null;
+            affiliateId: string;
+            commissionRate: number;
+            commissionAmount: number;
+            commissionBaseAmount: number;
+            reversedAmount: number | null;
+            employeeCodeSnapshot: string;
+            calculationBasis: import(".prisma/client").$Enums.CommissionCalculationBasisEnum;
+            eligibleAt: Date | null;
+            creditedAt: Date | null;
+            reversedAt: Date | null;
+        })[];
+        withdrawals: {
+            id: string;
+            createdAt: Date;
+            status: import(".prisma/client").$Enums.WithdrawalStatusEnum;
+            updatedAt: Date;
+            metadata: Prisma.JsonValue | null;
+            amount: number;
+            affiliateId: string;
+            walletId: string;
+            requestedAt: Date;
+            scheduledAt: Date | null;
+            processedAt: Date | null;
+            razorpayPayoutId: string | null;
+            razorpayContactId: string | null;
+            razorpayFundAccountId: string | null;
+            payoutMethodId: string | null;
+            failureReason: string | null;
+        }[];
+        walletTransactions: never[] | {
+            id: string;
+            createdAt: Date;
+            type: import(".prisma/client").$Enums.WalletTransactionTypeEnum;
+            description: string | null;
+            metadata: Prisma.JsonValue | null;
+            amount: number;
+            walletId: string;
+            balanceBefore: number;
+            balanceAfter: number;
+            referenceType: string;
+            referenceId: string;
+        }[];
         user: {
             email: string;
             id: string;
@@ -339,14 +382,13 @@ export declare class AffiliateService extends BaseService {
             updatedAt: Date;
             type: import(".prisma/client").$Enums.PayoutMethodTypeEnum;
             affiliateId: string;
-            isDefault: boolean;
             razorpayContactId: string | null;
             razorpayFundAccountId: string | null;
+            isDefault: boolean;
             maskedDetails: string;
             last4: string | null;
             verifiedAt: Date | null;
         }[];
-    } & {
         id: string;
         createdAt: Date;
         userId: string;
@@ -364,38 +406,54 @@ export declare class AffiliateService extends BaseService {
         isEligibleForCommission: boolean;
     }>;
     /**
-     * Creates an Affiliate profile (with its Wallet) for an existing user.
+     * Resolves the User to attach an Affiliate to: reuses dto.userId if given,
+     * otherwise creates a fresh User (role AFFILIATE) from the inline fields.
+     * Kept outside the code-generation retry loop below so a code collision retry
+     * never re-creates the User.
+     */
+    private resolveEmployeeUserId;
+    /**
+     * Creates an Affiliate profile (with its Wallet) for a user — either an existing
+     * user (dto.userId) or a brand-new one created inline from dto.email/firstName/
+     * lastName/password. Inline creation lets HR onboard a sales employee without
+     * first routing them through the client-facing user pool.
      * Affiliate and Wallet are created inside a single transaction — the invariant is
      * that every Affiliate ALWAYS has exactly one Wallet.
      */
-    createEmployee(userId: string, options?: {
-        commissionRate?: number;
+    createEmployee(dto: CreateAffiliateEmployeeDto, options?: {
         actorUserId?: string;
     }): Promise<Affiliate>;
     setEmployeeStatus(id: string, status: AffiliateStatusEnum, actorUserId?: string): Promise<Affiliate>;
+    /**
+     * Soft-deletes a sales employee profile (sets `deletedAt`, flips to INACTIVE, and
+     * stops future commission accrual). Never a hard delete — the Affiliate row stays
+     * in place as the immutable owner of its Commission/WalletTransaction history, it
+     * just disappears from active lists (all list/lookup queries already filter on
+     * `deletedAt: null`) and the underlying user can no longer earn or withdraw.
+     *
+     * Financial safety guard: refuses to delete while there is money outstanding —
+     * a non-zero wallet balance or a withdrawal still in flight — since deleting the
+     * Affiliate would orphan that liability with no owner to pay it out to or reclaim
+     * it from. The admin must resolve those first (pay out / cancel / write off).
+     */
+    deleteEmployee(id: string, actorUserId?: string): Promise<{
+        deleted: true;
+    }>;
     /** Stat-card aggregates for the admin affiliate dashboard. */
     getOverview(): Promise<{
-        totalSales: {
-            count: number;
-            amount: number;
-        };
-        totalAffiliateSales: {
-            count: number;
-            amount: number;
-        };
+        totalSales: number | Prisma.Decimal;
+        totalAffiliateSales: number;
         activeEmployees: number;
         totalCommission: number;
         pendingCommission: number;
         availableWalletLiability: number;
         heldWalletLiability: number;
-        pendingWithdrawals: {
-            count: number;
-            amount: number;
-        };
-        paidWithdrawals: {
-            count: number;
-            amount: number;
-        };
+        pendingWithdrawals: number;
+        paidWithdrawals: number;
+        totalSalesCount: number;
+        totalAffiliateSalesCount: number;
+        pendingWithdrawalsCount: number;
+        paidWithdrawalsCount: number;
     }>;
     /** Guards against a caller passing a code shaped like anything other than EMP-XXXXX. */
     assertCodeShape(code: string): string;

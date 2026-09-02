@@ -4,7 +4,7 @@ import { EmailService } from '../shared/email/email.service';
 import { StorageService } from '../storage/storage.service';
 import { TaxService } from './tax.service';
 import { CreateInvoiceDto, UpdateInvoiceStatusDto } from './dto/invoice.dto';
-import { InvoiceStatusEnum } from '@prisma/client';
+import { InvoiceStatusEnum, Prisma } from '@prisma/client';
 export declare class InvoicesService extends BaseService {
     private readonly prisma;
     private readonly emailService;
@@ -25,15 +25,15 @@ export declare class InvoicesService extends BaseService {
             sacCode: string | null;
             gstRate: number;
             packageId: string | null;
-            totalAmount: number;
+            totalAmount: Prisma.Decimal;
             quantity: number;
-            unitPrice: number;
+            unitPrice: Prisma.Decimal;
             invoiceId: string;
-            cgstAmount: number;
-            sgstAmount: number;
-            igstAmount: number;
-            discount: number;
-            taxableAmount: number;
+            cgstAmount: Prisma.Decimal;
+            sgstAmount: Prisma.Decimal;
+            igstAmount: Prisma.Decimal;
+            discount: Prisma.Decimal;
+            taxableAmount: Prisma.Decimal;
         }[];
         client: {
             user: {
@@ -118,8 +118,8 @@ export declare class InvoicesService extends BaseService {
         type: import(".prisma/client").$Enums.InvoiceTypeEnum;
         currency: string;
         clientId: string;
-        totalAmount: number;
-        taxAmount: number;
+        totalAmount: Prisma.Decimal;
+        taxAmount: Prisma.Decimal;
         orderId: string | null;
         dueDate: Date;
         invoiceNumber: string;
@@ -132,11 +132,11 @@ export declare class InvoicesService extends BaseService {
         reverseCharge: boolean;
         issueDate: Date;
         paidDate: Date | null;
-        subtotal: number;
-        cgstAmount: number;
-        sgstAmount: number;
-        igstAmount: number;
-        totalTax: number;
+        subtotal: Prisma.Decimal;
+        cgstAmount: Prisma.Decimal;
+        sgstAmount: Prisma.Decimal;
+        igstAmount: Prisma.Decimal;
+        totalTax: Prisma.Decimal;
         subscriptionId: string | null;
         pdfAssetId: string | null;
         pdfUrl: string | null;
@@ -157,8 +157,8 @@ export declare class InvoicesService extends BaseService {
         type: import(".prisma/client").$Enums.InvoiceTypeEnum;
         currency: string;
         clientId: string;
-        totalAmount: number;
-        taxAmount: number;
+        totalAmount: Prisma.Decimal;
+        taxAmount: Prisma.Decimal;
         orderId: string | null;
         dueDate: Date;
         invoiceNumber: string;
@@ -171,11 +171,11 @@ export declare class InvoicesService extends BaseService {
         reverseCharge: boolean;
         issueDate: Date;
         paidDate: Date | null;
-        subtotal: number;
-        cgstAmount: number;
-        sgstAmount: number;
-        igstAmount: number;
-        totalTax: number;
+        subtotal: Prisma.Decimal;
+        cgstAmount: Prisma.Decimal;
+        sgstAmount: Prisma.Decimal;
+        igstAmount: Prisma.Decimal;
+        totalTax: Prisma.Decimal;
         subscriptionId: string | null;
         pdfAssetId: string | null;
         pdfUrl: string | null;
@@ -224,7 +224,7 @@ export declare class InvoicesService extends BaseService {
             payments: {
                 id: string;
                 status: import(".prisma/client").$Enums.PaymentStatusEnum;
-                amount: number;
+                amount: Prisma.Decimal;
             }[];
         } & {
             id: string;
@@ -237,8 +237,8 @@ export declare class InvoicesService extends BaseService {
             type: import(".prisma/client").$Enums.InvoiceTypeEnum;
             currency: string;
             clientId: string;
-            totalAmount: number;
-            taxAmount: number;
+            totalAmount: Prisma.Decimal;
+            taxAmount: Prisma.Decimal;
             orderId: string | null;
             dueDate: Date;
             invoiceNumber: string;
@@ -251,11 +251,11 @@ export declare class InvoicesService extends BaseService {
             reverseCharge: boolean;
             issueDate: Date;
             paidDate: Date | null;
-            subtotal: number;
-            cgstAmount: number;
-            sgstAmount: number;
-            igstAmount: number;
-            totalTax: number;
+            subtotal: Prisma.Decimal;
+            cgstAmount: Prisma.Decimal;
+            sgstAmount: Prisma.Decimal;
+            igstAmount: Prisma.Decimal;
+            totalTax: Prisma.Decimal;
             subscriptionId: string | null;
             pdfAssetId: string | null;
             pdfUrl: string | null;
@@ -284,8 +284,8 @@ export declare class InvoicesService extends BaseService {
                 packageId: string | null;
                 orderId: string;
                 quantity: number;
-                unitPrice: number;
-                totalPrice: number;
+                unitPrice: Prisma.Decimal;
+                totalPrice: Prisma.Decimal;
             }[];
         } & {
             id: string;
@@ -301,10 +301,10 @@ export declare class InvoicesService extends BaseService {
             currency: string;
             clientId: string;
             orderNumber: string;
-            totalAmount: number;
-            taxAmount: number;
-            discountAmount: number;
-            netAmount: number;
+            totalAmount: Prisma.Decimal;
+            taxAmount: Prisma.Decimal;
+            discountAmount: Prisma.Decimal;
+            netAmount: Prisma.Decimal;
         }) | null;
         items: {
             id: string;
@@ -315,15 +315,15 @@ export declare class InvoicesService extends BaseService {
             sacCode: string | null;
             gstRate: number;
             packageId: string | null;
-            totalAmount: number;
+            totalAmount: Prisma.Decimal;
             quantity: number;
-            unitPrice: number;
+            unitPrice: Prisma.Decimal;
             invoiceId: string;
-            cgstAmount: number;
-            sgstAmount: number;
-            igstAmount: number;
-            discount: number;
-            taxableAmount: number;
+            cgstAmount: Prisma.Decimal;
+            sgstAmount: Prisma.Decimal;
+            igstAmount: Prisma.Decimal;
+            discount: Prisma.Decimal;
+            taxableAmount: Prisma.Decimal;
         }[];
         client: {
             user: {
@@ -407,7 +407,7 @@ export declare class InvoicesService extends BaseService {
             method: string | null;
             currency: string;
             orderId: string | null;
-            amount: number;
+            amount: Prisma.Decimal;
             paymentNumber: string;
             gatewayProvider: string;
             gatewayTransactionId: string | null;
@@ -447,8 +447,8 @@ export declare class InvoicesService extends BaseService {
         type: import(".prisma/client").$Enums.InvoiceTypeEnum;
         currency: string;
         clientId: string;
-        totalAmount: number;
-        taxAmount: number;
+        totalAmount: Prisma.Decimal;
+        taxAmount: Prisma.Decimal;
         orderId: string | null;
         dueDate: Date;
         invoiceNumber: string;
@@ -461,11 +461,223 @@ export declare class InvoicesService extends BaseService {
         reverseCharge: boolean;
         issueDate: Date;
         paidDate: Date | null;
-        subtotal: number;
-        cgstAmount: number;
-        sgstAmount: number;
-        igstAmount: number;
-        totalTax: number;
+        subtotal: Prisma.Decimal;
+        cgstAmount: Prisma.Decimal;
+        sgstAmount: Prisma.Decimal;
+        igstAmount: Prisma.Decimal;
+        totalTax: Prisma.Decimal;
+        subscriptionId: string | null;
+        pdfAssetId: string | null;
+        pdfUrl: string | null;
+        irn: string | null;
+        irnGeneratedAt: Date | null;
+        signedQrCode: string | null;
+        eInvoiceStatus: string | null;
+        eInvoiceError: string | null;
+    }>;
+    /**
+     * Same as findOne, but scoped to the requester: a client can only fetch their
+     * own invoices. Staff roles can fetch any invoice. Returns 404 (not 403) for a
+     * non-owned invoice so a client can't use this to confirm another client's
+     * invoice ID exists.
+     */
+    findOneForRequester(id: string, requester: {
+        sub?: string;
+        role?: string;
+    }): Promise<{
+        order: ({
+            items: {
+                id: string;
+                createdAt: Date;
+                name: string;
+                updatedAt: Date;
+                description: string | null;
+                serviceId: string | null;
+                packageId: string | null;
+                orderId: string;
+                quantity: number;
+                unitPrice: Prisma.Decimal;
+                totalPrice: Prisma.Decimal;
+            }[];
+        } & {
+            id: string;
+            createdAt: Date;
+            status: import(".prisma/client").$Enums.OrderStatusEnum;
+            updatedAt: Date;
+            deletedAt: Date | null;
+            createdBy: string | null;
+            updatedBy: string | null;
+            notes: string | null;
+            serviceId: string | null;
+            packageId: string | null;
+            currency: string;
+            clientId: string;
+            orderNumber: string;
+            totalAmount: Prisma.Decimal;
+            taxAmount: Prisma.Decimal;
+            discountAmount: Prisma.Decimal;
+            netAmount: Prisma.Decimal;
+        }) | null;
+        items: {
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            description: string;
+            serviceId: string | null;
+            sacCode: string | null;
+            gstRate: number;
+            packageId: string | null;
+            totalAmount: Prisma.Decimal;
+            quantity: number;
+            unitPrice: Prisma.Decimal;
+            invoiceId: string;
+            cgstAmount: Prisma.Decimal;
+            sgstAmount: Prisma.Decimal;
+            igstAmount: Prisma.Decimal;
+            discount: Prisma.Decimal;
+            taxableAmount: Prisma.Decimal;
+        }[];
+        client: {
+            user: {
+                email: string;
+                id: string;
+                createdAt: Date;
+                passwordHash: string | null;
+                firstName: string;
+                lastName: string;
+                countryCode: string | null;
+                phone: string | null;
+                avatarUrl: string | null;
+                avatarMediaId: string | null;
+                status: import(".prisma/client").$Enums.UserStatusEnum;
+                roleId: string;
+                organizationId: string | null;
+                agencyId: string | null;
+                updatedAt: Date;
+                deletedAt: Date | null;
+                createdBy: string | null;
+                updatedBy: string | null;
+            };
+            company: {
+                id: string;
+                createdAt: Date;
+                name: string;
+                updatedAt: Date;
+                deletedAt: Date | null;
+                createdBy: string | null;
+                updatedBy: string | null;
+                state: string | null;
+                slug: string;
+                gstNumber: string | null;
+                billingAddress: string | null;
+                legalName: string | null;
+                stateCode: string | null;
+                pincode: string | null;
+                country: string | null;
+                gstRegistered: boolean;
+                gstinVerified: boolean;
+                gstinVerifiedAt: Date | null;
+                website: string | null;
+                industry: string | null;
+                size: string | null;
+                logoUrl: string | null;
+                logoMediaId: string | null;
+                primaryContactId: string | null;
+            } | null;
+        } & {
+            id: string;
+            createdAt: Date;
+            userId: string;
+            status: string;
+            agencyId: string | null;
+            updatedAt: Date;
+            deletedAt: Date | null;
+            createdBy: string | null;
+            updatedBy: string | null;
+            state: string | null;
+            companyId: string | null;
+            accountManagerId: string | null;
+            gstNumber: string | null;
+            billingAddress: string | null;
+            timezone: string;
+            notes: string | null;
+            legalName: string | null;
+            stateCode: string | null;
+            pincode: string | null;
+            country: string | null;
+            gstRegistered: boolean;
+            gstinVerified: boolean;
+            gstinVerifiedAt: Date | null;
+        };
+        payments: {
+            id: string;
+            createdAt: Date;
+            status: import(".prisma/client").$Enums.PaymentStatusEnum;
+            updatedAt: Date;
+            createdBy: string | null;
+            updatedBy: string | null;
+            method: string | null;
+            currency: string;
+            orderId: string | null;
+            amount: Prisma.Decimal;
+            paymentNumber: string;
+            gatewayProvider: string;
+            gatewayTransactionId: string | null;
+            gatewayOrderId: string | null;
+            invoiceId: string | null;
+            paidAt: Date | null;
+        }[];
+        pdfAsset: {
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            deletedAt: Date | null;
+            createdBy: string | null;
+            updatedBy: string | null;
+            fileName: string;
+            folderId: string | null;
+            mediaType: import(".prisma/client").$Enums.MediaTypeEnum;
+            storageKey: string;
+            originalName: string;
+            mimeType: string;
+            fileExtension: string;
+            sizeBytes: number;
+            width: number | null;
+            height: number | null;
+            cdnUrl: string;
+            storageBucket: string;
+            uploaderId: string | null;
+        } | null;
+    } & {
+        id: string;
+        createdAt: Date;
+        status: import(".prisma/client").$Enums.InvoiceStatusEnum;
+        updatedAt: Date;
+        deletedAt: Date | null;
+        createdBy: string | null;
+        updatedBy: string | null;
+        type: import(".prisma/client").$Enums.InvoiceTypeEnum;
+        currency: string;
+        clientId: string;
+        totalAmount: Prisma.Decimal;
+        taxAmount: Prisma.Decimal;
+        orderId: string | null;
+        dueDate: Date;
+        invoiceNumber: string;
+        financialYear: string | null;
+        supplyType: import(".prisma/client").$Enums.SupplyTypeEnum;
+        taxTreatment: import(".prisma/client").$Enums.TaxTreatmentEnum;
+        taxType: import(".prisma/client").$Enums.TaxTypeEnum;
+        placeOfSupply: string | null;
+        placeOfSupplyCode: string | null;
+        reverseCharge: boolean;
+        issueDate: Date;
+        paidDate: Date | null;
+        subtotal: Prisma.Decimal;
+        cgstAmount: Prisma.Decimal;
+        sgstAmount: Prisma.Decimal;
+        igstAmount: Prisma.Decimal;
+        totalTax: Prisma.Decimal;
         subscriptionId: string | null;
         pdfAssetId: string | null;
         pdfUrl: string | null;
@@ -514,7 +726,7 @@ export declare class InvoicesService extends BaseService {
             payments: {
                 id: string;
                 status: import(".prisma/client").$Enums.PaymentStatusEnum;
-                amount: number;
+                amount: Prisma.Decimal;
             }[];
         } & {
             id: string;
@@ -527,8 +739,8 @@ export declare class InvoicesService extends BaseService {
             type: import(".prisma/client").$Enums.InvoiceTypeEnum;
             currency: string;
             clientId: string;
-            totalAmount: number;
-            taxAmount: number;
+            totalAmount: Prisma.Decimal;
+            taxAmount: Prisma.Decimal;
             orderId: string | null;
             dueDate: Date;
             invoiceNumber: string;
@@ -541,11 +753,11 @@ export declare class InvoicesService extends BaseService {
             reverseCharge: boolean;
             issueDate: Date;
             paidDate: Date | null;
-            subtotal: number;
-            cgstAmount: number;
-            sgstAmount: number;
-            igstAmount: number;
-            totalTax: number;
+            subtotal: Prisma.Decimal;
+            cgstAmount: Prisma.Decimal;
+            sgstAmount: Prisma.Decimal;
+            igstAmount: Prisma.Decimal;
+            totalTax: Prisma.Decimal;
             subscriptionId: string | null;
             pdfAssetId: string | null;
             pdfUrl: string | null;
@@ -573,8 +785,8 @@ export declare class InvoicesService extends BaseService {
         type: import(".prisma/client").$Enums.InvoiceTypeEnum;
         currency: string;
         clientId: string;
-        totalAmount: number;
-        taxAmount: number;
+        totalAmount: Prisma.Decimal;
+        taxAmount: Prisma.Decimal;
         orderId: string | null;
         dueDate: Date;
         invoiceNumber: string;
@@ -587,11 +799,11 @@ export declare class InvoicesService extends BaseService {
         reverseCharge: boolean;
         issueDate: Date;
         paidDate: Date | null;
-        subtotal: number;
-        cgstAmount: number;
-        sgstAmount: number;
-        igstAmount: number;
-        totalTax: number;
+        subtotal: Prisma.Decimal;
+        cgstAmount: Prisma.Decimal;
+        sgstAmount: Prisma.Decimal;
+        igstAmount: Prisma.Decimal;
+        totalTax: Prisma.Decimal;
         subscriptionId: string | null;
         pdfAssetId: string | null;
         pdfUrl: string | null;

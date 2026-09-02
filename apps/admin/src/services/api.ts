@@ -455,6 +455,17 @@ export const api = {
     update: async (id: string, data: any) => fetchFromApi(`/portfolio/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
     delete: async (id: string) => fetchFromApi(`/portfolio/${id}`, { method: 'DELETE' }),
   },
+  videoCatalog: {
+    getAll: async () => fetchFromApi('/video-catalog/admin/all', { method: 'GET' }),
+    getCategories: async () => fetchFromApi('/video-catalog/categories', { method: 'GET' }),
+    create: async (data: any) => fetchFromApi('/video-catalog', { method: 'POST', body: JSON.stringify(data) }),
+    update: async (id: string, data: any) => fetchFromApi(`/video-catalog/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+    delete: async (id: string) => fetchFromApi(`/video-catalog/${id}`, { method: 'DELETE' }),
+    reorder: async (orderedIds: string[]) => fetchFromApi('/video-catalog/reorder', { method: 'PATCH', body: JSON.stringify({ orderedIds }) }),
+    createCategory: async (data: { name: string; displayOrder?: number }) =>
+      fetchFromApi('/video-catalog/categories', { method: 'POST', body: JSON.stringify(data) }),
+    deleteCategory: async (id: string) => fetchFromApi(`/video-catalog/categories/${id}`, { method: 'DELETE' }),
+  },
   testimonials: {
     getAll: async () => fetchFromApi('/testimonials', { method: 'GET' }),
     create: async (data: any) => fetchFromApi('/testimonials', { method: 'POST', body: JSON.stringify(data) }),

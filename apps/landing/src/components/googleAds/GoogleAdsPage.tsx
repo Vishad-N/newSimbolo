@@ -18,11 +18,15 @@ import { SharedPackage } from "@/types/shared";
 interface GoogleAdsPageProps {
   livePackages?: SharedPackage[];
   liveConfig?: any;
+  liveFaqs?: any[];
+  liveTestimonials?: any[];
 }
 
-export function GoogleAdsPage({ livePackages, liveConfig }: GoogleAdsPageProps) {
+export function GoogleAdsPage({ livePackages, liveConfig, liveFaqs, liveTestimonials }: GoogleAdsPageProps) {
   const packages = livePackages && livePackages.length > 0 ? livePackages : googleAdsPackages;
   const benefits = liveConfig?.heroBenefits?.length > 0 ? liveConfig.heroBenefits : googleAdsBenefits;
+  const faqs = liveFaqs && liveFaqs.length > 0 ? liveFaqs : googleAdsFaqs;
+  const testimonials = liveTestimonials && liveTestimonials.length > 0 ? liveTestimonials : googleAdsTestimonials;
   
   const stats = liveConfig?.statsBar?.length > 0 ? liveConfig.statsBar.map((s: any, i: number) => ({
     id: `stat-${i}`,
@@ -49,14 +53,14 @@ export function GoogleAdsPage({ livePackages, liveConfig }: GoogleAdsPageProps) 
               <PricingSection packages={packages}  />
               <div className="space-y-4">
                 <LeadForm />
-                <WhyChooseUs items={whyChooseItems} testimonials={googleAdsTestimonials} />
+                <WhyChooseUs items={whyChooseItems} testimonials={testimonials} />
               </div>
             </div>
             <div className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
               <ProcessTimeline steps={googleAdsProcess} />
               <ResultsSection results={results} />
             </div>
-            <FAQSection faqs={googleAdsFaqs} />
+            <FAQSection faqs={faqs} />
           </div>
         </div>
       </>

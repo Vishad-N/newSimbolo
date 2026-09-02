@@ -4,6 +4,8 @@ export declare class InvoiceItemDto {
     description?: string;
     quantity: number;
     unitPrice: number;
+    sacCode?: string;
+    gstRate?: number;
 }
 export declare class CreateInvoiceDto {
     clientId: string;

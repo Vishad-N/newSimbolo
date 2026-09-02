@@ -28,11 +28,11 @@ let OrdersController = class OrdersController {
     constructor(ordersService) {
         this.ordersService = ordersService;
     }
-    async findAll(clientId, status, page = 1, limit = 20) {
-        return this.ordersService.findAll(clientId, status, page, limit);
+    async findAll(user, clientId, status, page = 1, limit = 20) {
+        return this.ordersService.findAllForRequester(user, clientId, status, page, limit);
     }
-    async findOne(id) {
-        return this.ordersService.findOne(id);
+    async findOne(id, user) {
+        return this.ordersService.findOneForRequester(id, user);
     }
     async create(dto, user) {
         return this.ordersService.create(dto, user?.sub);
@@ -51,28 +51,30 @@ exports.OrdersController = OrdersController;
 __decorate([
     (0, common_1.Get)(),
     (0, permissions_decorator_1.Permissions)('orders.view', 'orders.manage'),
-    (0, swagger_1.ApiOperation)({ summary: 'List all orders with optional filters and pagination' }),
+    (0, swagger_1.ApiOperation)({ summary: 'List orders with optional filters and pagination (clients only ever see their own)' }),
     (0, swagger_1.ApiQuery)({ name: 'clientId', required: false }),
     (0, swagger_1.ApiQuery)({ name: 'status', enum: client_1.OrderStatusEnum, required: false }),
     (0, swagger_1.ApiQuery)({ name: 'page', required: false, type: Number }),
     (0, swagger_1.ApiQuery)({ name: 'limit', required: false, type: Number }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Paginated order list' }),
-    __param(0, (0, common_1.Query)('clientId')),
-    __param(1, (0, common_1.Query)('status')),
-    __param(2, (0, common_1.Query)('page', new common_1.DefaultValuePipe(1), common_1.ParseIntPipe)),
-    __param(3, (0, common_1.Query)('limit', new common_1.DefaultValuePipe(20), common_1.ParseIntPipe)),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __param(1, (0, common_1.Query)('clientId')),
+    __param(2, (0, common_1.Query)('status')),
+    __param(3, (0, common_1.Query)('page', new common_1.DefaultValuePipe(1), common_1.ParseIntPipe)),
+    __param(4, (0, common_1.Query)('limit', new common_1.DefaultValuePipe(20), common_1.ParseIntPipe)),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, Object, Object]),
+    __metadata("design:paramtypes", [Object, String, String, Object, Object]),
     __metadata("design:returntype", Promise)
 ], OrdersController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Get)(':id'),
     (0, permissions_decorator_1.Permissions)('orders.view', 'orders.manage'),
-    (0, swagger_1.ApiOperation)({ summary: 'Get order details by ID' }),
+    (0, swagger_1.ApiOperation)({ summary: 'Get order details by ID (clients only ever see their own)' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Order returned' }),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
+    __param(1, (0, current_user_decorator_1.CurrentUser)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
 ], OrdersController.prototype, "findOne", null);
 __decorate([

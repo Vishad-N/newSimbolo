@@ -18,6 +18,7 @@ const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
 const dashboard_service_1 = require("./dashboard.service");
 const permissions_decorator_1 = require("../common/decorators/permissions.decorator");
+const current_user_decorator_1 = require("../common/decorators/current-user.decorator");
 const roles_decorator_1 = require("../common/decorators/roles.decorator");
 const role_constant_1 = require("../common/constants/role.constant");
 let DashboardController = class DashboardController {
@@ -43,13 +44,16 @@ let DashboardController = class DashboardController {
     async getDashboardKpis() {
         return this.dashboardService.getDashboardKpis();
     }
-    async getClientDashboard(clientId) {
+    async getClientDashboard(clientId, user) {
+        await this.dashboardService.assertClientAccess(clientId, user);
         return this.dashboardService.getClientDashboard(clientId);
     }
-    async getClientBillingDashboard(clientId) {
+    async getClientBillingDashboard(clientId, user) {
+        await this.dashboardService.assertClientAccess(clientId, user);
         return this.dashboardService.getClientBillingDashboard(clientId);
     }
-    async getClientWidgets(clientId) {
+    async getClientWidgets(clientId, user) {
+        await this.dashboardService.assertClientAccess(clientId, user);
         return this.dashboardService.getClientWidgets(clientId);
     }
     async getProjectStats(projectId) {
@@ -121,31 +125,35 @@ __decorate([
 ], DashboardController.prototype, "getDashboardKpis", null);
 __decorate([
     (0, common_1.Get)('client/:clientId'),
-    (0, permissions_decorator_1.Permissions)('dashboard.view', 'clients.read'),
+    (0, permissions_decorator_1.Permissions)('dashboard.view'),
     (0, swagger_1.ApiOperation)({ summary: 'Client dashboard – active projects, pending deliverables, meetings, tickets' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Client dashboard returned' }),
     __param(0, (0, common_1.Param)('clientId', common_1.ParseUUIDPipe)),
+    __param(1, (0, current_user_decorator_1.CurrentUser)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
 ], DashboardController.prototype, "getClientDashboard", null);
 __decorate([
     (0, common_1.Get)('client/:clientId/billing'),
+    (0, permissions_decorator_1.Permissions)('dashboard.view'),
     (0, swagger_1.ApiOperation)({ summary: 'Client billing dashboard – payments, invoices, subscriptions, notifications' }),
     openapi.ApiResponse({ status: 200 }),
     __param(0, (0, common_1.Param)('clientId', common_1.ParseUUIDPipe)),
+    __param(1, (0, current_user_decorator_1.CurrentUser)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
 ], DashboardController.prototype, "getClientBillingDashboard", null);
 __decorate([
     (0, common_1.Get)('client/:clientId/widgets'),
-    (0, permissions_decorator_1.Permissions)('dashboard.view', 'clients.read'),
+    (0, permissions_decorator_1.Permissions)('dashboard.view'),
     (0, swagger_1.ApiOperation)({ summary: 'Client dashboard widget data for Phase 9 BI dashboard' }),
     openapi.ApiResponse({ status: 200 }),
     __param(0, (0, common_1.Param)('clientId', common_1.ParseUUIDPipe)),
+    __param(1, (0, current_user_decorator_1.CurrentUser)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
 ], DashboardController.prototype, "getClientWidgets", null);
 __decorate([

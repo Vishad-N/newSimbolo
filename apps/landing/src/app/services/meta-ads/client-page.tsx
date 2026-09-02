@@ -17,12 +17,16 @@ import { SharedPackage } from "@/types/shared";
 interface MetaAdsClientPageProps {
   livePackages?: SharedPackage[];
   liveConfig?: any;
+  liveFaqs?: any[];
+  liveTestimonials?: any[];
 }
 
-export function MetaAdsClientPage({ livePackages, liveConfig }: MetaAdsClientPageProps) {
+export function MetaAdsClientPage({ livePackages, liveConfig, liveFaqs, liveTestimonials }: MetaAdsClientPageProps) {
   // Use live packages from backend if available, fallback to mock
   const packages = livePackages && livePackages.length > 0 ? livePackages : metaAdsPackages;
   const benefits = liveConfig?.heroBenefits?.length > 0 ? liveConfig.heroBenefits : metaAdsBenefits;
+  const faqs = liveFaqs && liveFaqs.length > 0 ? liveFaqs : metaAdsFaqs;
+  const testimonials = liveTestimonials && liveTestimonials.length > 0 ? liveTestimonials : metaAdsTestimonials;
   
   const stats = liveConfig?.statsBar?.length > 0 ? liveConfig.statsBar.map((s: any, i: number) => ({
     id: `stat-${i}`,
@@ -51,9 +55,9 @@ export function MetaAdsClientPage({ livePackages, liveConfig }: MetaAdsClientPag
             </div>
             <div className="grid gap-4 xl:grid-cols-2">
               <ResultsSection results={results} />
-              <TestimonialSection testimonials={metaAdsTestimonials} />
+              <TestimonialSection testimonials={testimonials} />
             </div>
-            <FAQSection faqs={metaAdsFaqs} title="Meta Ads FAQs" />
+            <FAQSection faqs={faqs} title="Meta Ads FAQs" />
           </div>
         </div>
       </>

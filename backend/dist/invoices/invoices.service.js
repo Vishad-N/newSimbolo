@@ -18,6 +18,17 @@ const storage_service_1 = require("../storage/storage.service");
 const tax_service_1 = require("./tax.service");
 const invoice_pdf_builder_1 = require("./templates/invoice.pdf.builder");
 const client_1 = require("@prisma/client");
+const role_constant_1 = require("../common/constants/role.constant");
+const MAX_INVOICE_NUMBER_RETRIES = 5;
+const STAFF_ROLES = [
+    role_constant_1.UserRole.ADMIN,
+    role_constant_1.UserRole.SUPER_ADMIN,
+    role_constant_1.UserRole.PROJECT_MANAGER,
+    role_constant_1.UserRole.SUPPORT,
+    role_constant_1.UserRole.CONTENT_MANAGER,
+    role_constant_1.UserRole.MARKETING_MANAGER,
+    role_constant_1.UserRole.EDITOR,
+];
 let InvoicesService = class InvoicesService extends base_service_1.BaseService {
     prisma;
     emailService;
@@ -67,60 +78,85 @@ let InvoicesService = class InvoicesService extends base_service_1.BaseService {
             customerStateCode,
             items: dto.items.map((item) => ({
                 description: item.name + (item.description ? ` - ${item.description}` : ''),
+                sacCode: item.sacCode,
                 quantity: item.quantity,
                 unitPrice: item.unitPrice,
-                gstRate: dto.taxPercentage ?? 18,
+                gstRate: item.gstRate ?? dto.taxPercentage ?? 18,
             })),
         };
         const taxResult = this.taxService.calculateTax(taxParams);
-        const { number: invoiceNumber, fy } = await this.generateInvoiceNumber();
-        const invoice = await this.prisma.invoice.create({
-            data: {
-                invoiceNumber,
-                financialYear: fy,
-                status: client_1.InvoiceStatusEnum.DRAFT,
-                supplyType: hasGstin ? 'B2B' : 'B2C',
-                taxTreatment: 'STANDARD',
-                taxType: taxResult.isInterState ? 'IGST' : 'CGST_SGST',
-                issueDate: new Date(),
-                dueDate: new Date(dto.dueDate),
-                subtotal: taxResult.subtotal,
-                taxAmount: taxResult.totalTax,
-                cgstAmount: taxResult.totalCgst,
-                sgstAmount: taxResult.totalSgst,
-                igstAmount: taxResult.totalIgst,
-                totalTax: taxResult.totalTax,
-                totalAmount: taxResult.totalAmount,
-                currency: dto.currency ?? 'INR',
-                clientId: dto.clientId,
-                orderId: dto.orderId ?? null,
-                subscriptionId: dto.subscriptionId ?? null,
-                createdBy: createdBy ?? null,
-                items: {
-                    create: taxResult.items.map((item) => ({
-                        description: item.description,
-                        sacCode: item.sacCode,
-                        quantity: item.quantity,
-                        unitPrice: item.unitPrice,
-                        discount: item.discount,
-                        taxableAmount: item.taxableAmount,
-                        gstRate: item.gstRate,
-                        cgstAmount: item.cgstAmount,
-                        sgstAmount: item.sgstAmount,
-                        igstAmount: item.igstAmount,
-                        totalAmount: item.totalAmount,
-                    })),
-                },
-            },
-            include: {
-                client: { include: { user: true, company: true } },
-                order: { select: { orderNumber: true } },
-                items: true,
-            },
-        });
+        // generateInvoiceNumber() reads the current max and adds 1 with no row lock, so two
+        // concurrent invoice creations (e.g. a Razorpay webhook and the client-side verify
+        // call racing for the same payment) can compute the same number. invoiceNumber is
+        // unique, so the loser's insert throws P2002 — retry with a freshly-read number
+        // instead of losing the invoice silently.
+        let invoice;
+        let lastError;
+        for (let attempt = 0; attempt < MAX_INVOICE_NUMBER_RETRIES; attempt++) {
+            const { number: invoiceNumber, fy } = await this.generateInvoiceNumber();
+            try {
+                invoice = await this.prisma.invoice.create({
+                    data: {
+                        invoiceNumber,
+                        financialYear: fy,
+                        status: client_1.InvoiceStatusEnum.DRAFT,
+                        supplyType: hasGstin ? 'B2B' : 'B2C',
+                        taxTreatment: 'STANDARD',
+                        taxType: taxResult.isInterState ? 'IGST' : 'CGST_SGST',
+                        issueDate: new Date(),
+                        dueDate: new Date(dto.dueDate),
+                        subtotal: taxResult.subtotal,
+                        taxAmount: taxResult.totalTax,
+                        cgstAmount: taxResult.totalCgst,
+                        sgstAmount: taxResult.totalSgst,
+                        igstAmount: taxResult.totalIgst,
+                        totalTax: taxResult.totalTax,
+                        totalAmount: taxResult.totalAmount,
+                        currency: dto.currency ?? 'INR',
+                        clientId: dto.clientId,
+                        orderId: dto.orderId ?? null,
+                        subscriptionId: dto.subscriptionId ?? null,
+                        createdBy: createdBy ?? null,
+                        items: {
+                            create: taxResult.items.map((item) => ({
+                                description: item.description,
+                                sacCode: item.sacCode,
+                                quantity: item.quantity,
+                                unitPrice: item.unitPrice,
+                                discount: item.discount,
+                                taxableAmount: item.taxableAmount,
+                                gstRate: item.gstRate,
+                                cgstAmount: item.cgstAmount,
+                                sgstAmount: item.sgstAmount,
+                                igstAmount: item.igstAmount,
+                                totalAmount: item.totalAmount,
+                            })),
+                        },
+                    },
+                    include: {
+                        client: { include: { user: true, company: true } },
+                        order: { select: { orderNumber: true } },
+                        items: true,
+                    },
+                });
+                lastError = undefined;
+                break;
+            }
+            catch (error) {
+                const isDuplicateInvoiceNumber = error instanceof client_1.Prisma.PrismaClientKnownRequestError &&
+                    error.code === 'P2002' &&
+                    error.meta?.target?.includes('invoiceNumber');
+                if (!isDuplicateInvoiceNumber)
+                    throw error;
+                lastError = error;
+                this.logger.warn(`Invoice number ${invoiceNumber} collided, retrying (attempt ${attempt + 1})`);
+            }
+        }
+        if (!invoice)
+            throw lastError;
         await this.prisma.timeline.create({
             data: {
-                title: `Tax Invoice ${invoiceNumber} generated`,
+                title: `Tax Invoice ${invoice.invoiceNumber} generated`,
                 description: `Invoice for ₹${taxResult.totalAmount} generated for ${client.user.firstName} ${client.user.lastName}`,
                 eventType: 'INVOICE_GENERATED',
                 clientId: dto.clientId,
@@ -152,14 +188,16 @@ let InvoicesService = class InvoicesService extends base_service_1.BaseService {
                 name: item.name,
                 description: item.description ?? undefined,
                 quantity: item.quantity,
-                unitPrice: item.unitPrice,
+                unitPrice: Number(item.unitPrice),
                 sacCode: item.service?.sacCode ?? item.package?.sacCode ?? undefined,
                 gstRate: item.service?.gstRate ?? item.package?.gstRate ?? 18,
             })),
         };
         const invoice = await this.create(dto, createdBy);
-        // Automatically generate PDF
-        await this.generatePdf(invoice.id);
+        // PDF generation (build + upload) is deliberately NOT done here — this method
+        // runs inline in the payment webhook/verify path, and generating the PDF is slow
+        // enough to risk that request timing out. The client requests the PDF on demand
+        // via GET /invoices/:id/pdf, which calls generatePdf() itself.
         return invoice;
     }
     async findAll(clientId, status, page = 1, limit = 20) {
@@ -199,6 +237,20 @@ let InvoicesService = class InvoicesService extends base_service_1.BaseService {
             throw new common_1.NotFoundException(`Invoice ${id} not found`);
         return invoice;
     }
+    /**
+     * Same as findOne, but scoped to the requester: a client can only fetch their
+     * own invoices. Staff roles can fetch any invoice. Returns 404 (not 403) for a
+     * non-owned invoice so a client can't use this to confirm another client's
+     * invoice ID exists.
+     */
+    async findOneForRequester(id, requester) {
+        const invoice = await this.findOne(id);
+        const isStaff = requester.role ? STAFF_ROLES.includes(requester.role) : false;
+        if (!isStaff && invoice.client.userId !== requester.sub) {
+            throw new common_1.NotFoundException(`Invoice ${id} not found`);
+        }
+        return invoice;
+    }
     async findMyInvoices(userId, status, page = 1, limit = 20) {
         const client = await this.prisma.clientProfile.findFirst({ where: { userId, deletedAt: null } });
         if (!client)
@@ -230,23 +282,24 @@ let InvoicesService = class InvoicesService extends base_service_1.BaseService {
                 description: item.description,
                 sacCode: item.sacCode ?? undefined,
                 quantity: item.quantity,
-                unitPrice: item.unitPrice,
-                discount: item.discount,
-                taxableAmount: item.taxableAmount,
+                unitPrice: Number(item.unitPrice),
+                discount: Number(item.discount),
+                taxableAmount: Number(item.taxableAmount),
                 gstRate: item.gstRate,
-                cgstAmount: item.cgstAmount,
-                sgstAmount: item.sgstAmount,
-                igstAmount: item.igstAmount,
-                totalAmount: item.totalAmount,
+                cgstAmount: Number(item.cgstAmount),
+                sgstAmount: Number(item.sgstAmount),
+                igstAmount: Number(item.igstAmount),
+                totalAmount: Number(item.totalAmount),
             })),
-            subtotal: invoice.subtotal,
-            cgstAmount: invoice.cgstAmount,
-            sgstAmount: invoice.sgstAmount,
-            igstAmount: invoice.igstAmount,
-            taxAmount: invoice.taxAmount,
-            totalAmount: invoice.totalAmount,
+            subtotal: Number(invoice.subtotal),
+            cgstAmount: Number(invoice.cgstAmount),
+            sgstAmount: Number(invoice.sgstAmount),
+            igstAmount: Number(invoice.igstAmount),
+            taxAmount: Number(invoice.taxAmount),
+            totalAmount: Number(invoice.totalAmount),
             currency: invoice.currency,
             supplierStateCode: process.env.SUPPLIER_STATE_CODE || '23',
+            supplierGstin: process.env.SUPPLIER_GSTIN || undefined,
         };
         const pdfBuffer = await (0, invoice_pdf_builder_1.buildInvoicePdf)(pdfData);
         const file = {
@@ -255,13 +308,15 @@ let InvoicesService = class InvoicesService extends base_service_1.BaseService {
             size: pdfBuffer.length,
             originalname: `${invoice.invoiceNumber}.pdf`,
         };
-        const storageKey = `invoices/${invoice.financialYear || '00-00'}/${invoice.invoiceNumber}.pdf`;
+        // invoice.invoiceNumber already embeds the financial year (e.g. "SIM/26-27/000001"),
+        // so prefixing it again here would duplicate that segment in the storage path.
+        const storageKey = `invoices/${invoice.invoiceNumber}.pdf`;
         const uploadResult = await this.storageService.upload(file, storageKey);
         await this.prisma.invoice.update({
             where: { id },
             data: { pdfUrl: uploadResult.url },
         });
-        this.logger.log(`📄 Invoice PDF uploaded to R2: ${storageKey}`);
+        this.logger.log(`📄 Invoice PDF uploaded (${uploadResult.provider}): ${storageKey}`);
         return pdfBuffer;
     }
     async emailInvoice(id) {
@@ -269,7 +324,7 @@ let InvoicesService = class InvoicesService extends base_service_1.BaseService {
         const client = invoice.client;
         const userEmail = client.user.email;
         const userName = `${client.user.firstName} ${client.user.lastName}`;
-        await this.emailService.sendInvoiceEmail(userEmail, userName, invoice.invoiceNumber, invoice.totalAmount, invoice.dueDate, invoice.currency);
+        await this.emailService.sendInvoiceEmail(userEmail, userName, invoice.invoiceNumber, Number(invoice.totalAmount), invoice.dueDate, invoice.currency);
         if (invoice.status === client_1.InvoiceStatusEnum.DRAFT) {
             await this.prisma.invoice.update({
                 where: { id },

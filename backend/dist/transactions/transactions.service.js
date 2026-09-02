@@ -98,10 +98,10 @@ let TransactionsService = class TransactionsService extends base_service_1.BaseS
             where,
             include: { payment: { select: { currency: true } } },
         });
-        const totalRevenue = successfulTransactions.reduce((sum, t) => sum + t.amount, 0);
+        const totalRevenue = successfulTransactions.reduce((sum, t) => sum + Number(t.amount), 0);
         const totalCount = successfulTransactions.length;
         const byType = successfulTransactions.reduce((acc, t) => {
-            acc[t.type] = (acc[t.type] || 0) + t.amount;
+            acc[t.type] = (acc[t.type] || 0) + Number(t.amount);
             return acc;
         }, {});
         return {

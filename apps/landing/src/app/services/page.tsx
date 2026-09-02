@@ -12,6 +12,10 @@ import { BottomCTA } from "@/components/services/BottomCTA";
 
 import { RecentWorksGallery } from "@/components/shared/RecentWorksGallery";
 import { FAQSection } from "@/components/shared/FAQSection";
+import { fetchMappedFaqs } from "@/lib/content-mapper";
+import { fetchMappedPortfolioProjects } from "@/lib/portfolio-mapper";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Digital Marketing Services | The Simbolo",
@@ -86,7 +90,12 @@ const serviceFaqs = [
   }
 ];
 
-export default function ServicesPage() {
+export default async function ServicesPage() {
+  const [liveFaqs, liveProjects] = await Promise.all([
+    fetchMappedFaqs(serviceFaqs),
+    fetchMappedPortfolioProjects("all", recentProjects),
+  ]);
+
   return (
     <main className="flex min-h-screen flex-col bg-[var(--background)]">
       <ServicesHero />
@@ -109,7 +118,7 @@ export default function ServicesPage() {
               See how we've helped businesses like yours achieve extraordinary growth.
             </p>
           </div>
-          <RecentWorksGallery works={recentProjects} />
+          <RecentWorksGallery works={liveProjects} />
         </div>
       </section>
 
@@ -124,7 +133,7 @@ export default function ServicesPage() {
               Frequently Asked <span className="text-[var(--primary)]">Questions</span>
             </h2>
           </div>
-          <FAQSection faqs={serviceFaqs} title="" />
+          <FAQSection faqs={liveFaqs} title="" />
         </div>
       </section>
 

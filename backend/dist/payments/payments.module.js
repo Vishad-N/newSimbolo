@@ -14,6 +14,7 @@ const razorpay_provider_1 = require("./razorpay.provider");
 const prisma_module_1 = require("../prisma/prisma.module");
 const affiliate_module_1 = require("../affiliate/affiliate.module");
 const notifications_module_1 = require("../notifications/notifications.module");
+const invoices_module_1 = require("../invoices/invoices.module");
 // Dependency direction is one-way: Webhooks -> Payments -> Affiliate.
 // AffiliateModule never imports PaymentsModule, so no forwardRef is needed.
 let PaymentsModule = class PaymentsModule {
@@ -21,7 +22,7 @@ let PaymentsModule = class PaymentsModule {
 exports.PaymentsModule = PaymentsModule;
 exports.PaymentsModule = PaymentsModule = __decorate([
     (0, common_1.Module)({
-        imports: [prisma_module_1.PrismaModule, affiliate_module_1.AffiliateModule, notifications_module_1.NotificationsModule],
+        imports: [prisma_module_1.PrismaModule, affiliate_module_1.AffiliateModule, notifications_module_1.NotificationsModule, invoices_module_1.InvoicesModule],
         controllers: [payments_controller_1.PaymentsController],
         providers: [payments_service_1.PaymentsService, razorpay_provider_1.RazorpayGateway],
         exports: [payments_service_1.PaymentsService, razorpay_provider_1.RazorpayGateway],

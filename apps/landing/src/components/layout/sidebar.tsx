@@ -8,11 +8,33 @@ import { BrandLogo } from "@/components/ui/brand-logo";
 import { SidebarMascotBubble, SidebarBackgroundDecoration } from "@/components/layout/SidebarMascotBubble";
 import { CrownIcon, DashboardIcon, exploreNav, growNav, marketingNav } from "@/data/landing";
 import { cn } from "@/lib/utils";
+import { DynamicIcon } from "@/utils/icon-mapper";
+import type { NavItem } from "@/types/landing";
 
 type SidebarProps = {
   open: boolean;
   onToggle: () => void;
+  navigationData?: Record<string, any> | null;
 };
+
+interface LiveNavItem {
+  id: string;
+  label: string;
+  href: string;
+  iconName: string;
+}
+
+function resolveNavItems(liveItems: LiveNavItem[] | undefined, fallback: NavItem[]): NavItem[] {
+  if (!liveItems || liveItems.length === 0) return fallback;
+  return liveItems.map((item) => ({
+    label: item.label,
+    href: item.href,
+    // DynamicIcon (a lazy Lucide-name resolver, not a plain Lucide component)
+    // still satisfies how every call site uses `.icon` — rendered as
+    // `<item.icon className="..." />` — so this cast is safe.
+    icon: ((props: { className?: string }) => <DynamicIcon name={item.iconName} {...props} />) as unknown as NavItem["icon"],
+  }));
+}
 
 function NavSection({ title, items, onClose }: { title: string; items: typeof exploreNav; onClose?: () => void }) {
   const pathname = usePathname();
@@ -47,9 +69,13 @@ function NavSection({ title, items, onClose }: { title: string; items: typeof ex
   );
 }
 
-function SidebarContent({ onClose }: { onClose?: () => void }) {
+function SidebarContent({ onClose, navigationData }: { onClose?: () => void; navigationData?: Record<string, any> | null }) {
   const pathname = usePathname();
   const dashboardActive = pathname === "/";
+
+  const exploreItems = resolveNavItems(navigationData?.exploreMenu, exploreNav);
+  const marketingItems = resolveNavItems(navigationData?.marketingMenu, marketingNav);
+  const growItems = resolveNavItems(navigationData?.growMenu, growNav);
 
   return (
     <aside className="font-sidebar flex h-full w-[250px] flex-col border-r border-white/[0.08] bg-[var(--sidebar)]/95 shadow-[20px_0_55px_rgba(0,0,0,0.24)] backdrop-blur-xl">
@@ -83,9 +109,9 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
         </Link>
       </div>
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 pb-4">
-        <NavSection title="Explore" items={exploreNav} onClose={onClose} />
-        <NavSection title="Marketing" items={marketingNav} onClose={onClose} />
-        <NavSection title="Grow" items={growNav} onClose={onClose} />
+        <NavSection title="Explore" items={exploreItems} onClose={onClose} />
+        <NavSection title="Marketing" items={marketingItems} onClose={onClose} />
+        <NavSection title="Grow" items={growItems} onClose={onClose} />
         
         <div className="border-t border-white/[0.08] pt-4">
           <Link
@@ -121,7 +147,7 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
   );
 }
 
-export function Sidebar({ open, onToggle }: SidebarProps) {
+export function Sidebar({ open, onToggle, navigationData }: SidebarProps) {
   return (
     <>
       {!open && (
@@ -134,7 +160,7 @@ export function Sidebar({ open, onToggle }: SidebarProps) {
         </button>
       )}
       <div className="fixed inset-y-0 left-0 z-40 hidden lg:block">
-        <SidebarContent />
+        <SidebarContent navigationData={navigationData} />
       </div>
       <AnimatePresence>
         {open && (
@@ -147,7 +173,7 @@ export function Sidebar({ open, onToggle }: SidebarProps) {
               transition={{ type: "spring", stiffness: 320, damping: 34 }}
               className="fixed inset-y-0 left-0 z-40 lg:hidden"
             >
-              <SidebarContent onClose={onToggle} />
+              <SidebarContent onClose={onToggle} navigationData={navigationData} />
             </motion.div>
           </>
         )}

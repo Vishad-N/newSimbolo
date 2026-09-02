@@ -4,6 +4,7 @@ import Script from "next/script";
 import { websitePackages as mockPackages, websiteProjects as mockProjects } from "@/data/services/websiteDesign";
 import { fetchMappedPackages } from "@/lib/package-mapper";
 import { fetchMappedPortfolioProjects } from "@/lib/portfolio-mapper";
+import { fetchMappedFaqs, fetchMappedTestimonials } from "@/lib/content-mapper";
 
 export const metadata: Metadata = {
   title: "Website Design & Development Services | The Simbolo",
@@ -73,10 +74,12 @@ import { landingApi } from "@/lib/api";
 export const dynamic = "force-dynamic";
 
 export default async function WebsiteDesignRoute() {
-  const [livePackages, liveProjectsToPass, liveConfig] = await Promise.all([
+  const [livePackages, liveProjectsToPass, liveConfig, liveFaqs, liveTestimonials] = await Promise.all([
     fetchMappedPackages('website-design', []),
     fetchMappedPortfolioProjects('website-design', []),
     landingApi.getServicePageConfig('website-design', null),
+    fetchMappedFaqs([]),
+    fetchMappedTestimonials([]),
   ]);
 
   return (
@@ -86,7 +89,7 @@ export default async function WebsiteDesignRoute() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <WebsiteDesignPage livePackages={livePackages} liveProjects={liveProjectsToPass} liveConfig={liveConfig} />
+      <WebsiteDesignPage livePackages={livePackages} liveProjects={liveProjectsToPass} liveConfig={liveConfig} liveFaqs={liveFaqs} liveTestimonials={liveTestimonials} />
     </>
   );
 }

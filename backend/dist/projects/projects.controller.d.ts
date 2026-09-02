@@ -6,7 +6,7 @@ import { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
 export declare class ProjectsController {
     private readonly projectsService;
     constructor(projectsService: ProjectsService);
-    findAll(clientId?: string, status?: ProjectStatusEnum, managerId?: string, page?: number, limit?: number): Promise<{
+    findAll(user: JwtPayload, clientId?: string, status?: ProjectStatusEnum, managerId?: string, page?: number, limit?: number): Promise<{
         data: ({
             order: {
                 id: string;
@@ -103,7 +103,7 @@ export declare class ProjectsController {
             totalPages: number;
         };
     }>;
-    findOne(id: string): Promise<{
+    findOne(id: string, user: JwtPayload): Promise<{
         id: string;
         createdAt: Date;
         name: string;

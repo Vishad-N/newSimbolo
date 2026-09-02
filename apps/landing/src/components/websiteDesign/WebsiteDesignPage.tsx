@@ -27,12 +27,16 @@ interface WebsiteDesignPageProps {
   livePackages?: SharedPackage[];
   liveProjects?: any[];
   liveConfig?: any;
+  liveFaqs?: any[];
+  liveTestimonials?: any[];
 }
 
-export function WebsiteDesignPage({ livePackages, liveProjects, liveConfig }: WebsiteDesignPageProps) {
+export function WebsiteDesignPage({ livePackages, liveProjects, liveConfig, liveFaqs, liveTestimonials }: WebsiteDesignPageProps) {
   const packages = livePackages && livePackages.length > 0 ? livePackages : websitePackages;
   const projects = liveProjects && liveProjects.length > 0 ? liveProjects : websiteProjects;
-  
+  const faqs = liveFaqs && liveFaqs.length > 0 ? liveFaqs : websiteDesignFaqs;
+  const testimonials = liveTestimonials && liveTestimonials.length > 0 ? liveTestimonials : websiteTestimonials;
+
   const benefits = liveConfig?.heroBenefits?.length > 0 ? liveConfig.heroBenefits : websiteDesignBenefits;
   
   const stats = liveConfig?.statsBar?.length > 0 ? liveConfig.statsBar.map((s: any, i: number) => ({
@@ -104,11 +108,11 @@ export function WebsiteDesignPage({ livePackages, liveProjects, liveConfig }: We
             <TechStack technologies={technologiesData} />
 
             <div className="grid gap-4 mt-8 xl:grid-cols-[1fr]">
-              <TestimonialSection title="What Our Clients Say" testimonials={websiteTestimonials} />
+              <TestimonialSection title="What Our Clients Say" testimonials={testimonials} />
             </div>
 
             <div className="mt-8">
-              <FAQSection faqs={websiteDesignFaqs} />
+              <FAQSection faqs={faqs} />
             </div>
           </div>
         </div>

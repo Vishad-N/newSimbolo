@@ -49,3 +49,10 @@ export interface SearchResponse {
     reviews: Review[];
     relatedServices: Service[];
 }
+export interface LlmSearchResponse {
+    summary: string;
+    matchPercentage: number;
+    recommendedService: string;
+    recommendedPackage: string;
+    suggestions: Suggestion[];
+}

@@ -18,15 +18,15 @@ export declare class InvoicesController {
             sacCode: string | null;
             gstRate: number;
             packageId: string | null;
-            totalAmount: number;
+            totalAmount: import("@prisma/client/runtime/library").Decimal;
             quantity: number;
-            unitPrice: number;
+            unitPrice: import("@prisma/client/runtime/library").Decimal;
             invoiceId: string;
-            cgstAmount: number;
-            sgstAmount: number;
-            igstAmount: number;
-            discount: number;
-            taxableAmount: number;
+            cgstAmount: import("@prisma/client/runtime/library").Decimal;
+            sgstAmount: import("@prisma/client/runtime/library").Decimal;
+            igstAmount: import("@prisma/client/runtime/library").Decimal;
+            discount: import("@prisma/client/runtime/library").Decimal;
+            taxableAmount: import("@prisma/client/runtime/library").Decimal;
         }[];
         client: {
             user: {
@@ -111,8 +111,8 @@ export declare class InvoicesController {
         type: import(".prisma/client").$Enums.InvoiceTypeEnum;
         currency: string;
         clientId: string;
-        totalAmount: number;
-        taxAmount: number;
+        totalAmount: import("@prisma/client/runtime/library").Decimal;
+        taxAmount: import("@prisma/client/runtime/library").Decimal;
         orderId: string | null;
         dueDate: Date;
         invoiceNumber: string;
@@ -125,11 +125,11 @@ export declare class InvoicesController {
         reverseCharge: boolean;
         issueDate: Date;
         paidDate: Date | null;
-        subtotal: number;
-        cgstAmount: number;
-        sgstAmount: number;
-        igstAmount: number;
-        totalTax: number;
+        subtotal: import("@prisma/client/runtime/library").Decimal;
+        cgstAmount: import("@prisma/client/runtime/library").Decimal;
+        sgstAmount: import("@prisma/client/runtime/library").Decimal;
+        igstAmount: import("@prisma/client/runtime/library").Decimal;
+        totalTax: import("@prisma/client/runtime/library").Decimal;
         subscriptionId: string | null;
         pdfAssetId: string | null;
         pdfUrl: string | null;
@@ -178,7 +178,7 @@ export declare class InvoicesController {
             payments: {
                 id: string;
                 status: import(".prisma/client").$Enums.PaymentStatusEnum;
-                amount: number;
+                amount: import("@prisma/client/runtime/library").Decimal;
             }[];
         } & {
             id: string;
@@ -191,8 +191,8 @@ export declare class InvoicesController {
             type: import(".prisma/client").$Enums.InvoiceTypeEnum;
             currency: string;
             clientId: string;
-            totalAmount: number;
-            taxAmount: number;
+            totalAmount: import("@prisma/client/runtime/library").Decimal;
+            taxAmount: import("@prisma/client/runtime/library").Decimal;
             orderId: string | null;
             dueDate: Date;
             invoiceNumber: string;
@@ -205,11 +205,11 @@ export declare class InvoicesController {
             reverseCharge: boolean;
             issueDate: Date;
             paidDate: Date | null;
-            subtotal: number;
-            cgstAmount: number;
-            sgstAmount: number;
-            igstAmount: number;
-            totalTax: number;
+            subtotal: import("@prisma/client/runtime/library").Decimal;
+            cgstAmount: import("@prisma/client/runtime/library").Decimal;
+            sgstAmount: import("@prisma/client/runtime/library").Decimal;
+            igstAmount: import("@prisma/client/runtime/library").Decimal;
+            totalTax: import("@prisma/client/runtime/library").Decimal;
             subscriptionId: string | null;
             pdfAssetId: string | null;
             pdfUrl: string | null;
@@ -265,7 +265,7 @@ export declare class InvoicesController {
             payments: {
                 id: string;
                 status: import(".prisma/client").$Enums.PaymentStatusEnum;
-                amount: number;
+                amount: import("@prisma/client/runtime/library").Decimal;
             }[];
         } & {
             id: string;
@@ -278,8 +278,8 @@ export declare class InvoicesController {
             type: import(".prisma/client").$Enums.InvoiceTypeEnum;
             currency: string;
             clientId: string;
-            totalAmount: number;
-            taxAmount: number;
+            totalAmount: import("@prisma/client/runtime/library").Decimal;
+            taxAmount: import("@prisma/client/runtime/library").Decimal;
             orderId: string | null;
             dueDate: Date;
             invoiceNumber: string;
@@ -292,11 +292,11 @@ export declare class InvoicesController {
             reverseCharge: boolean;
             issueDate: Date;
             paidDate: Date | null;
-            subtotal: number;
-            cgstAmount: number;
-            sgstAmount: number;
-            igstAmount: number;
-            totalTax: number;
+            subtotal: import("@prisma/client/runtime/library").Decimal;
+            cgstAmount: import("@prisma/client/runtime/library").Decimal;
+            sgstAmount: import("@prisma/client/runtime/library").Decimal;
+            igstAmount: import("@prisma/client/runtime/library").Decimal;
+            totalTax: import("@prisma/client/runtime/library").Decimal;
             subscriptionId: string | null;
             pdfAssetId: string | null;
             pdfUrl: string | null;
@@ -313,7 +313,7 @@ export declare class InvoicesController {
             totalPages: number;
         };
     }>;
-    findOne(id: string): Promise<{
+    findOne(id: string, req: any): Promise<{
         order: ({
             items: {
                 id: string;
@@ -325,8 +325,8 @@ export declare class InvoicesController {
                 packageId: string | null;
                 orderId: string;
                 quantity: number;
-                unitPrice: number;
-                totalPrice: number;
+                unitPrice: import("@prisma/client/runtime/library").Decimal;
+                totalPrice: import("@prisma/client/runtime/library").Decimal;
             }[];
         } & {
             id: string;
@@ -342,10 +342,10 @@ export declare class InvoicesController {
             currency: string;
             clientId: string;
             orderNumber: string;
-            totalAmount: number;
-            taxAmount: number;
-            discountAmount: number;
-            netAmount: number;
+            totalAmount: import("@prisma/client/runtime/library").Decimal;
+            taxAmount: import("@prisma/client/runtime/library").Decimal;
+            discountAmount: import("@prisma/client/runtime/library").Decimal;
+            netAmount: import("@prisma/client/runtime/library").Decimal;
         }) | null;
         items: {
             id: string;
@@ -356,15 +356,15 @@ export declare class InvoicesController {
             sacCode: string | null;
             gstRate: number;
             packageId: string | null;
-            totalAmount: number;
+            totalAmount: import("@prisma/client/runtime/library").Decimal;
             quantity: number;
-            unitPrice: number;
+            unitPrice: import("@prisma/client/runtime/library").Decimal;
             invoiceId: string;
-            cgstAmount: number;
-            sgstAmount: number;
-            igstAmount: number;
-            discount: number;
-            taxableAmount: number;
+            cgstAmount: import("@prisma/client/runtime/library").Decimal;
+            sgstAmount: import("@prisma/client/runtime/library").Decimal;
+            igstAmount: import("@prisma/client/runtime/library").Decimal;
+            discount: import("@prisma/client/runtime/library").Decimal;
+            taxableAmount: import("@prisma/client/runtime/library").Decimal;
         }[];
         client: {
             user: {
@@ -448,7 +448,7 @@ export declare class InvoicesController {
             method: string | null;
             currency: string;
             orderId: string | null;
-            amount: number;
+            amount: import("@prisma/client/runtime/library").Decimal;
             paymentNumber: string;
             gatewayProvider: string;
             gatewayTransactionId: string | null;
@@ -488,8 +488,8 @@ export declare class InvoicesController {
         type: import(".prisma/client").$Enums.InvoiceTypeEnum;
         currency: string;
         clientId: string;
-        totalAmount: number;
-        taxAmount: number;
+        totalAmount: import("@prisma/client/runtime/library").Decimal;
+        taxAmount: import("@prisma/client/runtime/library").Decimal;
         orderId: string | null;
         dueDate: Date;
         invoiceNumber: string;
@@ -502,11 +502,11 @@ export declare class InvoicesController {
         reverseCharge: boolean;
         issueDate: Date;
         paidDate: Date | null;
-        subtotal: number;
-        cgstAmount: number;
-        sgstAmount: number;
-        igstAmount: number;
-        totalTax: number;
+        subtotal: import("@prisma/client/runtime/library").Decimal;
+        cgstAmount: import("@prisma/client/runtime/library").Decimal;
+        sgstAmount: import("@prisma/client/runtime/library").Decimal;
+        igstAmount: import("@prisma/client/runtime/library").Decimal;
+        totalTax: import("@prisma/client/runtime/library").Decimal;
         subscriptionId: string | null;
         pdfAssetId: string | null;
         pdfUrl: string | null;
@@ -516,7 +516,7 @@ export declare class InvoicesController {
         eInvoiceStatus: string | null;
         eInvoiceError: string | null;
     }>;
-    downloadPdf(id: string, res: Response): Promise<void>;
+    downloadPdf(id: string, req: any, res: Response): Promise<void>;
     emailInvoice(id: string): Promise<{
         sent: boolean;
     }>;
@@ -531,8 +531,8 @@ export declare class InvoicesController {
         type: import(".prisma/client").$Enums.InvoiceTypeEnum;
         currency: string;
         clientId: string;
-        totalAmount: number;
-        taxAmount: number;
+        totalAmount: import("@prisma/client/runtime/library").Decimal;
+        taxAmount: import("@prisma/client/runtime/library").Decimal;
         orderId: string | null;
         dueDate: Date;
         invoiceNumber: string;
@@ -545,11 +545,11 @@ export declare class InvoicesController {
         reverseCharge: boolean;
         issueDate: Date;
         paidDate: Date | null;
-        subtotal: number;
-        cgstAmount: number;
-        sgstAmount: number;
-        igstAmount: number;
-        totalTax: number;
+        subtotal: import("@prisma/client/runtime/library").Decimal;
+        cgstAmount: import("@prisma/client/runtime/library").Decimal;
+        sgstAmount: import("@prisma/client/runtime/library").Decimal;
+        igstAmount: import("@prisma/client/runtime/library").Decimal;
+        totalTax: import("@prisma/client/runtime/library").Decimal;
         subscriptionId: string | null;
         pdfAssetId: string | null;
         pdfUrl: string | null;

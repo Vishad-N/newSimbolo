@@ -14,47 +14,29 @@ export declare class WithdrawalService extends BaseService {
     private readonly notifications;
     constructor(prisma: PrismaService, walletService: WalletService, razorpayx: RazorpayXGateway, auditService: AuditService, notifications: NotificationsService);
     requestWithdrawal(affiliateId: string, dto: RequestWithdrawalDto, actorUserId?: string): Promise<Withdrawal>;
+    private static readonly ADMIN_WITHDRAWAL_INCLUDE;
+    /** Flattens the nested Prisma row into the shape the admin withdrawals table renders. */
+    private toAdminRow;
     list(params: {
         affiliateId?: string;
         status?: WithdrawalStatusEnum;
         page?: number;
         limit?: number;
     }): Promise<{
-        data: ({
-            affiliate: {
-                user: {
-                    email: string;
-                    id: string;
-                    firstName: string;
-                    lastName: string;
-                };
-                id: string;
-                affiliateCode: string;
-            };
-            payoutMethod: {
-                id: string;
-                type: import(".prisma/client").$Enums.PayoutMethodTypeEnum;
-                maskedDetails: string;
-                last4: string | null;
-            } | null;
-        } & {
+        data: {
             id: string;
-            createdAt: Date;
-            status: import(".prisma/client").$Enums.WithdrawalStatusEnum;
-            updatedAt: Date;
-            metadata: Prisma.JsonValue | null;
-            amount: number;
             affiliateId: string;
-            razorpayContactId: string | null;
-            razorpayFundAccountId: string | null;
-            walletId: string;
+            employeeName: string;
+            employeeCode: string;
+            amount: number;
+            status: import(".prisma/client").$Enums.WithdrawalStatusEnum;
             requestedAt: Date;
             scheduledAt: Date | null;
             processedAt: Date | null;
+            payoutMethod: string | null;
             razorpayPayoutId: string | null;
-            payoutMethodId: string | null;
             failureReason: string | null;
-        })[];
+        }[];
         meta: {
             total: number;
             page: number;
@@ -63,38 +45,17 @@ export declare class WithdrawalService extends BaseService {
         };
     }>;
     findOne(id: string, scopeAffiliateId?: string): Promise<{
-        affiliate: {
-            user: {
-                email: string;
-                id: string;
-                firstName: string;
-                lastName: string;
-            };
-            id: string;
-            affiliateCode: string;
-        };
-        payoutMethod: {
-            id: string;
-            type: import(".prisma/client").$Enums.PayoutMethodTypeEnum;
-            maskedDetails: string;
-            last4: string | null;
-        } | null;
-    } & {
         id: string;
-        createdAt: Date;
-        status: import(".prisma/client").$Enums.WithdrawalStatusEnum;
-        updatedAt: Date;
-        metadata: Prisma.JsonValue | null;
-        amount: number;
         affiliateId: string;
-        razorpayContactId: string | null;
-        razorpayFundAccountId: string | null;
-        walletId: string;
+        employeeName: string;
+        employeeCode: string;
+        amount: number;
+        status: import(".prisma/client").$Enums.WithdrawalStatusEnum;
         requestedAt: Date;
         scheduledAt: Date | null;
         processedAt: Date | null;
+        payoutMethod: string | null;
         razorpayPayoutId: string | null;
-        payoutMethodId: string | null;
         failureReason: string | null;
     }>;
     /** PENDING -> SCHEDULED. Funds stay held; the sweep or an admin then processes it. */
@@ -125,13 +86,13 @@ export declare class WithdrawalService extends BaseService {
         metadata: Prisma.JsonValue | null;
         amount: number;
         affiliateId: string;
-        razorpayContactId: string | null;
-        razorpayFundAccountId: string | null;
         walletId: string;
         requestedAt: Date;
         scheduledAt: Date | null;
         processedAt: Date | null;
         razorpayPayoutId: string | null;
+        razorpayContactId: string | null;
+        razorpayFundAccountId: string | null;
         payoutMethodId: string | null;
         failureReason: string | null;
     }) | null>;

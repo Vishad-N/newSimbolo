@@ -60,7 +60,15 @@ let QueueService = class QueueService extends base_service_1.BaseService {
             connection: this.connection,
             concurrency: 5,
             stalledInterval: 300000,
-            drainDelay: 300,
+            // How often an idle worker re-polls Redis for a new job when the queue is
+            // empty. BullMQ's default is 5000ms; this was 300ms — over 16x more
+            // aggressive than default — which across multiple always-on workers adds
+            // up to hundreds of thousands of idle Redis commands per day and is what
+            // exhausted the Upstash free-tier request quota. None of these jobs
+            // (email, AI, commissions) are latency-critical to a few seconds, so a
+            // longer delay trades a bit of job-pickup latency for drastically less
+            // idle Redis traffic.
+            drainDelay: 15000,
         });
         worker.on('failed', async (job, error) => {
             this.logger.error(`Job failed: ${queueName}/${job?.name} - ${error.message}`, error.stack);

@@ -4,6 +4,7 @@ import Script from "next/script";
 import { ecommercePackages as mockPackages } from "@/data/services/ecommerce";
 import { fetchMappedPackages } from "@/lib/package-mapper";
 import { fetchMappedPortfolioProjects } from "@/lib/portfolio-mapper";
+import { fetchMappedFaqs, fetchMappedTestimonials } from "@/lib/content-mapper";
 
 export const metadata: Metadata = {
   title: "E-Commerce Development Services | Shopify, WooCommerce & Custom Stores | The Simbolo",
@@ -71,15 +72,17 @@ const jsonLd = {
 export const dynamic = "force-dynamic";
 
 export default async function EcommerceRoute() {
-  const [packagesToPass, liveProjectsToPass] = await Promise.all([
+  const [packagesToPass, liveProjectsToPass, liveFaqs, liveTestimonials] = await Promise.all([
     fetchMappedPackages('ecommerce', []),
     fetchMappedPortfolioProjects('ecommerce', []),
+    fetchMappedFaqs([]),
+    fetchMappedTestimonials([]),
   ]);
 
   return (
     <>
       <Script id="json-ld-ecommerce" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <EcommercePage livePackages={packagesToPass} liveProjects={liveProjectsToPass} />
+      <EcommercePage livePackages={packagesToPass} liveProjects={liveProjectsToPass} liveFaqs={liveFaqs} liveTestimonials={liveTestimonials} />
     </>
   );
 }

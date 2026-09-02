@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Script from "next/script";
 import { SeoPage } from "@/components/seo/SeoPage";
 import { fetchMappedPackages } from "@/lib/package-mapper";
+import { fetchMappedFaqs, fetchMappedTestimonials } from "@/lib/content-mapper";
 import { landingApi } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
@@ -38,15 +39,17 @@ const jsonLd = {
 };
 
 export default async function Page() {
-  const [livePackages, liveConfig] = await Promise.all([
+  const [livePackages, liveConfig, liveFaqs, liveTestimonials] = await Promise.all([
     fetchMappedPackages('seo', []),
     landingApi.getServicePageConfig('seo', null),
+    fetchMappedFaqs([]),
+    fetchMappedTestimonials([]),
   ]);
 
   return (
     <>
       <Script id="seo-jsonld" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <SeoPage livePackages={livePackages} liveConfig={liveConfig} />
+      <SeoPage livePackages={livePackages} liveConfig={liveConfig} liveFaqs={liveFaqs} liveTestimonials={liveTestimonials} />
     </>
   );
 }

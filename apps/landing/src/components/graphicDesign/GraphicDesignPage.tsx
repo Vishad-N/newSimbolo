@@ -18,8 +18,16 @@ import {
   graphicDesignFaqs,
 } from "@/data/services/graphicDesign";
 
-export function GraphicDesignPage({ liveConfig }: { liveConfig?: any }) {
+interface GraphicDesignPageProps {
+  liveConfig?: any;
+  liveFaqs?: any[];
+  liveTestimonials?: any[];
+}
+
+export function GraphicDesignPage({ liveConfig, liveFaqs, liveTestimonials }: GraphicDesignPageProps) {
   const benefits = liveConfig?.heroBenefits?.length > 0 ? liveConfig.heroBenefits : graphicDesignBenefits;
+  const faqs = liveFaqs && liveFaqs.length > 0 ? liveFaqs : graphicDesignFaqs;
+  const testimonials = liveTestimonials && liveTestimonials.length > 0 ? liveTestimonials : graphicDesignTestimonials;
   
   const stats = liveConfig?.statsBar?.length > 0 ? liveConfig.statsBar.map((s: any, i: number) => ({
     id: `stat-${i}`,
@@ -63,11 +71,11 @@ export function GraphicDesignPage({ liveConfig }: { liveConfig?: any }) {
             <RecentWorksGallery works={graphicDesignProjects} />
 
             <div className="grid gap-4 mt-8 xl:grid-cols-[1fr]">
-              <TestimonialSection title="What Our Clients Say" testimonials={graphicDesignTestimonials} />
+              <TestimonialSection title="What Our Clients Say" testimonials={testimonials} />
             </div>
 
             <div className="mt-8">
-              <FAQSection faqs={graphicDesignFaqs} />
+              <FAQSection faqs={faqs} />
             </div>
           </div>
         </div>

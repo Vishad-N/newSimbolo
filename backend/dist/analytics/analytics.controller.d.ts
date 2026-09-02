@@ -38,7 +38,7 @@ export declare class AnalyticsController {
         };
         invoices: {
             pendingCount: number;
-            pendingAmount: number;
+            pendingAmount: number | import("@prisma/client/runtime/library").Decimal;
         };
         support: {
             openTickets: number;
@@ -53,14 +53,14 @@ export declare class AnalyticsController {
             name: string;
             slug: string | null;
             orders: number;
-            revenue: number;
+            revenue: number | import("@prisma/client/runtime/library").Decimal;
         }[];
         packagePopularity: {
             packageId: string | null;
             name: string;
             slug: string | null;
             orders: number;
-            revenue: number;
+            revenue: number | import("@prisma/client/runtime/library").Decimal;
         }[];
         teamWorkload: {
             userId: string | null;
@@ -82,14 +82,14 @@ export declare class AnalyticsController {
             createdAt: Date;
             status: import(".prisma/client").$Enums.PaymentStatusEnum;
             currency: string;
-            amount: number;
+            amount: import("@prisma/client/runtime/library").Decimal;
             paymentNumber: string;
             paidAt: Date | null;
         }[];
         invoiceSummary: {
             status: import(".prisma/client").$Enums.InvoiceStatusEnum;
             count: number;
-            amount: number;
+            amount: number | import("@prisma/client/runtime/library").Decimal;
         }[];
         upcomingMeetings: {
             id: string;

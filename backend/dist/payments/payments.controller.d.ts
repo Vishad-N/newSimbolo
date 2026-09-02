@@ -15,7 +15,7 @@ export declare class PaymentsController {
             method: string | null;
             currency: string;
             orderId: string | null;
-            amount: number;
+            amount: import("@prisma/client/runtime/library").Decimal;
             paymentNumber: string;
             gatewayProvider: string;
             gatewayTransactionId: string | null;
@@ -36,7 +36,7 @@ export declare class PaymentsController {
         method: string | null;
         currency: string;
         orderId: string | null;
-        amount: number;
+        amount: import("@prisma/client/runtime/library").Decimal;
         paymentNumber: string;
         gatewayProvider: string;
         gatewayTransactionId: string | null;
@@ -64,7 +64,7 @@ export declare class PaymentsController {
                 type: string;
                 metadata: string | null;
                 currency: string;
-                amount: number;
+                amount: import("@prisma/client/runtime/library").Decimal;
                 transactionId: string;
                 paymentId: string;
             }[];
@@ -78,7 +78,7 @@ export declare class PaymentsController {
             method: string | null;
             currency: string;
             orderId: string | null;
-            amount: number;
+            amount: import("@prisma/client/runtime/library").Decimal;
             paymentNumber: string;
             gatewayProvider: string;
             gatewayTransactionId: string | null;
@@ -113,7 +113,7 @@ export declare class PaymentsController {
                 type: string;
                 metadata: string | null;
                 currency: string;
-                amount: number;
+                amount: import("@prisma/client/runtime/library").Decimal;
                 transactionId: string;
                 paymentId: string;
             }[];
@@ -127,7 +127,7 @@ export declare class PaymentsController {
             method: string | null;
             currency: string;
             orderId: string | null;
-            amount: number;
+            amount: import("@prisma/client/runtime/library").Decimal;
             paymentNumber: string;
             gatewayProvider: string;
             gatewayTransactionId: string | null;
@@ -157,10 +157,10 @@ export declare class PaymentsController {
             currency: string;
             clientId: string;
             orderNumber: string;
-            totalAmount: number;
-            taxAmount: number;
-            discountAmount: number;
-            netAmount: number;
+            totalAmount: import("@prisma/client/runtime/library").Decimal;
+            taxAmount: import("@prisma/client/runtime/library").Decimal;
+            discountAmount: import("@prisma/client/runtime/library").Decimal;
+            netAmount: import("@prisma/client/runtime/library").Decimal;
         } | null;
         invoice: {
             id: string;
@@ -173,8 +173,8 @@ export declare class PaymentsController {
             type: import(".prisma/client").$Enums.InvoiceTypeEnum;
             currency: string;
             clientId: string;
-            totalAmount: number;
-            taxAmount: number;
+            totalAmount: import("@prisma/client/runtime/library").Decimal;
+            taxAmount: import("@prisma/client/runtime/library").Decimal;
             orderId: string | null;
             dueDate: Date;
             invoiceNumber: string;
@@ -187,11 +187,11 @@ export declare class PaymentsController {
             reverseCharge: boolean;
             issueDate: Date;
             paidDate: Date | null;
-            subtotal: number;
-            cgstAmount: number;
-            sgstAmount: number;
-            igstAmount: number;
-            totalTax: number;
+            subtotal: import("@prisma/client/runtime/library").Decimal;
+            cgstAmount: import("@prisma/client/runtime/library").Decimal;
+            sgstAmount: import("@prisma/client/runtime/library").Decimal;
+            igstAmount: import("@prisma/client/runtime/library").Decimal;
+            totalTax: import("@prisma/client/runtime/library").Decimal;
             subscriptionId: string | null;
             pdfAssetId: string | null;
             pdfUrl: string | null;
@@ -208,7 +208,7 @@ export declare class PaymentsController {
             type: string;
             metadata: string | null;
             currency: string;
-            amount: number;
+            amount: import("@prisma/client/runtime/library").Decimal;
             transactionId: string;
             paymentId: string;
         }[];
@@ -222,7 +222,7 @@ export declare class PaymentsController {
         method: string | null;
         currency: string;
         orderId: string | null;
-        amount: number;
+        amount: import("@prisma/client/runtime/library").Decimal;
         paymentNumber: string;
         gatewayProvider: string;
         gatewayTransactionId: string | null;

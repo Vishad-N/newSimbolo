@@ -14,6 +14,7 @@ const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
 const base_service_1 = require("../shared/abstractions/base.service");
 const client_1 = require("@prisma/client");
+const custom_exceptions_1 = require("../common/exceptions/custom.exceptions");
 let OrdersService = class OrdersService extends base_service_1.BaseService {
     prisma;
     constructor(prisma) {
@@ -37,6 +38,46 @@ let OrdersService = class OrdersService extends base_service_1.BaseService {
         items: true,
         project: { select: { id: true, name: true, status: true, progress: true } },
     };
+    /**
+     * A plain client (no `orders.manage`) may only ever see their own orders —
+     * whatever `clientId` they passed in the query string is ignored and
+     * replaced with their own ClientProfile id, so there is no way to view
+     * another client's orders by tampering with the query param. Staff with
+     * `orders.manage` can filter by any clientId, or omit it to see everyone's.
+     */
+    async resolveScopedClientId(user, requestedClientId) {
+        const isStaff = user.permissions?.includes('orders.manage') || user.role === 'SUPER_ADMIN';
+        if (isStaff)
+            return requestedClientId;
+        const ownProfile = await this.prisma.clientProfile.findUnique({
+            where: { userId: user.sub },
+            select: { id: true },
+        });
+        if (!ownProfile) {
+            throw new custom_exceptions_1.CustomForbiddenException('No client profile found for this account.');
+        }
+        return ownProfile.id;
+    }
+    async findAllForRequester(user, clientId, status, page = 1, limit = 20) {
+        const scopedClientId = await this.resolveScopedClientId(user, clientId);
+        return this.findAll(scopedClientId, status, page, limit);
+    }
+    async findOneForRequester(id, user) {
+        const order = await this.findOne(id);
+        const isStaff = user.permissions?.includes('orders.manage') || user.role === 'SUPER_ADMIN';
+        if (isStaff)
+            return order;
+        const ownProfile = await this.prisma.clientProfile.findUnique({
+            where: { userId: user.sub },
+            select: { id: true },
+        });
+        // 404 (not 403) so a client can't use this to confirm another client's
+        // order ID exists, matching the pattern used for invoices/projects.
+        if (!ownProfile || order.clientId !== ownProfile.id) {
+            throw new common_1.NotFoundException(`Order ${id} not found`);
+        }
+        return order;
+    }
     async findAll(clientId, status, page = 1, limit = 20) {
         const where = { deletedAt: null };
         if (clientId)

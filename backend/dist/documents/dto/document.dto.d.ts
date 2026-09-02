@@ -11,6 +11,13 @@ export declare class CreateDocumentDto {
     companyId?: string;
     isPublic?: boolean;
 }
+export declare class UploadDocumentDto {
+    title: string;
+    description?: string;
+    category?: DocumentCategoryEnum;
+    clientId?: string;
+    projectId?: string;
+}
 export declare class UpdateDocumentDto {
     title?: string;
     description?: string;

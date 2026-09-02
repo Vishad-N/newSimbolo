@@ -90,12 +90,12 @@ let ReportsService = class ReportsService extends base_service_1.BaseService {
         const reportRows = rows.map((row) => ({
             paymentNumber: row.paymentNumber,
             orderNumber: row.order?.orderNumber ?? null,
-            amount: row.amount,
+            amount: Number(row.amount),
             currency: row.currency,
             gatewayProvider: row.gatewayProvider,
             paidAt: row.paidAt?.toISOString() ?? null,
         }));
-        return this.buildReport(report_dto_1.ReportType.REVENUE, 'Revenue Report', dto, ['paymentNumber', 'orderNumber', 'amount', 'currency', 'gatewayProvider', 'paidAt'], reportRows, { totalRevenue: rows.reduce((sum, row) => sum + row.amount, 0), totalPayments: rows.length });
+        return this.buildReport(report_dto_1.ReportType.REVENUE, 'Revenue Report', dto, ['paymentNumber', 'orderNumber', 'amount', 'currency', 'gatewayProvider', 'paidAt'], reportRows, { totalRevenue: rows.reduce((sum, row) => sum + Number(row.amount), 0), totalPayments: rows.length });
     }
     async generateClientsReport(dto) {
         const rows = await this.prisma.clientProfile.findMany({
@@ -147,10 +147,10 @@ let ReportsService = class ReportsService extends base_service_1.BaseService {
         return this.buildReport(report_dto_1.ReportType.ORDERS, 'Orders Report', dto, ['orderNumber', 'status', 'netAmount', 'currency', 'createdAt'], rows.map((row) => ({
             orderNumber: row.orderNumber,
             status: row.status,
-            netAmount: row.netAmount,
+            netAmount: Number(row.netAmount),
             currency: row.currency,
             createdAt: row.createdAt.toISOString(),
-        })), { totalOrders: rows.length, totalValue: rows.reduce((sum, row) => sum + row.netAmount, 0) });
+        })), { totalOrders: rows.length, totalValue: rows.reduce((sum, row) => sum + Number(row.netAmount), 0) });
     }
     async generatePaymentsReport(dto) {
         const rows = await this.prisma.payment.findMany({
@@ -168,11 +168,11 @@ let ReportsService = class ReportsService extends base_service_1.BaseService {
         return this.buildReport(report_dto_1.ReportType.PAYMENTS, 'Payments Report', dto, ['paymentNumber', 'status', 'amount', 'currency', 'gatewayProvider', 'createdAt'], rows.map((row) => ({
             paymentNumber: row.paymentNumber,
             status: row.status,
-            amount: row.amount,
+            amount: Number(row.amount),
             currency: row.currency,
             gatewayProvider: row.gatewayProvider,
             createdAt: row.createdAt.toISOString(),
-        })), { totalPayments: rows.length, totalAmount: rows.reduce((sum, row) => sum + row.amount, 0) });
+        })), { totalPayments: rows.length, totalAmount: rows.reduce((sum, row) => sum + Number(row.amount), 0) });
     }
     async generateTeamReport(dto) {
         const rows = await this.prisma.task.groupBy({

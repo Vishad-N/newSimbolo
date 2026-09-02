@@ -7,7 +7,7 @@ import { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
 export declare class OrdersController {
     private readonly ordersService;
     constructor(ordersService: OrdersService);
-    findAll(clientId?: string, status?: OrderStatusEnum, page?: number, limit?: number): Promise<{
+    findAll(user: JwtPayload, clientId?: string, status?: OrderStatusEnum, page?: number, limit?: number): Promise<{
         data: ({
             service: {
                 id: string;
@@ -35,8 +35,8 @@ export declare class OrdersController {
                 packageId: string | null;
                 orderId: string;
                 quantity: number;
-                unitPrice: number;
-                totalPrice: number;
+                unitPrice: import("@prisma/client/runtime/library").Decimal;
+                totalPrice: import("@prisma/client/runtime/library").Decimal;
             }[];
             client: {
                 user: {
@@ -88,10 +88,10 @@ export declare class OrdersController {
             currency: string;
             clientId: string;
             orderNumber: string;
-            totalAmount: number;
-            taxAmount: number;
-            discountAmount: number;
-            netAmount: number;
+            totalAmount: import("@prisma/client/runtime/library").Decimal;
+            taxAmount: import("@prisma/client/runtime/library").Decimal;
+            discountAmount: import("@prisma/client/runtime/library").Decimal;
+            netAmount: import("@prisma/client/runtime/library").Decimal;
         })[];
         meta: {
             total: number;
@@ -100,7 +100,7 @@ export declare class OrdersController {
             totalPages: number;
         };
     }>;
-    findOne(id: string): Promise<{
+    findOne(id: string, user: JwtPayload): Promise<{
         id: string;
         createdAt: Date;
         status: import(".prisma/client").$Enums.OrderStatusEnum;
@@ -114,10 +114,10 @@ export declare class OrdersController {
         currency: string;
         clientId: string;
         orderNumber: string;
-        totalAmount: number;
-        taxAmount: number;
-        discountAmount: number;
-        netAmount: number;
+        totalAmount: import("@prisma/client/runtime/library").Decimal;
+        taxAmount: import("@prisma/client/runtime/library").Decimal;
+        discountAmount: import("@prisma/client/runtime/library").Decimal;
+        netAmount: import("@prisma/client/runtime/library").Decimal;
     }>;
     create(dto: CreateOrderDto, user: JwtPayload): Promise<{
         id: string;
@@ -133,10 +133,10 @@ export declare class OrdersController {
         currency: string;
         clientId: string;
         orderNumber: string;
-        totalAmount: number;
-        taxAmount: number;
-        discountAmount: number;
-        netAmount: number;
+        totalAmount: import("@prisma/client/runtime/library").Decimal;
+        taxAmount: import("@prisma/client/runtime/library").Decimal;
+        discountAmount: import("@prisma/client/runtime/library").Decimal;
+        netAmount: import("@prisma/client/runtime/library").Decimal;
     }>;
     checkout(dto: ClientCheckoutDto, user: JwtPayload): Promise<{
         id: string;
@@ -152,10 +152,10 @@ export declare class OrdersController {
         currency: string;
         clientId: string;
         orderNumber: string;
-        totalAmount: number;
-        taxAmount: number;
-        discountAmount: number;
-        netAmount: number;
+        totalAmount: import("@prisma/client/runtime/library").Decimal;
+        taxAmount: import("@prisma/client/runtime/library").Decimal;
+        discountAmount: import("@prisma/client/runtime/library").Decimal;
+        netAmount: import("@prisma/client/runtime/library").Decimal;
     }>;
     update(id: string, dto: UpdateOrderDto, user: JwtPayload): Promise<{
         id: string;
@@ -171,10 +171,10 @@ export declare class OrdersController {
         currency: string;
         clientId: string;
         orderNumber: string;
-        totalAmount: number;
-        taxAmount: number;
-        discountAmount: number;
-        netAmount: number;
+        totalAmount: import("@prisma/client/runtime/library").Decimal;
+        taxAmount: import("@prisma/client/runtime/library").Decimal;
+        discountAmount: import("@prisma/client/runtime/library").Decimal;
+        netAmount: import("@prisma/client/runtime/library").Decimal;
     }>;
     remove(id: string, user: JwtPayload): Promise<{
         message: string;

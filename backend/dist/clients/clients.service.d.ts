@@ -211,7 +211,7 @@ export declare class ClientsService extends BaseService {
             status: import(".prisma/client").$Enums.OrderStatusEnum;
             currency: string;
             orderNumber: string;
-            totalAmount: number;
+            totalAmount: import("@prisma/client/runtime/library").Decimal;
         }[];
     }>;
 }

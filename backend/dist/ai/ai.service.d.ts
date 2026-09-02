@@ -19,6 +19,8 @@ export declare class AiService extends BaseService {
         message: string;
     };
     search(dto: AiSearchDto): Promise<{}>;
+    private toExpertList;
+    private toRelatedServices;
     private tableExists;
     private queryCatalogTable;
     private isMissingRelationError;

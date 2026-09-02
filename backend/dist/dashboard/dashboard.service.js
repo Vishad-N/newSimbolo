@@ -13,11 +13,29 @@ exports.DashboardService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
 const base_service_1 = require("../shared/abstractions/base.service");
+const custom_exceptions_1 = require("../common/exceptions/custom.exceptions");
 let DashboardService = class DashboardService extends base_service_1.BaseService {
     prisma;
     constructor(prisma) {
         super('DashboardService');
         this.prisma = prisma;
+    }
+    /**
+     * A client user only has `dashboard.view`, not `clients.read`, so they can
+     * only ever reach these endpoints for their own ClientProfile. Staff with
+     * `clients.read` can look up any client's dashboard.
+     */
+    async assertClientAccess(clientId, user) {
+        if (user.permissions?.includes('clients.read') || user.role === 'SUPER_ADMIN') {
+            return;
+        }
+        const ownProfile = await this.prisma.clientProfile.findUnique({
+            where: { userId: user.sub },
+            select: { id: true },
+        });
+        if (!ownProfile || ownProfile.id !== clientId) {
+            throw new custom_exceptions_1.CustomForbiddenException('You do not have access to this client dashboard.');
+        }
     }
     async getAdminOverview() {
         const now = new Date();
@@ -49,7 +67,7 @@ let DashboardService = class DashboardService extends base_service_1.BaseService
         ]);
         const monthlyRevenue = monthlyOrders
             .filter((o) => !['CANCELLED', 'REFUNDED'].includes(o.status))
-            .reduce((sum, o) => sum + o.netAmount, 0);
+            .reduce((sum, o) => sum + Number(o.netAmount), 0);
         return {
             metrics: {
                 totalClients,
@@ -177,15 +195,15 @@ let DashboardService = class DashboardService extends base_service_1.BaseService
                 take: 10,
             }),
         ]);
-        const currentRevenue = currentMonthPayments._sum.amount ?? 0;
-        const lastRevenue = lastMonthPayments._sum.amount ?? 0;
+        const currentRevenue = Number(currentMonthPayments._sum.amount ?? 0);
+        const lastRevenue = Number(lastMonthPayments._sum.amount ?? 0);
         const growthPct = lastRevenue > 0 ? ((currentRevenue - lastRevenue) / lastRevenue) * 100 : 0;
         return {
             revenue: {
                 currentMonth: currentRevenue,
                 lastMonth: lastRevenue,
                 growthPercentage: parseFloat(growthPct.toFixed(2)),
-                totalAllTime: totalRevenue._sum.amount ?? 0,
+                totalAllTime: Number(totalRevenue._sum.amount ?? 0),
             },
             counts: {
                 currentMonthPayments: currentMonthPayments._count,
@@ -320,9 +338,9 @@ let DashboardService = class DashboardService extends base_service_1.BaseService
             this.prisma.project.count({ where: { deletedAt: null, status: 'COMPLETED' } }),
             this.prisma.project.count({ where: { deletedAt: null } }),
         ]);
-        const revenue = totalRevenue._sum.amount ?? 0;
+        const revenue = Number(totalRevenue._sum.amount ?? 0);
         return {
-            averageOrderValue: Number((totalOrders._avg.netAmount ?? 0).toFixed(2)),
+            averageOrderValue: Number(Number(totalOrders._avg.netAmount ?? 0).toFixed(2)),
             customerLifetimeValue: totalClients > 0 ? Number((revenue / totalClients).toFixed(2)) : 0,
             projectCompletionRate: allProjects > 0 ? Number(((completedProjects / allProjects) * 100).toFixed(2)) : 0,
             totalRevenue: revenue,

@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { BaseService } from '../shared/abstractions/base.service';
 import { AnalyticsQueryDto } from './dto/analytics-query.dto';
@@ -47,7 +48,7 @@ export declare class AnalyticsService extends BaseService {
         };
         invoices: {
             pendingCount: number;
-            pendingAmount: number;
+            pendingAmount: number | Prisma.Decimal;
         };
         support: {
             openTickets: number;
@@ -62,14 +63,14 @@ export declare class AnalyticsService extends BaseService {
             name: string;
             slug: string | null;
             orders: number;
-            revenue: number;
+            revenue: number | Prisma.Decimal;
         }[];
         packagePopularity: {
             packageId: string | null;
             name: string;
             slug: string | null;
             orders: number;
-            revenue: number;
+            revenue: number | Prisma.Decimal;
         }[];
         teamWorkload: {
             userId: string | null;
@@ -91,14 +92,14 @@ export declare class AnalyticsService extends BaseService {
             createdAt: Date;
             status: import(".prisma/client").$Enums.PaymentStatusEnum;
             currency: string;
-            amount: number;
+            amount: Prisma.Decimal;
             paymentNumber: string;
             paidAt: Date | null;
         }[];
         invoiceSummary: {
             status: import(".prisma/client").$Enums.InvoiceStatusEnum;
             count: number;
-            amount: number;
+            amount: number | Prisma.Decimal;
         }[];
         upcomingMeetings: {
             id: string;

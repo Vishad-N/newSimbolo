@@ -33,6 +33,7 @@ export interface InvoicePdfData {
     totalAmount: number;
     currency: string;
     supplierStateCode?: string;
+    supplierGstin?: string;
     notes?: string;
 }
 /**

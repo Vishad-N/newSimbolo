@@ -35,11 +35,11 @@ let InvoicesController = class InvoicesController {
     findMyInvoices(req, page, limit, status) {
         return this.invoicesService.findMyInvoices(req.user?.sub, status, page, limit);
     }
-    findOne(id) {
-        return this.invoicesService.findOne(id);
+    findOne(id, req) {
+        return this.invoicesService.findOneForRequester(id, req.user ?? {});
     }
-    async downloadPdf(id, res) {
-        const invoice = await this.invoicesService.findOne(id);
+    async downloadPdf(id, req, res) {
+        const invoice = await this.invoicesService.findOneForRequester(id, req.user ?? {});
         const pdfBuffer = await this.invoicesService.generatePdf(id);
         res.set({
             'Content-Type': 'application/pdf',
@@ -104,22 +104,24 @@ __decorate([
 ], InvoicesController.prototype, "findMyInvoices", null);
 __decorate([
     (0, common_1.Get)(':id'),
-    (0, swagger_1.ApiOperation)({ summary: 'Get invoice detail by ID' }),
+    (0, swagger_1.ApiOperation)({ summary: 'Get invoice detail by ID (own invoice for clients, any for staff)' }),
     (0, swagger_1.ApiResponse)({ status: 404, description: 'Invoice not found' }),
     openapi.ApiResponse({ status: 200, type: Object }),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
+    __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", void 0)
 ], InvoicesController.prototype, "findOne", null);
 __decorate([
     (0, common_1.Get)(':id/pdf'),
-    (0, swagger_1.ApiOperation)({ summary: 'Download invoice as PDF' }),
+    (0, swagger_1.ApiOperation)({ summary: 'Download invoice as PDF (own invoice for clients, any for staff)' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Invoice PDF binary', content: { 'application/pdf': {} } }),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
-    __param(1, (0, common_1.Res)()),
+    __param(1, (0, common_1.Request)()),
+    __param(2, (0, common_1.Res)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [String, Object, Object]),
     __metadata("design:returntype", Promise)
 ], InvoicesController.prototype, "downloadPdf", null);
 __decorate([

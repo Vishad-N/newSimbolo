@@ -11,6 +11,25 @@ const shouldSkipBuildApiFetch =
   process.env.SKIP_BUILD_API_FETCH === "true" ||
   process.env.NEXT_PHASE === "phase-production-build";
 
+// The CMS/content endpoints can return a genuinely empty result (no rows
+// created yet, or a section never saved from the admin panel) without that
+// being a fetch error — an empty array, an empty object, or null/undefined.
+// Treat that as "no CMS data yet" and fall back to the static mock content,
+// same as a network failure would. Existing callers (blog-mapper, etc.)
+// unwrap the backend's {success, data} envelope themselves, so this only
+// PEEKS through the envelope to check emptiness — it never strips it from
+// what's actually returned, to avoid breaking that already-working code.
+function isEmptyResult(value: unknown): boolean {
+  if (value === null || value === undefined) return true;
+  if (Array.isArray(value)) return value.length === 0;
+  if (typeof value === 'object') {
+    const record = value as Record<string, unknown>;
+    if ('success' in record && 'data' in record) return isEmptyResult(record.data);
+    return Object.keys(record).length === 0;
+  }
+  return false;
+}
+
 async function fetchPublicApi<T>(endpoint: string, fallback: T, revalidateSeconds: number = 60): Promise<T> {
   if (shouldSkipBuildApiFetch) {
     return fallback;
@@ -27,7 +46,8 @@ async function fetchPublicApi<T>(endpoint: string, fallback: T, revalidateSecond
     if (!res.ok) {
       throw new Error(`API error (${res.status}): ${res.statusText}`);
     }
-    return await res.json();
+    const data = await res.json();
+    return isEmptyResult(data) ? fallback : (data as T);
   } catch (error) {
     console.warn(`[Simbolo Landing API Fallback] Could not fetch ${endpoint}, using static fallback:`, error);
     return fallback;
@@ -42,9 +62,16 @@ export const landingApi = {
   getFooter: async (fallbackData: any) => fetchPublicApi('/cms/footer', fallbackData, 300),
   
   getServices: async (fallbackData: any) => fetchPublicApi('/services', fallbackData, 60),
+  getTeamMembers: async (fallbackData: any) => fetchPublicApi('/website-team?activeOnly=true', fallbackData, 300),
   getServiceBySlug: async (slug: string, fallbackData: any) => fetchPublicApi(`/services/${encodeURIComponent(slug)}`, fallbackData, 60),
   
   getServicePageConfig: async (slug: string, fallbackData: any) => fetchPublicApi(`/service-page-config/${encodeURIComponent(slug)}`, fallbackData, 60),
+
+  getVideoCatalogItems: async (fallbackData: any, categoryId?: string) => {
+    const endpoint = categoryId ? `/video-catalog?categoryId=${encodeURIComponent(categoryId)}` : '/video-catalog';
+    return fetchPublicApi(endpoint, fallbackData, 60);
+  },
+  getVideoCatalogCategories: async (fallbackData: any) => fetchPublicApi('/video-catalog/categories', fallbackData, 300),
 
   getPackages: async (fallbackData: any, serviceId?: string) => {
     const endpoint = serviceId ? `/packages?serviceId=${encodeURIComponent(serviceId)}` : '/packages';
@@ -68,7 +95,7 @@ export const landingApi = {
   getCaseStudyBySlug: async (slug: string, fallbackData: any) => fetchPublicApi(`/case-studies/${encodeURIComponent(slug)}`, fallbackData, 60),
   
   getPortfolioProjects: async (fallbackData: any, categoryId?: string) => {
-    const endpoint = categoryId ? `/portfolio/projects?categoryId=${encodeURIComponent(categoryId)}` : '/portfolio/projects';
+    const endpoint = categoryId ? `/portfolio?categoryId=${encodeURIComponent(categoryId)}` : '/portfolio';
     return fetchPublicApi(endpoint, fallbackData, 60);
   },
   

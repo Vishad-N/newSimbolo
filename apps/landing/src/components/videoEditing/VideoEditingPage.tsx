@@ -17,9 +17,19 @@ import {
   videoEditingFaqs,
 } from "@/data/services/videoEditing";
 
-export function VideoEditingPage({ liveConfig }: { liveConfig?: any }) {
+interface VideoEditingPageProps {
+  liveConfig?: any;
+  liveFaqs?: any[];
+  liveTestimonials?: any[];
+  liveVideoServices?: any[];
+  liveVideoCategories?: any[];
+}
+
+export function VideoEditingPage({ liveConfig, liveFaqs, liveTestimonials, liveVideoServices, liveVideoCategories }: VideoEditingPageProps) {
   // Map config arrays back to the SharedStat / feature format expected by components
   const benefits = liveConfig?.heroBenefits?.length > 0 ? liveConfig.heroBenefits : videoEditingBenefits;
+  const faqs = liveFaqs && liveFaqs.length > 0 ? liveFaqs : videoEditingFaqs;
+  const testimonials = liveTestimonials && liveTestimonials.length > 0 ? liveTestimonials : videoEditingTestimonials;
   
   const stats = liveConfig?.statsBar?.length > 0 ? liveConfig.statsBar.map((s: any, i: number) => ({
     id: `stat-${i}`,
@@ -45,7 +55,7 @@ export function VideoEditingPage({ liveConfig }: { liveConfig?: any }) {
             </div>
 
             <div className="mt-8">
-              <VideoServiceCatalog liveServices={liveConfig?.servicesList} />
+              <VideoServiceCatalog liveServices={liveVideoServices} liveCategories={liveVideoCategories} />
             </div>
 
             <div className="mt-8">
@@ -53,7 +63,7 @@ export function VideoEditingPage({ liveConfig }: { liveConfig?: any }) {
             </div>
 
             <div className="grid gap-4 mt-8 lg:grid-cols-[1fr_2fr] xl:grid-cols-[1fr_2.5fr]">
-              <TestimonialSection title="What Our Clients Say" testimonials={videoEditingTestimonials} />
+              <TestimonialSection title="What Our Clients Say" testimonials={testimonials} />
               <SectionCard className="p-5 h-full flex flex-col justify-center">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                   {results.map((stat: any) => {
@@ -70,7 +80,7 @@ export function VideoEditingPage({ liveConfig }: { liveConfig?: any }) {
               </SectionCard>
             </div>
 
-            <FAQSection faqs={videoEditingFaqs} />
+            <FAQSection faqs={faqs} />
           </div>
         </div>
       </>

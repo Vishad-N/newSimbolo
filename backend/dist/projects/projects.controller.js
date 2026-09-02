@@ -27,11 +27,11 @@ let ProjectsController = class ProjectsController {
     constructor(projectsService) {
         this.projectsService = projectsService;
     }
-    async findAll(clientId, status, managerId, page = 1, limit = 20) {
-        return this.projectsService.findAll(clientId, status, managerId, page, limit);
+    async findAll(user, clientId, status, managerId, page = 1, limit = 20) {
+        return this.projectsService.findAllForRequester(user, clientId, status, managerId, page, limit);
     }
-    async findOne(id) {
-        return this.projectsService.findOne(id);
+    async findOne(id, user) {
+        return this.projectsService.findOneForRequester(id, user);
     }
     async recalculateProgress(id) {
         const progress = await this.projectsService.recalculateProgress(id);
@@ -51,30 +51,32 @@ exports.ProjectsController = ProjectsController;
 __decorate([
     (0, common_1.Get)(),
     (0, permissions_decorator_1.Permissions)('projects.read', 'projects.manage'),
-    (0, swagger_1.ApiOperation)({ summary: 'List all projects with optional filters and pagination' }),
+    (0, swagger_1.ApiOperation)({ summary: 'List projects with optional filters and pagination (clients only ever see their own)' }),
     (0, swagger_1.ApiQuery)({ name: 'clientId', required: false }),
     (0, swagger_1.ApiQuery)({ name: 'status', enum: client_1.ProjectStatusEnum, required: false }),
     (0, swagger_1.ApiQuery)({ name: 'managerId', required: false }),
     (0, swagger_1.ApiQuery)({ name: 'page', required: false, type: Number }),
     (0, swagger_1.ApiQuery)({ name: 'limit', required: false, type: Number }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Paginated project list' }),
-    __param(0, (0, common_1.Query)('clientId')),
-    __param(1, (0, common_1.Query)('status')),
-    __param(2, (0, common_1.Query)('managerId')),
-    __param(3, (0, common_1.Query)('page', new common_1.DefaultValuePipe(1), common_1.ParseIntPipe)),
-    __param(4, (0, common_1.Query)('limit', new common_1.DefaultValuePipe(20), common_1.ParseIntPipe)),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __param(1, (0, common_1.Query)('clientId')),
+    __param(2, (0, common_1.Query)('status')),
+    __param(3, (0, common_1.Query)('managerId')),
+    __param(4, (0, common_1.Query)('page', new common_1.DefaultValuePipe(1), common_1.ParseIntPipe)),
+    __param(5, (0, common_1.Query)('limit', new common_1.DefaultValuePipe(20), common_1.ParseIntPipe)),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, String, Object, Object]),
+    __metadata("design:paramtypes", [Object, String, String, String, Object, Object]),
     __metadata("design:returntype", Promise)
 ], ProjectsController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Get)(':id'),
     (0, permissions_decorator_1.Permissions)('projects.read', 'projects.manage'),
-    (0, swagger_1.ApiOperation)({ summary: 'Get project details with milestones, tasks, deliverables, and timeline' }),
+    (0, swagger_1.ApiOperation)({ summary: 'Get project details with milestones, tasks, deliverables, and timeline (clients only ever see their own)' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Project detail returned' }),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
+    __param(1, (0, current_user_decorator_1.CurrentUser)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
 ], ProjectsController.prototype, "findOne", null);
 __decorate([

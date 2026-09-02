@@ -9,7 +9,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.UpdateDocumentDto = exports.CreateDocumentDto = void 0;
+exports.UpdateDocumentDto = exports.UploadDocumentDto = exports.CreateDocumentDto = void 0;
 const openapi = require("@nestjs/swagger");
 const swagger_1 = require("@nestjs/swagger");
 const class_validator_1 = require("class-validator");
@@ -95,6 +95,53 @@ __decorate([
     (0, class_validator_1.IsBoolean)(),
     __metadata("design:type", Boolean)
 ], CreateDocumentDto.prototype, "isPublic", void 0);
+class UploadDocumentDto {
+    title;
+    description;
+    category;
+    clientId;
+    projectId;
+    static _OPENAPI_METADATA_FACTORY() {
+        return { title: { required: true, type: () => String }, description: { required: false, type: () => String }, category: { required: false, enum: ["OTHER", "CONTRACT", "NDA", "PROPOSAL", "REPORT", "BRIEF", "PROJECT_FILE"] }, clientId: { required: false, type: () => String, format: "uuid" }, projectId: { required: false, type: () => String, format: "uuid" } };
+    }
+}
+exports.UploadDocumentDto = UploadDocumentDto;
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: 'Client NDA – Acme Corp 2026', description: 'Document title' }),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", String)
+], UploadDocumentDto.prototype, "title", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'Document description' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], UploadDocumentDto.prototype, "description", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({
+        enum: client_1.DocumentCategoryEnum,
+        default: client_1.DocumentCategoryEnum.OTHER,
+        description: 'Document category',
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsEnum)(client_1.DocumentCategoryEnum),
+    __metadata("design:type", String)
+], UploadDocumentDto.prototype, "category", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({
+        description: 'Client profile UUID to attach the document to. Staff-only — a client caller always uploads to their own profile regardless of this field.',
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsUUID)('4'),
+    __metadata("design:type", String)
+], UploadDocumentDto.prototype, "clientId", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'Project UUID' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsUUID)('4'),
+    __metadata("design:type", String)
+], UploadDocumentDto.prototype, "projectId", void 0);
 class UpdateDocumentDto {
     title;
     description;

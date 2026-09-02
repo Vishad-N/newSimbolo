@@ -3,7 +3,7 @@
 > Auto-managed digest for Aider and other CLIs that `read:` this file. Your notes above the markers are safe.
 
 <!-- SKILLGOD:START v1.1 -->
-# SkillGod Project Memory (auto-generated — do not edit; updated 2026-09-01 19:39)
+# SkillGod Project Memory (auto-generated — do not edit; updated 2026-09-02 15:54)
 
 # SkillGod Active
 
@@ -22,20 +22,20 @@ After completing **meaningful** work (decisions, architecture, non-obvious fixes
 ## SkillGod health
 - version: 1.0.1+794a995
 - project_id: `visha-90fc8883`
-- last inject: 2026-09-01T19:39:13 (runtime)
+- last inject: 2026-09-02T15:54:22 (runtime)
 - last capture: never (-)
 - markers: SKILLGOD:START v1.1
 
 ## Project memory
 
 ## Decisions
-- {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\admin\\src\\services\\api.ts", "oldString": " caseStudies: {\n getAll: async () => fetchFromApi('/case-studies', { method: 'GET' }
-- {"stdout": "0b97f99 Happy diwali fools\n651980f Rascals\nf93bac0 new\n41e9a1f op\n801da72 feat(landing): redesign package cards into premium SaaS preview tiles and complete Phase 5
-- {"filePath": "c:\\Users\\visha\\simbolonew\\.github\\workflows\\production-ci.yml", "oldString": " npx vercel pull --yes --environment=production --token=\"$VERCEL_TOKEN\"\n npx ve
-- {"bytes": 346708, "code": 200, "codeText": "OK", "result": "# Vercel's Upload Rate Limit Explanation\n\nBased on the discussion, the \"5000\" in Vercel's `api-upload-free` rate lim
-- {"stdout": " const json = await res.json();\n // The backend's global TransformInterceptor wraps every response in\n // { success, message, data }. Unwrap it here, once, so every c
-- {"content":"---\ntitle: Controlling GitHub Autodeploys\ndescription: Learn how to configure GitHub autodeployments.\n---\n\n[Services linked to a GitHub repository](/services#deplo
-- {"stdout": "\nVercel CLI 59.5.0 (Node.js 22.18.0)\n\n â–² vercel rollback url|deploymentId [options]\n\n Quickly revert back to a previous deployment \n\n Commands:
+- {"stdout": "diff --git a/apps/landing/src/components/auth/auth-modals.tsx b/apps/landing/src/components/auth/auth-modals.tsx\nindex 24bf091..c6f406e 100644\n--- a/apps/landing/src/
+- {"filePath": "C:\\Users\\visha\\simbolonew\\apps\\landing\\src\\components\\auth\\auth-modals.tsx", "oldString": " const payload = await response.json();\n\n if (!response.ok) {\n 
+- {"stdout": "â–² Next.js 16.2.11 (Turbopack)\n- Environments: .env.local\n\nâš The \"middleware\" file convention is deprecated. Please use \"proxy\" instead. Learn more: https://ne
+- {"filePath": "C:\\Users\\visha\\simbolonew\\apps\\admin\\src\\services\\api.ts", "oldString": " getAll: async () => fetchFromApi('/video-catalog?status=ALL', { method: 'GET' }),", 
+- {"filePath": "C:\\Users\\visha\\simbolonew\\apps\\admin\\src\\services\\api.ts", "oldString": " testimonials: {", "newString": " videoCatalog: {\n getAll: async () => fetchFromApi(
+- {"filePath": "C:\\Users\\visha\\simbolonew\\backend\\prisma\\schema.prisma", "oldString": "// ==========================================\n// VIDEO EDITING SERVICE CATALOG\n// =====
+- {"filePath": "C:\\Users\\visha\\simbolonew\\backend\\prisma\\schema.prisma", "oldString": "enum PackageTypeEnum {\n STARTER\n PROFESSIONAL\n ENTERPRISE\n CUSTOM\n}\n\nenum VideoPre
 
 ## Notes
 

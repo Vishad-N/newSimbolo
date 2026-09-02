@@ -19,6 +19,7 @@ const swagger_1 = require("@nestjs/swagger");
 const users_service_1 = require("./users.service");
 const update_user_dto_1 = require("./dto/update-user.dto");
 const change_password_dto_1 = require("./dto/change-password.dto");
+const create_staff_user_dto_1 = require("./dto/create-staff-user.dto");
 const permissions_decorator_1 = require("../common/decorators/permissions.decorator");
 const current_user_decorator_1 = require("../common/decorators/current-user.decorator");
 const client_1 = require("@prisma/client");
@@ -42,6 +43,9 @@ let UsersController = class UsersController {
     }
     async findAll(page, limit, search, roleId, status) {
         return this.usersService.findAll(page, limit, search, roleId, status);
+    }
+    async createStaffUser(dto, user) {
+        return this.usersService.createStaffUser(dto, user.sub);
     }
     async findOne(id) {
         return this.usersService.findById(id);
@@ -104,6 +108,18 @@ __decorate([
     __metadata("design:paramtypes", [Number, Number, String, String, String]),
     __metadata("design:returntype", Promise)
 ], UsersController.prototype, "findAll", null);
+__decorate([
+    (0, common_1.Post)(),
+    (0, permissions_decorator_1.Permissions)('users.manage'),
+    (0, swagger_1.ApiOperation)({ summary: 'Create a new internal team/staff user account (Admin)' }),
+    (0, swagger_1.ApiResponse)({ status: 201, description: 'Staff user created successfully.' }),
+    (0, swagger_1.ApiResponse)({ status: 409, description: 'Email address already exists.' }),
+    __param(0, (0, common_1.Body)()),
+    __param(1, (0, current_user_decorator_1.CurrentUser)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [create_staff_user_dto_1.CreateStaffUserDto, Object]),
+    __metadata("design:returntype", Promise)
+], UsersController.prototype, "createStaffUser", null);
 __decorate([
     (0, common_1.Get)(':id'),
     (0, permissions_decorator_1.Permissions)('users.view'),

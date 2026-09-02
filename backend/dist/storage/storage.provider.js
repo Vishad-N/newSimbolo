@@ -25,6 +25,7 @@ let LocalStorageProvider = class LocalStorageProvider {
     }
     async upload(buffer, key, mimeType) {
         const filePath = path.join(this.uploadDir, key);
+        fs.mkdirSync(path.dirname(filePath), { recursive: true });
         fs.writeFileSync(filePath, buffer);
         return { storageKey: key, url: `/uploads/${key}`, provider: `local:${mimeType}` };
     }

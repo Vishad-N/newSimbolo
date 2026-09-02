@@ -10,7 +10,7 @@ import { SeoPackages } from "@/components/seo/SeoPackages";
 import { SeoResults } from "@/components/seo/SeoResults";
 import { SeoServiceCard } from "@/components/seo/SeoServiceCard";
 import { StatsBar } from "@/components/seo/StatsBar";
-import { heroBenefits, approachSteps, resultMetrics, seoFaqs, seoMetrics, testimonials } from "@/mock/seo";
+import { heroBenefits, approachSteps, resultMetrics, seoFaqs, seoMetrics, testimonials as mockTestimonials } from "@/mock/seo";
 import { seoPackages } from "@/mock/seo-packages";
 import { seoServices } from "@/mock/seo-services";
 import { SharedPackage } from "@/types/shared";
@@ -18,11 +18,15 @@ import { SharedPackage } from "@/types/shared";
 interface SeoPageProps {
   livePackages?: SharedPackage[];
   liveConfig?: any;
+  liveFaqs?: any[];
+  liveTestimonials?: any[];
 }
 
-export function SeoPage({ livePackages, liveConfig }: SeoPageProps) {
+export function SeoPage({ livePackages, liveConfig, liveFaqs, liveTestimonials }: SeoPageProps) {
   const packages = livePackages && livePackages.length > 0 ? livePackages : seoPackages;
   const benefits = liveConfig?.heroBenefits?.length > 0 ? liveConfig.heroBenefits : heroBenefits;
+  const faqs = liveFaqs && liveFaqs.length > 0 ? liveFaqs : seoFaqs;
+  const testimonials = liveTestimonials && liveTestimonials.length > 0 ? liveTestimonials : mockTestimonials;
   
   const metrics = liveConfig?.statsBar?.length > 0 ? liveConfig.statsBar.map((s: any, i: number) => ({
     id: `stat-${i}`,
@@ -71,7 +75,7 @@ export function SeoPage({ livePackages, liveConfig }: SeoPageProps) {
               <SeoPackages packages={packages} />
               <SeoResults metrics={results} testimonials={testimonials} />
             </div>
-            <FAQSection faqs={seoFaqs} />
+            <FAQSection faqs={faqs} />
           </div>
         </div>
       </>

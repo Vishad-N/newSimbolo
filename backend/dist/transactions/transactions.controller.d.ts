@@ -16,7 +16,7 @@ export declare class TransactionsController {
                     orderNumber: string;
                 } | null;
                 currency: string;
-                amount: number;
+                amount: import("@prisma/client/runtime/library").Decimal;
                 paymentNumber: string;
                 gatewayProvider: string;
             };
@@ -27,7 +27,7 @@ export declare class TransactionsController {
             type: string;
             metadata: string | null;
             currency: string;
-            amount: number;
+            amount: import("@prisma/client/runtime/library").Decimal;
             transactionId: string;
             paymentId: string;
         })[];
@@ -51,7 +51,7 @@ export declare class TransactionsController {
         type: string;
         metadata: string | null;
         currency: string;
-        amount: number;
+        amount: import("@prisma/client/runtime/library").Decimal;
         transactionId: string;
         paymentId: string;
     }[]>;
@@ -118,10 +118,10 @@ export declare class TransactionsController {
                 currency: string;
                 clientId: string;
                 orderNumber: string;
-                totalAmount: number;
-                taxAmount: number;
-                discountAmount: number;
-                netAmount: number;
+                totalAmount: import("@prisma/client/runtime/library").Decimal;
+                taxAmount: import("@prisma/client/runtime/library").Decimal;
+                discountAmount: import("@prisma/client/runtime/library").Decimal;
+                netAmount: import("@prisma/client/runtime/library").Decimal;
             }) | null;
         } & {
             id: string;
@@ -133,7 +133,7 @@ export declare class TransactionsController {
             method: string | null;
             currency: string;
             orderId: string | null;
-            amount: number;
+            amount: import("@prisma/client/runtime/library").Decimal;
             paymentNumber: string;
             gatewayProvider: string;
             gatewayTransactionId: string | null;
@@ -148,7 +148,7 @@ export declare class TransactionsController {
         type: string;
         metadata: string | null;
         currency: string;
-        amount: number;
+        amount: import("@prisma/client/runtime/library").Decimal;
         transactionId: string;
         paymentId: string;
     }>;

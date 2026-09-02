@@ -10,6 +10,14 @@ exports.GoogleAuthGuard = void 0;
 const common_1 = require("@nestjs/common");
 const passport_1 = require("@nestjs/passport");
 let GoogleAuthGuard = class GoogleAuthGuard extends (0, passport_1.AuthGuard)('google') {
+    // Forwards ?checkout=<packageSlug> from the initiating /auth/google request
+    // through Google's OAuth `state` param so the callback can recover it and
+    // send the user straight to checkout instead of the bare dashboard.
+    getAuthenticateOptions(context) {
+        const request = context.switchToHttp().getRequest();
+        const checkout = request.query?.checkout;
+        return checkout ? { state: String(checkout) } : {};
+    }
 };
 exports.GoogleAuthGuard = GoogleAuthGuard;
 exports.GoogleAuthGuard = GoogleAuthGuard = __decorate([

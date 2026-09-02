@@ -13,6 +13,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AffiliateService = void 0;
 const common_1 = require("@nestjs/common");
 const client_1 = require("@prisma/client");
+const bcrypt = require("bcrypt");
 const prisma_service_1 = require("../../prisma/prisma.service");
 const base_service_1 = require("../../shared/abstractions/base.service");
 const audit_service_1 = require("../../shared/audit/audit.service");
@@ -199,6 +200,10 @@ let AffiliateService = class AffiliateService extends base_service_1.BaseService
         return { data, meta: { total, page, limit, totalPages: Math.ceil(total / limit) } };
     }
     // ── Admin employee CRUD ───────────────────────────────────────────────────
+    /**
+     * Flat row shape for the admin employee table/DataTable — deliberately NOT the raw
+     * nested Prisma shape, to match what the admin dashboard renders directly.
+     */
     async listEmployees(query) {
         const page = query.page ?? 1;
         const limit = query.limit ?? 20;
@@ -213,7 +218,7 @@ let AffiliateService = class AffiliateService extends base_service_1.BaseService
                 { user: { email: { contains: query.search, mode: 'insensitive' } } },
             ];
         }
-        const [data, total] = await Promise.all([
+        const [affiliates, total] = await Promise.all([
             this.prisma.affiliate.findMany({
                 where,
                 include: {
@@ -227,8 +232,40 @@ let AffiliateService = class AffiliateService extends base_service_1.BaseService
             }),
             this.prisma.affiliate.count({ where }),
         ]);
+        const affiliateIds = affiliates.map((a) => a.id);
+        const salesTotals = affiliateIds.length
+            ? await this.prisma.commission.groupBy({
+                by: ['affiliateId'],
+                where: { affiliateId: { in: affiliateIds }, status: { notIn: [client_1.CommissionStatusEnum.CANCELLED] } },
+                _sum: { commissionBaseAmount: true, commissionAmount: true },
+            })
+            : [];
+        const salesByAffiliate = new Map(salesTotals.map((s) => [s.affiliateId, s]));
+        const data = affiliates.map((a) => {
+            const totals = salesByAffiliate.get(a.id);
+            return {
+                id: a.id,
+                userId: a.userId,
+                name: [a.user.firstName, a.user.lastName].filter(Boolean).join(' ') || a.user.email,
+                email: a.user.email,
+                affiliateCode: a.affiliateCode,
+                status: a.status,
+                ordersCount: a._count.commissions,
+                salesTotal: totals?._sum.commissionBaseAmount ?? 0,
+                commissionTotal: totals?._sum.commissionAmount ?? 0,
+                walletAvailable: a.wallet?.availableBalance ?? 0,
+                walletPending: a.wallet?.pendingBalance ?? 0,
+                lifetimeWithdrawn: a.wallet?.lifetimeWithdrawn ?? 0,
+            };
+        });
         return { data, meta: { total, page, limit, totalPages: Math.ceil(total / limit) } };
     }
+    /**
+     * Full employee detail for the admin dashboard. Commission/wallet-ledger/withdrawal
+     * history are embedded directly on the response (most recent 100 each) rather than
+     * requiring separate paginated calls, since the admin detail page renders them as
+     * simple, non-paginated tables.
+     */
     async getEmployee(id) {
         const affiliate = await this.prisma.affiliate.findFirst({
             where: { id, deletedAt: null },
@@ -240,22 +277,83 @@ let AffiliateService = class AffiliateService extends base_service_1.BaseService
         });
         if (!affiliate)
             throw new common_1.NotFoundException(`Sales employee ${id} not found`);
-        return affiliate;
+        const [commissions, withdrawals, walletTransactions] = await Promise.all([
+            this.prisma.commission.findMany({
+                where: { affiliateId: id },
+                include: { order: { select: { id: true, orderNumber: true, status: true } } },
+                orderBy: { createdAt: 'desc' },
+                take: 100,
+            }),
+            this.prisma.withdrawal.findMany({
+                where: { affiliateId: id },
+                orderBy: { createdAt: 'desc' },
+                take: 100,
+            }),
+            affiliate.wallet
+                ? this.prisma.walletTransaction.findMany({
+                    where: { walletId: affiliate.wallet.id },
+                    orderBy: { createdAt: 'desc' },
+                    take: 100,
+                })
+                : Promise.resolve([]),
+        ]);
+        return { ...affiliate, commissions, withdrawals, walletTransactions };
     }
     /**
-     * Creates an Affiliate profile (with its Wallet) for an existing user.
+     * Resolves the User to attach an Affiliate to: reuses dto.userId if given,
+     * otherwise creates a fresh User (role AFFILIATE) from the inline fields.
+     * Kept outside the code-generation retry loop below so a code collision retry
+     * never re-creates the User.
+     */
+    async resolveEmployeeUserId(dto, actorUserId) {
+        if (dto.userId) {
+            const user = await this.prisma.user.findUnique({ where: { id: dto.userId }, select: { id: true } });
+            if (!user)
+                throw new common_1.NotFoundException(`User ${dto.userId} not found`);
+            return user.id;
+        }
+        if (!dto.email || !dto.firstName || !dto.lastName || !dto.password) {
+            throw new common_1.BadRequestException('Provide either an existing userId, or email/firstName/lastName/password to create a new employee.');
+        }
+        const existingUser = await this.prisma.user.findUnique({ where: { email: dto.email } });
+        if (existingUser)
+            throw new common_1.ConflictException('A user with this email address already exists');
+        const affiliateRole = await this.prisma.role.findUnique({ where: { slug: 'AFFILIATE' } });
+        if (!affiliateRole) {
+            throw new common_1.BadRequestException('Default AFFILIATE role is not initialized in system. Please run database seeding.');
+        }
+        const passwordHash = await bcrypt.hash(dto.password, 12);
+        const newUser = await this.prisma.user.create({
+            data: {
+                email: dto.email,
+                passwordHash,
+                firstName: dto.firstName,
+                lastName: dto.lastName,
+                countryCode: dto.countryCode,
+                phone: dto.phone,
+                status: client_1.UserStatusEnum.ACTIVE,
+                roleId: affiliateRole.id,
+                createdBy: actorUserId ?? null,
+            },
+            select: { id: true },
+        });
+        return newUser.id;
+    }
+    /**
+     * Creates an Affiliate profile (with its Wallet) for a user — either an existing
+     * user (dto.userId) or a brand-new one created inline from dto.email/firstName/
+     * lastName/password. Inline creation lets HR onboard a sales employee without
+     * first routing them through the client-facing user pool.
      * Affiliate and Wallet are created inside a single transaction — the invariant is
      * that every Affiliate ALWAYS has exactly one Wallet.
      */
-    async createEmployee(userId, options = {}) {
-        const user = await this.prisma.user.findUnique({ where: { id: userId }, select: { id: true } });
-        if (!user)
-            throw new common_1.NotFoundException(`User ${userId} not found`);
+    async createEmployee(dto, options = {}) {
+        const userId = await this.resolveEmployeeUserId(dto, options.actorUserId);
         const existing = await this.prisma.affiliate.findUnique({ where: { userId } });
         if (existing)
             throw new common_1.ConflictException('This user already has a sales employee profile');
         const settings = await this.settingsService.get();
-        const commissionRate = options.commissionRate ?? settings.defaultCommissionRate;
+        const commissionRate = dto.commissionRate ?? settings.defaultCommissionRate;
         let lastError;
         for (let attempt = 1; attempt <= AffiliateService_1.CODE_GENERATION_MAX_ATTEMPTS; attempt += 1) {
             const affiliateCode = (0, employee_code_util_1.generateEmployeeCode)();
@@ -328,6 +426,54 @@ let AffiliateService = class AffiliateService extends base_service_1.BaseService
         });
         return updated;
     }
+    /**
+     * Soft-deletes a sales employee profile (sets `deletedAt`, flips to INACTIVE, and
+     * stops future commission accrual). Never a hard delete — the Affiliate row stays
+     * in place as the immutable owner of its Commission/WalletTransaction history, it
+     * just disappears from active lists (all list/lookup queries already filter on
+     * `deletedAt: null`) and the underlying user can no longer earn or withdraw.
+     *
+     * Financial safety guard: refuses to delete while there is money outstanding —
+     * a non-zero wallet balance or a withdrawal still in flight — since deleting the
+     * Affiliate would orphan that liability with no owner to pay it out to or reclaim
+     * it from. The admin must resolve those first (pay out / cancel / write off).
+     */
+    async deleteEmployee(id, actorUserId) {
+        const affiliate = await this.prisma.affiliate.findFirst({
+            where: { id, deletedAt: null },
+            include: { wallet: true },
+        });
+        if (!affiliate)
+            throw new common_1.NotFoundException(`Sales employee ${id} not found`);
+        if (affiliate.wallet && (affiliate.wallet.availableBalance !== 0 || affiliate.wallet.pendingBalance !== 0)) {
+            throw new common_1.BadRequestException(`Cannot delete: wallet still has ₹${affiliate.wallet.availableBalance} available and ` +
+                `₹${affiliate.wallet.pendingBalance} pending. Settle or write off the balance first.`);
+        }
+        const inFlightWithdrawals = await this.prisma.withdrawal.count({
+            where: { affiliateId: id, status: { in: ['PENDING', 'SCHEDULED', 'PROCESSING'] } },
+        });
+        if (inFlightWithdrawals > 0) {
+            throw new common_1.BadRequestException(`Cannot delete: ${inFlightWithdrawals} withdrawal(s) still in progress. Resolve them first.`);
+        }
+        await this.prisma.affiliate.update({
+            where: { id },
+            data: {
+                deletedAt: new Date(),
+                status: client_1.AffiliateStatusEnum.INACTIVE,
+                isEligibleForCommission: false,
+                updatedBy: actorUserId ?? null,
+            },
+        });
+        await this.auditService.logEvent({
+            action: 'affiliate.deleted',
+            entityType: 'Affiliate',
+            entityId: id,
+            oldValue: { affiliateCode: affiliate.affiliateCode, status: affiliate.status },
+            userId: actorUserId,
+        });
+        this.logger.log(`Soft-deleted sales employee ${affiliate.affiliateCode}`);
+        return { deleted: true };
+    }
     // ── Admin dashboard ───────────────────────────────────────────────────────
     /** Stat-card aggregates for the admin affiliate dashboard. */
     async getOverview() {
@@ -364,28 +510,22 @@ let AffiliateService = class AffiliateService extends base_service_1.BaseService
             }),
         ]);
         return {
-            totalSales: {
-                count: totalSalesAgg._count,
-                amount: totalSalesAgg._sum.netAmount ?? 0,
-            },
-            totalAffiliateSales: {
-                count: affiliateSalesAgg._count,
-                amount: affiliateSalesAgg._sum.commissionBaseAmount ?? 0,
-            },
+            // Flat rupee totals — this is the contract the admin dashboard is built against.
+            totalSales: totalSalesAgg._sum.netAmount ?? 0,
+            totalAffiliateSales: affiliateSalesAgg._sum.commissionBaseAmount ?? 0,
             activeEmployees,
             totalCommission: totalCommissionAgg._sum.commissionAmount ?? 0,
             pendingCommission: pendingCommissionAgg._sum.commissionAmount ?? 0,
             // Total money we currently owe employees and can be withdrawn right now.
             availableWalletLiability: walletLiabilityAgg._sum.availableBalance ?? 0,
             heldWalletLiability: walletLiabilityAgg._sum.pendingBalance ?? 0,
-            pendingWithdrawals: {
-                count: pendingWithdrawalsAgg._count,
-                amount: pendingWithdrawalsAgg._sum.amount ?? 0,
-            },
-            paidWithdrawals: {
-                count: paidWithdrawalsAgg._count,
-                amount: paidWithdrawalsAgg._sum.amount ?? 0,
-            },
+            pendingWithdrawals: pendingWithdrawalsAgg._sum.amount ?? 0,
+            paidWithdrawals: paidWithdrawalsAgg._sum.amount ?? 0,
+            // Underlying counts, kept available under distinct keys for anything that wants them.
+            totalSalesCount: totalSalesAgg._count,
+            totalAffiliateSalesCount: affiliateSalesAgg._count,
+            pendingWithdrawalsCount: pendingWithdrawalsAgg._count,
+            paidWithdrawalsCount: paidWithdrawalsAgg._count,
         };
     }
     /** Guards against a caller passing a code shaped like anything other than EMP-XXXXX. */

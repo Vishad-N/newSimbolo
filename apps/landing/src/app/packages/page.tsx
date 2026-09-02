@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import { PackagesPage } from "@/components/packages/PackagesPage";
+import { fetchMappedFaqs } from "@/lib/content-mapper";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Packages | The Simbolo",
@@ -18,6 +21,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default function Page() {
-  return <PackagesPage />;
+export default async function Page() {
+  const liveFaqs = await fetchMappedFaqs([]);
+  return <PackagesPage liveFaqs={liveFaqs} />;
 }

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Script from "next/script";
 import { GoogleAdsPage } from "@/components/googleAds/GoogleAdsPage";
 import { fetchMappedPackages } from "@/lib/package-mapper";
+import { fetchMappedFaqs, fetchMappedTestimonials } from "@/lib/content-mapper";
 import { landingApi } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
@@ -38,15 +39,17 @@ const jsonLd = {
 };
 
 export default async function GoogleAdsRoute() {
-  const [livePackages, liveConfig] = await Promise.all([
+  const [livePackages, liveConfig, liveFaqs, liveTestimonials] = await Promise.all([
     fetchMappedPackages('google-ads', []),
     landingApi.getServicePageConfig('google-ads', null),
+    fetchMappedFaqs([]),
+    fetchMappedTestimonials([]),
   ]);
 
   return (
     <>
       <Script id="google-ads-jsonld" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <GoogleAdsPage livePackages={livePackages} liveConfig={liveConfig} />
+      <GoogleAdsPage livePackages={livePackages} liveConfig={liveConfig} liveFaqs={liveFaqs} liveTestimonials={liveTestimonials} />
     </>
   );
 }

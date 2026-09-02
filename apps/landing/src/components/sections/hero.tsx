@@ -6,9 +6,17 @@ import { motion } from "framer-motion";
 import { useState } from "react";
 import { categoryChips } from "@/data/landing";
 
-export function Hero({ onSearch }: { onSearch?: (query: string) => void }) {
+interface HeroProps {
+  onSearch?: (query: string) => void;
+  data?: { title?: string; highlightedText?: string; subtitle?: string };
+}
+
+export function Hero({ onSearch, data }: HeroProps) {
   const [selectedChip, setSelectedChip] = useState(categoryChips[0]?.label ?? "");
   const [inputValue, setInputValue] = useState("");
+
+  const highlightedText = data?.highlightedText?.trim() || "Digital Marketing";
+  const subtitle = data?.subtitle?.trim() || "Tell us about your business. Get matched with the perfect marketing solution instantly.";
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
@@ -58,10 +66,10 @@ export function Hero({ onSearch }: { onSearch?: (query: string) => void }) {
               AI-Powered Marketing Match
             </div>
             <h1 className="text-balance mx-auto max-w-[860px] font-heading text-[2.2rem] font-bold leading-[1.05] tracking-tight text-white sm:text-[3.2rem] lg:text-[3.6rem]">
-              Find the right <span className="bg-gradient-to-r from-[var(--hero-gradient-start)] via-[var(--hero-gradient-mid)] to-[var(--hero-gradient-end)] bg-clip-text text-transparent">Digital Marketing</span> Expert in seconds.
+              Find the right <span className="bg-gradient-to-r from-[var(--hero-gradient-start)] via-[var(--hero-gradient-mid)] to-[var(--hero-gradient-end)] bg-clip-text text-transparent">{highlightedText}</span> Expert in seconds.
             </h1>
             <p className="mx-auto mt-1 max-w-[680px] text-[0.9rem] leading-6 text-[var(--muted)] sm:text-[0.95rem]">
-              Tell us about your business. Get matched with the perfect marketing solution instantly.
+              {subtitle}
             </p>
             <div className="search-glow mx-auto mt-3 flex max-w-[900px] flex-col gap-2 rounded-[20px] border border-white/[0.08] bg-[var(--sidebar)]/70 p-1.5 shadow-[0_18px_48px_rgba(0,0,0,0.22),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-2xl transition duration-300 focus-within:border-[var(--primary)] focus-within:shadow-[0_0_16px_var(--primary-glow),inset_0_1px_0_rgba(255,255,255,0.08)] sm:flex-row">
               <label className="flex min-h-12 flex-1 items-center gap-3 rounded-[16px] bg-white/[0.035] px-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition duration-300 focus-within:bg-white/[0.055]">

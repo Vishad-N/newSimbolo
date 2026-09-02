@@ -73,7 +73,7 @@ let InsightsService = class InsightsService extends base_service_1.BaseService {
                 title: 'Most Profitable Package Identified',
                 description: `Top package generated ${packageRevenue[0]._sum.netAmount ?? 0} from ${packageRevenue[0]._count} orders.`,
                 severity: 'LOW',
-                metric: packageRevenue[0]._sum.netAmount ?? 0,
+                metric: Number(packageRevenue[0]._sum.netAmount ?? 0),
                 generatedAt: new Date().toISOString(),
             });
         }
@@ -116,7 +116,7 @@ let InsightsService = class InsightsService extends base_service_1.BaseService {
                 title: 'Payment Delay',
                 description: `Invoice ${invoice.invoiceNumber} is overdue with amount ${invoice.totalAmount}.`,
                 severity: 'HIGH',
-                metric: invoice.totalAmount,
+                metric: Number(invoice.totalAmount),
                 generatedAt: new Date().toISOString(),
             });
         }

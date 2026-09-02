@@ -5,47 +5,73 @@ import { Search } from "lucide-react";
 import { useVideoServices } from "@/hooks/useVideoServices";
 import { VideoServiceCard } from "@/components/videoEditing/VideoServiceCard";
 import { VideoPreviewModal } from "@/components/videoEditing/VideoPreviewModal";
-import type { VideoEditingService } from "@/types/video-editing";
+import type { VideoEditingService, VideoServiceCategory, PreviewType } from "@/types/video-editing";
 
-export function VideoServiceCatalog({ liveServices }: { liveServices?: any[] }) {
-  const { services, categories, loading } = useVideoServices();
+function toTitleCase(value: string): string {
+  return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
+}
+
+// The backend stores previewType/complexity/status as uppercase enums; the card
+// components were built against the original mock data's lowercase/title-case strings.
+function mapApiVideoItem(item: any): VideoEditingService {
+  return {
+    id: item.id,
+    title: item.title,
+    slug: item.slug,
+    categoryIds: (item.categories || []).map((c: any) => c.id),
+    thumbnail: item.thumbnail,
+    previewType: String(item.previewType || "YOUTUBE").toLowerCase() as PreviewType,
+    previewUrl: item.previewUrl,
+    shortDescription: item.shortDescription,
+    fullDescription: item.fullDescription ?? undefined,
+    hourlyRate: item.hourlyRate,
+    currency: item.currency,
+    estimatedDelivery: item.estimatedDelivery ?? undefined,
+    recommendedDuration: item.recommendedDuration ?? undefined,
+    complexity: toTitleCase(item.complexity || "MEDIUM") as VideoEditingService["complexity"],
+    tags: item.tags || [],
+    badge: item.badge ?? undefined,
+    status: String(item.status || "PUBLISHED").toLowerCase() as VideoEditingService["status"],
+    featured: item.featured,
+    displayOrder: item.displayOrder,
+    ctaText: item.ctaText ?? undefined,
+    ctaLink: item.ctaLink ?? undefined,
+  };
+}
+
+function mapApiCategory(cat: any): VideoServiceCategory {
+  return { id: cat.id, name: cat.name, slug: cat.slug };
+}
+
+export function VideoServiceCatalog({ liveServices, liveCategories }: { liveServices?: any[]; liveCategories?: any[] }) {
+  const { services: mockServices, categories: mockCategories, loading } = useVideoServices();
   const [activeCategoryId, setActiveCategoryId] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [previewService, setPreviewService] = useState<VideoEditingService | null>(null);
 
+  const hasLiveData = !!(liveServices && liveServices.length > 0);
+
+  const services = useMemo(
+    () => (hasLiveData ? liveServices!.map(mapApiVideoItem) : mockServices),
+    [hasLiveData, liveServices, mockServices],
+  );
+
+  const categories = useMemo(
+    () => (liveCategories && liveCategories.length > 0 ? liveCategories.map(mapApiCategory) : mockCategories),
+    [liveCategories, mockCategories],
+  );
+
   const filteredServices = useMemo(() => {
-    // If live config provides services, use them
-    if (liveServices && liveServices.length > 0) {
-      return liveServices.map((ls, idx) => ({
-        id: `live-svc-${idx}`,
-        title: ls.title,
-        description: ls.description,
-        estimatedHours: parseInt(ls.startingPrice.replace(/[^0-9]/g, '')) || 0,
-        hourlyRate: 1, // dummy value to display starting price cleanly
-        previewUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-        thumbnailUrl: "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?auto=format&fit=crop&w=600&q=80",
-        categoryIds: ["all"],
-        tags: [ls.startingPrice],
-        status: "published",
-        displayOrder: idx
-      } as unknown as VideoEditingService)).filter((s) => 
-        searchQuery 
-          ? s.title.toLowerCase().includes(searchQuery.toLowerCase()) || s.tags.some(t => t.toLowerCase().includes(searchQuery.toLowerCase()))
-          : true
-      );
-    }
-    
-    // Otherwise fallback to mock/local data
     return services
       .filter((s) => s.status === "published")
       .filter((s) => (activeCategoryId === "all" ? true : s.categoryIds.includes(activeCategoryId)))
-      .filter((s) => 
-        searchQuery 
+      .filter((s) =>
+        searchQuery
           ? s.title.toLowerCase().includes(searchQuery.toLowerCase()) || s.tags.some(t => t.toLowerCase().includes(searchQuery.toLowerCase()))
           : true
       )
       .sort((a, b) => a.displayOrder - b.displayOrder);
-  }, [services, activeCategoryId, searchQuery, liveServices]);
+  }, [services, activeCategoryId, searchQuery]);
 
   if (loading) {
     return (

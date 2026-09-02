@@ -14,23 +14,23 @@ const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
 const prisma_service_1 = require("../prisma/prisma.service");
 const razorpay_provider_1 = require("../payments/razorpay.provider");
-const invoices_service_1 = require("../invoices/invoices.service");
 const commission_service_1 = require("../affiliate/services/commission.service");
+const payments_service_1 = require("../payments/payments.service");
 const client_1 = require("@prisma/client");
 let WebhooksService = class WebhooksService {
     prisma;
     razorpayGateway;
     configService;
-    invoicesService;
     commissionService;
+    paymentsService;
     logger = new common_1.Logger('WebhooksService');
     webhookSecret;
-    constructor(prisma, razorpayGateway, configService, invoicesService, commissionService) {
+    constructor(prisma, razorpayGateway, configService, commissionService, paymentsService) {
         this.prisma = prisma;
         this.razorpayGateway = razorpayGateway;
         this.configService = configService;
-        this.invoicesService = invoicesService;
         this.commissionService = commissionService;
+        this.paymentsService = paymentsService;
         this.webhookSecret = this.configService.get('razorpay.webhookSecret', 'mock-razorpay-webhook-secret');
     }
     async handleRazorpayWebhook(rawBody, signature) {
@@ -85,7 +85,7 @@ let WebhooksService = class WebhooksService {
             return;
         const razorpayPaymentId = entity.id;
         const razorpayOrderId = entity.order_id;
-        // Idempotency: check if already processed
+        // Idempotency: has this exact webhook event already been recorded?
         const existing = await this.prisma.transaction.findFirst({
             where: { transactionId: razorpayPaymentId },
         });
@@ -93,51 +93,19 @@ let WebhooksService = class WebhooksService {
             this.logger.log(`🔄 Idempotent skip: payment ${razorpayPaymentId} already recorded`);
             return;
         }
-        const payment = await this.prisma.payment.findFirst({
-            where: { gatewayOrderId: razorpayOrderId },
-        });
-        if (payment) {
-            await this.prisma.$transaction([
-                this.prisma.payment.update({
-                    where: { id: payment.id },
-                    data: {
-                        status: client_1.PaymentStatusEnum.SUCCESSFUL,
-                        gatewayTransactionId: razorpayPaymentId,
-                        paidAt: new Date(),
-                    },
-                }),
-                this.prisma.transaction.create({
-                    data: {
-                        transactionId: razorpayPaymentId,
-                        type: 'PAYMENT_CAPTURED',
-                        amount: (entity.amount ?? 0) / 100,
-                        currency: entity.currency ?? 'INR',
-                        status: 'SUCCESS',
-                        paymentId: payment.id,
-                        metadata: JSON.stringify({ method: entity.method, email: entity.email }),
-                    },
-                }),
-                ...(payment.orderId
-                    ? [
-                        this.prisma.order.update({
-                            where: { id: payment.orderId },
-                            data: { status: client_1.OrderStatusEnum.CONFIRMED },
-                        }),
-                    ]
-                    : []),
-            ]);
-            this.logger.log(`✅ Webhook: Payment ${razorpayPaymentId} captured and recorded`);
-            // Automatically generate invoice if attached to an order
-            if (payment.orderId) {
-                try {
-                    await this.invoicesService.createFromOrder(payment.orderId);
-                    this.logger.log(`✅ Webhook: Invoice generated for Order ${payment.orderId}`);
-                }
-                catch (error) {
-                    this.logger.error(`❌ Webhook: Failed to generate invoice for Order ${payment.orderId}: ${error.message}`);
-                }
-            }
-        }
+        const payment = await this.paymentsService.loadPaymentWithOrder(razorpayOrderId);
+        if (!payment)
+            return;
+        // Delegates to the same settlement path used by the client's own
+        // POST /payments/verify — whichever of the two reaches it first "wins" its
+        // atomic idempotency guard and runs subscription creation, commission
+        // settlement, notifications, and invoicing exactly once. Previously this
+        // webhook only recorded the payment/order and generated an invoice, so
+        // whenever it won that race (which it usually does — webhooks are faster
+        // than the browser round-trip), the client never got their subscription
+        // and the affiliate's commission was silently never settled.
+        await this.paymentsService.finalizeSuccessfulPayment(payment, razorpayPaymentId);
+        this.logger.log(`✅ Webhook: Payment ${razorpayPaymentId} captured and recorded`);
     }
     async handlePaymentFailed(entity) {
         if (!entity?.id || !entity?.order_id)
@@ -200,7 +168,7 @@ let WebhooksService = class WebhooksService {
                 try {
                     const refundAmount = (entity.amount ?? 0) / 100; // Razorpay sends paise
                     // The customer-paid total is the taxable base plus tax.
-                    const orderTotal = payment.order.netAmount + payment.order.taxAmount;
+                    const orderTotal = Number(payment.order.netAmount) + Number(payment.order.taxAmount);
                     await this.commissionService.reverseCommission(payment.orderId, refundAmount, orderTotal);
                 }
                 catch (error) {
@@ -256,7 +224,7 @@ exports.WebhooksService = WebhooksService = __decorate([
     __metadata("design:paramtypes", [prisma_service_1.PrismaService,
         razorpay_provider_1.RazorpayGateway,
         config_1.ConfigService,
-        invoices_service_1.InvoicesService,
-        commission_service_1.CommissionService])
+        commission_service_1.CommissionService,
+        payments_service_1.PaymentsService])
 ], WebhooksService);
 //# sourceMappingURL=webhooks.service.js.map

@@ -10,17 +10,29 @@ import { benefits, faqs } from "@/mock/packages";
 import { usePackages } from "@/hooks/usePackages";
 import type { BillingCycle, MarketingPackage } from "@/types/packages";
 
-export function PackagesPage() {
+interface PackagesPageProps {
+  liveFaqs?: { id: string; question: string; answer: string }[];
+}
+
+export function PackagesPage({ liveFaqs }: PackagesPageProps) {
   const [billing, setBilling] = useState<BillingCycle>("monthly");
   const { packages, loading } = usePackages();
-  
+
   const [selectedPackage, setSelectedPackage] = useState<MarketingPackage | null>(null);
 
-  const activePackages = useMemo(() => 
-    packages.filter((item) => item.status === "published").sort((a, b) => a.displayOrder - b.displayOrder), 
+  const activePackages = useMemo(() =>
+    packages.filter((item) => item.status === "published").sort((a, b) => a.displayOrder - b.displayOrder),
   [packages]);
 
-  const orderedFaqs = useMemo(() => [...faqs].sort((a, b) => a.displayOrder - b.displayOrder), []);
+  // The CMS-fetched FAQs are already ordered by the backend's own sortOrder,
+  // so only the static mock fallback needs the client-side displayOrder sort.
+  const orderedFaqs = useMemo(
+    () =>
+      liveFaqs && liveFaqs.length > 0
+        ? liveFaqs.map((item, index) => ({ ...item, displayOrder: index }))
+        : [...faqs].sort((a, b) => a.displayOrder - b.displayOrder),
+    [liveFaqs],
+  );
 
   if (loading) {
     return <div className="flex h-screen items-center justify-center bg-[var(--background)]"><div className="h-10 w-10 animate-spin rounded-full border-4 border-[var(--accent)] border-t-transparent"></div></div>;

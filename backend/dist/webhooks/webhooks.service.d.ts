@@ -1,17 +1,17 @@
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 import { RazorpayGateway } from '../payments/razorpay.provider';
-import { InvoicesService } from '../invoices/invoices.service';
 import { CommissionService } from '../affiliate/services/commission.service';
+import { PaymentsService } from '../payments/payments.service';
 export declare class WebhooksService {
     private readonly prisma;
     private readonly razorpayGateway;
     private readonly configService;
-    private readonly invoicesService;
     private readonly commissionService;
+    private readonly paymentsService;
     private readonly logger;
     private readonly webhookSecret;
-    constructor(prisma: PrismaService, razorpayGateway: RazorpayGateway, configService: ConfigService, invoicesService: InvoicesService, commissionService: CommissionService);
+    constructor(prisma: PrismaService, razorpayGateway: RazorpayGateway, configService: ConfigService, commissionService: CommissionService, paymentsService: PaymentsService);
     handleRazorpayWebhook(rawBody: Buffer, signature: string): Promise<{
         processed: boolean;
         event: string;

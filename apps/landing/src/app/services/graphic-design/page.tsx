@@ -65,16 +65,21 @@ const jsonLd = {
 };
 
 import { landingApi } from "@/lib/api";
+import { fetchMappedFaqs, fetchMappedTestimonials } from "@/lib/content-mapper";
 
 export const dynamic = "force-dynamic";
 
 export default async function Page() {
-  const liveConfig = await landingApi.getServicePageConfig('graphic-design', null);
+  const [liveConfig, liveFaqs, liveTestimonials] = await Promise.all([
+    landingApi.getServicePageConfig('graphic-design', null),
+    fetchMappedFaqs([]),
+    fetchMappedTestimonials([]),
+  ]);
 
   return (
     <>
       <Script id="json-ld-graphic-design" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <GraphicDesignPage liveConfig={liveConfig} />
+      <GraphicDesignPage liveConfig={liveConfig} liveFaqs={liveFaqs} liveTestimonials={liveTestimonials} />
     </>
   );
 }

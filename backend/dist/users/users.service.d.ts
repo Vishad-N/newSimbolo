@@ -5,6 +5,7 @@ import { SessionsService } from '../sessions/sessions.service';
 import { UserStatusEnum } from '@prisma/client';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { CreateStaffUserDto } from './dto/create-staff-user.dto';
 export declare class UsersService extends BaseService {
     private readonly prisma;
     private readonly auditService;
@@ -33,6 +34,18 @@ export declare class UsersService extends BaseService {
             limit: number;
             totalPages: number;
         };
+    }>;
+    createStaffUser(dto: CreateStaffUserDto, createdBy?: string): Promise<{
+        email: string;
+        role: {
+            id: string;
+            name: string;
+            slug: string;
+        };
+        id: string;
+        firstName: string;
+        lastName: string;
+        status: import(".prisma/client").$Enums.UserStatusEnum;
     }>;
     findByEmail(email: string): Promise<({
         role: {

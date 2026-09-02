@@ -45,16 +45,16 @@ let AdminAffiliateController = class AdminAffiliateController {
         return this.affiliateService.getEmployee(id);
     }
     createEmployee(dto, user) {
-        return this.affiliateService.createEmployee(dto.userId, {
-            commissionRate: dto.commissionRate,
-            actorUserId: user?.sub,
-        });
+        return this.affiliateService.createEmployee(dto, { actorUserId: user?.sub });
     }
     activate(id, user) {
         return this.affiliateService.setEmployeeStatus(id, client_1.AffiliateStatusEnum.ACTIVE, user?.sub);
     }
     deactivate(id, user) {
         return this.affiliateService.setEmployeeStatus(id, client_1.AffiliateStatusEnum.INACTIVE, user?.sub);
+    }
+    deleteEmployee(id, user) {
+        return this.affiliateService.deleteEmployee(id, user?.sub);
     }
     // ── Sales & commissions ───────────────────────────────────────────────────
     listSales(query) {
@@ -109,7 +109,7 @@ __decorate([
 __decorate([
     (0, common_1.Get)('employees/:id'),
     (0, swagger_1.ApiOperation)({ summary: 'Get a sales employee' }),
-    openapi.ApiResponse({ status: 200, type: Object }),
+    openapi.ApiResponse({ status: 200 }),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -118,8 +118,9 @@ __decorate([
 __decorate([
     (0, common_1.Post)('employees'),
     (0, swagger_1.ApiOperation)({
-        summary: 'Create a sales employee for an existing user',
-        description: 'Generates a unique EMP-XXXXX code and provisions the wallet in one transaction.',
+        summary: 'Create a sales employee',
+        description: 'Accepts either an existing userId, or email/firstName/lastName/password to create the user inline. ' +
+            'Generates a unique EMP-XXXXX code and provisions the wallet in one transaction.',
     }),
     openapi.ApiResponse({ status: 201 }),
     __param(0, (0, common_1.Body)()),
@@ -148,6 +149,19 @@ __decorate([
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", void 0)
 ], AdminAffiliateController.prototype, "deactivate", null);
+__decorate([
+    (0, common_1.Delete)('employees/:id'),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Soft-delete a sales employee',
+        description: 'Refuses to delete while the wallet has an outstanding balance or a withdrawal is in flight — settle those first.',
+    }),
+    openapi.ApiResponse({ status: 200 }),
+    __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
+    __param(1, (0, current_user_decorator_1.CurrentUser)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], AdminAffiliateController.prototype, "deleteEmployee", null);
 __decorate([
     (0, common_1.Get)('sales'),
     (0, swagger_1.ApiOperation)({ summary: 'List affiliate-attributed sales' }),
@@ -178,7 +192,7 @@ __decorate([
 __decorate([
     (0, common_1.Get)('withdrawals/:id'),
     (0, swagger_1.ApiOperation)({ summary: 'Get a withdrawal request' }),
-    openapi.ApiResponse({ status: 200, type: Object }),
+    openapi.ApiResponse({ status: 200 }),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
