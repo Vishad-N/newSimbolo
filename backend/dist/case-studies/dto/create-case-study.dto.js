@@ -26,8 +26,9 @@ class CreateCaseStudyDto {
     serviceId;
     categoryId;
     coverImageId;
+    readTime;
     static _OPENAPI_METADATA_FACTORY() {
-        return { title: { required: true, type: () => String }, summary: { required: true, type: () => String }, challenge: { required: true, type: () => String }, solution: { required: true, type: () => String }, results: { required: true, type: () => String }, clientName: { required: true, type: () => String }, industry: { required: false, type: () => String }, status: { required: false, enum: ["DRAFT", "IN_REVIEW", "PUBLISHED", "ARCHIVED"] }, serviceId: { required: false, type: () => String, nullable: true, format: "uuid" }, categoryId: { required: false, type: () => String, nullable: true, format: "uuid" }, coverImageId: { required: false, type: () => String, nullable: true, format: "uuid" } };
+        return { title: { required: true, type: () => String }, summary: { required: true, type: () => String }, challenge: { required: true, type: () => String }, solution: { required: true, type: () => String }, results: { required: true, type: () => String }, clientName: { required: true, type: () => String }, industry: { required: false, type: () => String }, status: { required: false, enum: ["DRAFT", "IN_REVIEW", "PUBLISHED", "ARCHIVED"] }, serviceId: { required: false, type: () => String, nullable: true, format: "uuid" }, categoryId: { required: false, type: () => String, nullable: true, format: "uuid" }, coverImageId: { required: false, type: () => String, nullable: true, format: "uuid" }, readTime: { required: false, type: () => String } };
     }
 }
 exports.CreateCaseStudyDto = CreateCaseStudyDto;
@@ -106,4 +107,10 @@ __decorate([
     (0, class_validator_1.IsUUID)('4'),
     __metadata("design:type", Object)
 ], CreateCaseStudyDto.prototype, "coverImageId", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ example: '5 min read', description: 'Estimated reading time shown on the case study card and detail page' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateCaseStudyDto.prototype, "readTime", void 0);
 //# sourceMappingURL=create-case-study.dto.js.map

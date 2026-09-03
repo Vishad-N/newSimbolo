@@ -1799,6 +1799,7 @@ model CaseStudy {
   results      String
   status       CaseStudyStatusEnum         @default(DRAFT)
   publishDate  DateTime?
+  readTime     String?
   clientName   String
   industry     String?
   serviceId    String?                     @db.Uuid
@@ -1854,16 +1855,23 @@ model BeforeAfterComparison {
   id            String   @id @default(uuid()) @db.Uuid
   title         String?
   description   String?
-  beforeImageId String   @db.Uuid
-  afterImageId  String   @db.Uuid
+  // Simple text-based stat comparison (e.g. metric="Organic Traffic", beforeValue="500/mo",
+  // afterValue="5,000/mo") — this is what "The Transformation" section on the case study
+  // detail page actually renders. The image pair below is a separate, optional visual
+  // slider comparison; a row can carry either or both.
+  metric        String?
+  beforeValue   String?
+  afterValue    String?
+  beforeImageId String?  @db.Uuid
+  afterImageId  String?  @db.Uuid
   caseStudyId   String   @db.Uuid
   sortOrder     Int      @default(0)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
   caseStudy   CaseStudy @relation(fields: [caseStudyId], references: [id], onDelete: Cascade)
-  beforeMedia Media     @relation("BeforeMedia", fields: [beforeImageId], references: [id])
-  afterMedia  Media     @relation("AfterMedia", fields: [afterImageId], references: [id])
+  beforeMedia Media?    @relation("BeforeMedia", fields: [beforeImageId], references: [id])
+  afterMedia  Media?    @relation("AfterMedia", fields: [afterImageId], references: [id])
 
   @@index([caseStudyId])
   @@map("before_after_comparisons")

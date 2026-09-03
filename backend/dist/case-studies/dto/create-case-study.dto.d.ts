@@ -11,4 +11,5 @@ export declare class CreateCaseStudyDto {
     serviceId?: string | null;
     categoryId?: string | null;
     coverImageId?: string | null;
+    readTime?: string;
 }

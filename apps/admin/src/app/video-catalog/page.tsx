@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { DataTable } from "@/components/DataTable";
+import { ImageUploader } from "@/components/forms/ImageUploader";
 import { Plus, Video, X, Save, RefreshCw, Trash, Tag } from "lucide-react";
 import { api, getDataArray } from "@/services/api";
 
@@ -54,6 +56,7 @@ export default function VideoCatalogManager() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
+  const [modalError, setModalError] = useState<string | null>(null);
 
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
@@ -83,6 +86,7 @@ export default function VideoCatalogManager() {
   const openCreateModal = () => {
     setEditingId(null);
     setForm(emptyForm);
+    setModalError(null);
     setIsModalOpen(true);
   };
 
@@ -109,6 +113,7 @@ export default function VideoCatalogManager() {
       ctaLink: item.ctaLink || "",
       categoryIds: (item.categories || []).map((c: any) => c.id),
     });
+    setModalError(null);
     setIsModalOpen(true);
   };
 
@@ -123,6 +128,11 @@ export default function VideoCatalogManager() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    setModalError(null);
+    if (!form.thumbnail) {
+      setModalError("Upload a thumbnail image before saving.");
+      return;
+    }
     const payload = {
       title: form.title,
       thumbnail: form.thumbnail,
@@ -312,7 +322,7 @@ export default function VideoCatalogManager() {
       )}
 
       {/* CREATE / EDIT MODAL */}
-      {isModalOpen && (
+      {isModalOpen && typeof document !== "undefined" && createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
           <div className="bg-[#0B0F19] border border-white/10 p-6 rounded-xl w-full max-w-3xl shadow-2xl my-8">
             <div className="flex justify-between items-center mb-6">
@@ -329,8 +339,9 @@ export default function VideoCatalogManager() {
                   <input required type="text" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Instagram Reels & TikToks" />
                 </div>
                 <div className="col-span-2">
-                  <label className="block text-sm text-gray-400 mb-1">Thumbnail Image URL</label>
-                  <input required type="text" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white" value={form.thumbnail} onChange={(e) => setForm({ ...form, thumbnail: e.target.value })} placeholder="https://..." />
+                  <label className="block text-sm text-gray-400 mb-1">Thumbnail Image</label>
+                  <ImageUploader value={form.thumbnail} onChange={(thumbnail) => setForm({ ...form, thumbnail })} folder="video-catalog" />
+                  {!form.thumbnail && <p className="mt-1 text-xs text-red-400">Required — upload a new image or browse the media library.</p>}
                 </div>
                 <div>
                   <label className="block text-sm text-gray-400 mb-1">Preview Type</label>
@@ -430,6 +441,10 @@ export default function VideoCatalogManager() {
                 </div>
               </div>
 
+              {modalError && (
+                <div className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-2 text-sm text-red-400">{modalError}</div>
+              )}
+
               <div className="flex justify-end gap-3 mt-8">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors">
                   Cancel
@@ -440,11 +455,12 @@ export default function VideoCatalogManager() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* CATEGORIES MODAL */}
-      {isCategoryModalOpen && (
+      {isCategoryModalOpen && typeof document !== "undefined" && createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <div className="bg-[#0B0F19] border border-white/10 p-6 rounded-xl w-full max-w-md shadow-2xl">
             <div className="flex justify-between items-center mb-6">
@@ -473,7 +489,8 @@ export default function VideoCatalogManager() {
               ))}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

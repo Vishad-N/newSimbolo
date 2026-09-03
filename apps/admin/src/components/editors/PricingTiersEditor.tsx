@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { Plus, Trash2, X, Save, Layers } from "lucide-react";
 import { api, getDataArray } from "@/services/api";
 import { SectionEditor } from "./SectionEditor";
@@ -218,6 +219,7 @@ export function PricingTiersEditor({ slug }: { slug: string }) {
   if (isLoading) return <div className="text-gray-400 text-sm">Loading pricing tiers...</div>;
 
   return (
+    <>
     <SectionEditor
       title="Pricing Tiers"
       description={`Up to ${MAX_TIERS} standalone plans shown on this service page's pricing grid. Purchasable directly — no other package is required first.`}
@@ -280,8 +282,9 @@ export function PricingTiersEditor({ slug }: { slug: string }) {
           )}
         </div>
       )}
+    </SectionEditor>
 
-      {isModalOpen && (
+    {isModalOpen && typeof document !== "undefined" && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <div className="flex max-h-[calc(100dvh-2rem)] w-full max-w-lg flex-col overflow-hidden rounded-xl border border-white/10 bg-background shadow-2xl">
             <div className="flex shrink-0 items-center justify-between border-b border-white/10 p-6">
@@ -367,8 +370,9 @@ export function PricingTiersEditor({ slug }: { slug: string }) {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
-    </SectionEditor>
+    </>
   );
 }

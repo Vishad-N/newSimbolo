@@ -16,12 +16,15 @@ const class_validator_1 = require("class-validator");
 class CreateBeforeAfterDto {
     title;
     description;
+    metric;
+    beforeValue;
+    afterValue;
     beforeImageId;
     afterImageId;
     caseStudyId;
     sortOrder;
     static _OPENAPI_METADATA_FACTORY() {
-        return { title: { required: false, type: () => String }, description: { required: false, type: () => String }, beforeImageId: { required: true, type: () => String, format: "uuid" }, afterImageId: { required: true, type: () => String, format: "uuid" }, caseStudyId: { required: true, type: () => String, format: "uuid" }, sortOrder: { required: false, type: () => Number } };
+        return { title: { required: false, type: () => String }, description: { required: false, type: () => String }, metric: { required: false, type: () => String }, beforeValue: { required: false, type: () => String }, afterValue: { required: false, type: () => String }, beforeImageId: { required: false, type: () => String, format: "uuid" }, afterImageId: { required: false, type: () => String, format: "uuid" }, caseStudyId: { required: true, type: () => String, format: "uuid" }, sortOrder: { required: false, type: () => Number } };
     }
 }
 exports.CreateBeforeAfterDto = CreateBeforeAfterDto;
@@ -41,12 +44,32 @@ __decorate([
     __metadata("design:type", String)
 ], CreateBeforeAfterDto.prototype, "description", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 'c0a80123-4567-89ab-cdef-0123456789ab', description: 'Before image MediaAsset UUID' }),
+    (0, swagger_1.ApiPropertyOptional)({ example: 'Organic Traffic', description: 'The stat/metric being compared (rendered as the card heading)' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateBeforeAfterDto.prototype, "metric", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ example: '500 / mo', description: 'Value before the engagement' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateBeforeAfterDto.prototype, "beforeValue", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ example: '5,000 / mo', description: 'Value after the engagement' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateBeforeAfterDto.prototype, "afterValue", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ example: 'c0a80123-4567-89ab-cdef-0123456789ab', description: 'Before image MediaAsset UUID (optional visual slider)' }),
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsUUID)('4'),
     __metadata("design:type", String)
 ], CreateBeforeAfterDto.prototype, "beforeImageId", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 'c0a80123-4567-89ab-cdef-0123456789ab', description: 'After image MediaAsset UUID' }),
+    (0, swagger_1.ApiPropertyOptional)({ example: 'c0a80123-4567-89ab-cdef-0123456789ab', description: 'After image MediaAsset UUID (optional visual slider)' }),
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsUUID)('4'),
     __metadata("design:type", String)
 ], CreateBeforeAfterDto.prototype, "afterImageId", void 0);

@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
-import { api, AdminLoginResponse } from "@/services/api";
+import { api, AdminLoginResponse, SESSION_EXPIRED_EVENT } from "@/services/api";
 import { useUIStore } from "@/store/uiStore";
 import { cn } from "@/utils/utils";
 import { Bell, Loader2, LogOut, Menu, Search, User, X } from "lucide-react";
@@ -32,6 +32,19 @@ export function TopNavbar() {
         localStorage.removeItem(userStorageKey);
       }
     }
+  }, []);
+
+  // Fired by the API layer when a silent token refresh fails outright (the refresh
+  // token itself is missing/expired/revoked) — drop the cached "signed in" state and
+  // prompt for sign-in again, instead of continuing to show a stale "Signed in as ..."
+  // while every authenticated call quietly 401s in the background.
+  useEffect(() => {
+    const handleSessionExpired = () => {
+      setApiUser(null);
+      setIsApiLoginOpen(true);
+    };
+    window.addEventListener(SESSION_EXPIRED_EVENT, handleSessionExpired);
+    return () => window.removeEventListener(SESSION_EXPIRED_EVENT, handleSessionExpired);
   }, []);
 
   // Simple breadcrumb generator based on pathname

@@ -47,7 +47,14 @@ export async function fetchMappedCaseStudies(mockFallback: CaseStudy[], isFeatur
         accent: m.accent || "blue",
         displayOrder: m.sortOrder || 0
       })) : [],
-      beforeAfter: [],
+      beforeAfter: (cs.beforeAfters || [])
+        .filter((ba: any) => ba.metric && ba.beforeValue && ba.afterValue)
+        .map((ba: any) => ({
+          id: ba.id,
+          metric: ba.metric,
+          before: ba.beforeValue,
+          after: ba.afterValue,
+        })),
       timeline: [],
       gallery: [],
       testimonial: undefined,

@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { Search } from "lucide-react";
+import { toSecureCloudinaryUrl } from "@/lib/utils";
 import { useVideoServices } from "@/hooks/useVideoServices";
 import { VideoServiceCard } from "@/components/videoEditing/VideoServiceCard";
 import { VideoPreviewModal } from "@/components/videoEditing/VideoPreviewModal";
@@ -19,7 +20,7 @@ function mapApiVideoItem(item: any): VideoEditingService {
     title: item.title,
     slug: item.slug,
     categoryIds: (item.categories || []).map((c: any) => c.id),
-    thumbnail: item.thumbnail,
+    thumbnail: toSecureCloudinaryUrl(item.thumbnail),
     previewType: String(item.previewType || "YOUTUBE").toLowerCase() as PreviewType,
     previewUrl: item.previewUrl,
     shortDescription: item.shortDescription,

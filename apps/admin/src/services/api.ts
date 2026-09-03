@@ -7,36 +7,132 @@
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api/v1";
 
+const TOKEN_STORAGE_KEY = "admin_token";
+const REFRESH_TOKEN_STORAGE_KEY = "admin_refresh_token";
+const USER_STORAGE_KEY = "admin_user";
+
+// Fired when a refresh attempt fails outright (refresh token missing/expired/revoked) so
+// TopNavbar can drop its cached "signed in" state and prompt the user to sign in again,
+// instead of silently continuing to show a stale "Signed in as ..." while every
+// authenticated call 401s in the background.
+export const SESSION_EXPIRED_EVENT = "admin-session-expired";
+
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 const getAuthHeaders = (): Record<string, string> => {
   if (typeof window === "undefined") return {};
 
-  const token = localStorage.getItem("admin_token");
+  const token = localStorage.getItem(TOKEN_STORAGE_KEY);
   return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
+const clearSession = () => {
+  if (typeof window === "undefined") return;
+  localStorage.removeItem(TOKEN_STORAGE_KEY);
+  localStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY);
+  localStorage.removeItem(USER_STORAGE_KEY);
+  window.dispatchEvent(new Event(SESSION_EXPIRED_EVENT));
+};
+
+// A short-lived access token expiring mid-session is the common case (not a bug to
+// surface as an error) — refresh it silently using the longer-lived refresh token and
+// retry the original call once. Concurrent 401s share one in-flight refresh instead of
+// each firing their own (which would race to rotate the refresh token and invalidate
+// each other). Only a failed refresh (refresh token itself missing/expired/revoked) is
+// a real "you're logged out" event.
+let refreshPromise: Promise<string | null> | null = null;
+
+async function refreshAccessToken(): Promise<string | null> {
+  if (refreshPromise) return refreshPromise;
+
+  refreshPromise = (async () => {
+    if (typeof window === "undefined") return null;
+    const refreshToken = localStorage.getItem(REFRESH_TOKEN_STORAGE_KEY);
+    if (!refreshToken) {
+      clearSession();
+      return null;
+    }
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/auth/refresh-token`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refreshToken }),
+      });
+      if (!res.ok) {
+        clearSession();
+        return null;
+      }
+      const json = await res.json();
+      const data = json && typeof json === "object" && "data" in json ? json.data : json;
+      if (!data?.accessToken || !data?.refreshToken) {
+        clearSession();
+        return null;
+      }
+      localStorage.setItem(TOKEN_STORAGE_KEY, data.accessToken);
+      localStorage.setItem(REFRESH_TOKEN_STORAGE_KEY, data.refreshToken);
+      return data.accessToken as string;
+    } catch {
+      // Network failure talking to the refresh endpoint — leave the session alone
+      // (don't log the user out over a blip); the retried request will just fail
+      // with the original error and the caller's existing fallback handling applies.
+      return null;
+    }
+  })();
+
+  try {
+    return await refreshPromise;
+  } finally {
+    refreshPromise = null;
+  }
+}
+
+// Shared by every caller that talks to the backend directly — the JSON helper below,
+// plus raw multipart/form-data callers (file uploads) that can't go through
+// fetchFromApi because it always forces a JSON Content-Type. Handles the 401 ->
+// silent-refresh -> retry-once flow in one place so neither kind of caller has to
+// duplicate it.
+export async function fetchWithAuthRetry(url: string, options?: RequestInit): Promise<Response> {
+  const isRefreshCall = url.includes("/auth/refresh-token");
+
+  const res = await fetch(url, {
+    ...options,
+    headers: {
+      ...getAuthHeaders(),
+      ...(options?.headers || {}),
+    },
+  });
+
+  if (res.status === 401 && !isRefreshCall && typeof window !== "undefined" && localStorage.getItem(REFRESH_TOKEN_STORAGE_KEY)) {
+    const newAccessToken = await refreshAccessToken();
+    if (newAccessToken) {
+      return fetch(url, {
+        ...options,
+        headers: {
+          ...(options?.headers || {}),
+          Authorization: `Bearer ${newAccessToken}`,
+        },
+      });
+    }
+    // Refresh itself failed — clearSession() already ran inside refreshAccessToken().
+  }
+
+  return res;
+}
+
 async function fetchFromApi<T>(endpoint: string, options?: RequestInit, fallback?: T): Promise<T> {
   try {
-    const res = await fetch(`${API_BASE_URL}${endpoint}`, {
+    const res = await fetchWithAuthRetry(`${API_BASE_URL}${endpoint}`, {
       ...options,
       headers: {
         'Content-Type': 'application/json',
-        ...getAuthHeaders(),
         ...(options?.headers || {}),
       },
     });
     if (!res.ok) {
       throw new Error(`API error (${res.status}): ${res.statusText}`);
     }
-    const json = await res.json();
-    // The backend's global TransformInterceptor wraps every response in
-    // { success, message, data }. Unwrap it here, once, so every caller gets the
-    // real payload directly instead of each having to know about this envelope.
-    if (json && typeof json === 'object' && 'success' in json && 'data' in json) {
-      return json.data;
-    }
-    return json;
+    return unwrapEnvelope<T>(await res.json());
   } catch (error) {
     console.warn(`[Simbolo API Fallback] Could not fetch ${endpoint}, returning fallback data:`, error);
     if (fallback !== undefined) {
@@ -45,6 +141,16 @@ async function fetchFromApi<T>(endpoint: string, options?: RequestInit, fallback
     }
     throw error;
   }
+}
+
+// The backend's global TransformInterceptor wraps every response in
+// { success, message, data }. Unwrap it here, once, so every caller gets the
+// real payload directly instead of each having to know about this envelope.
+function unwrapEnvelope<T>(json: unknown): T {
+  if (json && typeof json === 'object' && 'success' in json && 'data' in json) {
+    return (json as { data: T }).data;
+  }
+  return json as T;
 }
 
 export interface ManualClientPayload {
@@ -455,6 +561,9 @@ export const api = {
     addMetric: async (data: { label: string; value: string; changePercentage?: string; prefix?: string; suffix?: string; accent?: string; caseStudyId: string; sortOrder?: number }) =>
       fetchFromApi('/case-studies/metrics', { method: 'POST', body: JSON.stringify(data) }),
     deleteMetric: async (id: string) => fetchFromApi(`/case-studies/metrics/${id}`, { method: 'DELETE' }),
+    addBeforeAfter: async (data: { metric?: string; beforeValue?: string; afterValue?: string; title?: string; description?: string; beforeImageId?: string; afterImageId?: string; caseStudyId: string; sortOrder?: number }) =>
+      fetchFromApi('/case-studies/before-after', { method: 'POST', body: JSON.stringify(data) }),
+    deleteBeforeAfter: async (id: string) => fetchFromApi(`/case-studies/before-after/${id}`, { method: 'DELETE' }),
   },
   portfolio: {
     getAll: async () => fetchFromApi('/portfolio', { method: 'GET' }),
@@ -500,12 +609,9 @@ export const api = {
       return fetchFromApi(url, { method: 'GET' });
     },
     upload: async (fileData: FormData) => {
-      const res = await fetch(`${API_BASE_URL}/website-media/upload`, {
+      const res = await fetchWithAuthRetry(`${API_BASE_URL}/website-media/upload`, {
         method: 'POST',
         body: fileData,
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('admin_token')}`
-        }
       });
       if (!res.ok) throw new Error(`Upload failed (${res.status})`);
       return await res.json();

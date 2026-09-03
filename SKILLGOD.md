@@ -3,7 +3,7 @@
 > Auto-managed digest for Aider and other CLIs that `read:` this file. Your notes above the markers are safe.
 
 <!-- SKILLGOD:START v1.1 -->
-# SkillGod Project Memory (auto-generated — do not edit; updated 2026-09-02 19:19)
+# SkillGod Project Memory (auto-generated — do not edit; updated 2026-09-03 13:29)
 
 # SkillGod Active
 
@@ -22,20 +22,20 @@ After completing **meaningful** work (decisions, architecture, non-obvious fixes
 ## SkillGod health
 - version: 1.0.1+794a995
 - project_id: `visha-90fc8883`
-- last inject: 2026-09-02T19:19:48 (runtime)
+- last inject: 2026-09-03T13:29:37 (runtime)
 - last capture: never (-)
 - markers: SKILLGOD:START v1.1
 
 ## Project memory
 
 ## Decisions
-- {"filePath": "C:\\Users\\visha\\simbolonew\\apps\\landing\\src\\mock\\about.ts", "oldString": " cta: {\n title: \"Ready to Grow Your Business?\",\n subtitle: \"Let's build somethin
-- {"stdout": "\"use client\";\n\nimport { aboutData } from \"@/mock/about\";\nimport { AboutHero } from \"@/components/about-us/AboutHero\";\nimport { OurStory } from \"@/components/
-- {"stdout": "â–² Next.js 16.2.11 (Turbopack)\n- Environments: .env.local\n\nâš The \"middleware\" file convention is deprecated. Please use \"proxy\" instead. Learn more: https://ne
-- {"filePath": "C:\\Users\\visha\\simbolonew\\apps\\admin\\src\\services\\api.ts", "oldString": " caseStudies: {\n getAll: async () => fetchFromApi('/case-studies', { method: 'GET' }
-- {"filePath": "C:\\Users\\visha\\simbolonew\\apps\\admin\\src\\services\\api.ts", "oldString": " create: async (data: any) => fetchFromApi('/case-studies', { method: 'POST', body: J
-- {"filePath": "C:\\Users\\visha\\simbolonew\\backend\\prisma\\schema.prisma", "oldString": "model CaseStudyMetric {\n id String @id @default(uuid()) @db.Uuid\n label String
-- {"stdout": "165:enum CaseStudyStatusEnum {\n166- DRAFT\n167- IN_REVIEW\n168- PUBLISHED\n169- ARCHIVED\n170-}\n171-\n172-enum PortfolioStatusEnum {\n173- DRAFT\n174- PUBLISHED\n175-
+- {"stdout": "âš The \"middleware\" file convention is deprecated. Please use \"proxy\" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy\n Creating an optimi
+- {"stdout": "âš The \"middleware\" file convention is deprecated. Please use \"proxy\" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy\n Creating an optimi
+- {"filePath": "C:\\Users\\visha\\simbolonew\\backend\\prisma\\schema.prisma", "oldString": " status CaseStudyStatusEnum @default(DRAFT)\n publishDate DateTime?\n clientName String\n
+- {"stdout": "âš The \"middleware\" file convention is deprecated. Please use \"proxy\" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy\n Creating an optimi
+- {"filePath": "C:\\Users\\visha\\simbolonew\\apps\\admin\\src\\services\\api.ts", "oldString": " addMetric: async (data: { label: string; value: string; changePercentage?: string; p
+- {"filePath": "C:\\Users\\visha\\simbolonew\\backend\\src\\case-studies\\dto\\create-before-after.dto.ts", "oldString": " @ApiProperty({ example: 'c0a80123-4567-89ab-cdef-0123456789
+- {"filePath": "C:\\Users\\visha\\simbolonew\\backend\\prisma\\schema.prisma", "oldString": "model BeforeAfterComparison {\n id String @id @default(uuid()) @db.Uuid\n title String
 
 ## Notes
 

@@ -4,17 +4,27 @@ import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { Loader2, UploadCloud, Image as ImageIcon, Check, X } from "lucide-react";
 import { cn } from "@/utils/utils";
-import { api, getDataArray } from "@/services/api";
+import { api, getDataArray, fetchWithAuthRetry } from "@/services/api";
 
 interface MediaAsset {
   id: string;
   url: string;
+  secureUrl?: string;
   filename: string;
   format: string;
   width?: number;
   height?: number;
   folder: string;
 }
+
+// Cloudinary's raw `url` field is plain http:// — Next.js's <Image> component (used
+// wherever a selected asset ends up rendered on the public site) only allows
+// https://res.cloudinary.com per next.config's remotePatterns, so an http:// URL
+// silently fails to load (broken image, alt text only). Normalize to the secure
+// variant right here so every consumer (ImageUploader, this component's own grid,
+// any future caller) gets a URL that actually renders, without each one needing to
+// know Cloudinary returns two URL fields.
+const toSecure = (asset: MediaAsset): MediaAsset => ({ ...asset, url: asset.secureUrl || asset.url });
 
 interface MediaSelectorProps {
   onSelect: (media: MediaAsset) => void;
@@ -29,22 +39,35 @@ export function MediaSelector({ onSelect, triggerText = "Select Media", triggerI
   const [isLoading, setIsLoading] = useState(false);
   const [selectedAsset, setSelectedAsset] = useState<MediaAsset | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const extractErrorMessage = async (res: Response, fallback: string) => {
+    try {
+      const body = await res.json();
+      const message = body?.message ?? body?.data?.message;
+      if (Array.isArray(message)) return message.join(" ");
+      if (typeof message === "string") return message;
+    } catch {
+      // Non-JSON error body (e.g. an HTML error page from a proxy) — fall through.
+    }
+    return `${fallback} (${res.status} ${res.statusText})`;
+  };
 
   const fetchAssets = async () => {
     setTimeout(() => setIsLoading(true), 0);
+    setError(null);
     try {
       const url = folder ? `${api.config.baseURL}/website-media?folder=${folder}` : `${api.config.baseURL}/website-media`;
-      const res = await fetch(url, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('admin_token')}`
-        }
-      });
+      const res = await fetchWithAuthRetry(url);
       if (res.ok) {
         const data = await res.json();
-        setAssets(getDataArray<MediaAsset>(data));
+        setAssets(getDataArray<MediaAsset>(data).map(toSecure));
+      } else {
+        setError(await extractErrorMessage(res, "Failed to load media library"));
       }
     } catch (error) {
       console.error("Failed to fetch media assets", error);
+      setError(error instanceof Error ? error.message : "Failed to load media library");
     } finally {
       setIsLoading(false);
     }
@@ -61,6 +84,7 @@ export function MediaSelector({ onSelect, triggerText = "Select Media", triggerI
     if (!file) return;
 
     setIsUploading(true);
+    setError(null);
     const formData = new FormData();
     formData.append("file", file);
     if (folder) {
@@ -68,21 +92,23 @@ export function MediaSelector({ onSelect, triggerText = "Select Media", triggerI
     }
 
     try {
-      const res = await fetch(`${api.config.baseURL}/website-media/upload`, {
+      const res = await fetchWithAuthRetry(`${api.config.baseURL}/website-media/upload`, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('admin_token')}`
-        },
         body: formData,
       });
 
       if (res.ok) {
         await fetchAssets();
+      } else {
+        setError(await extractErrorMessage(res, "Failed to upload file"));
       }
     } catch (error) {
       console.error("Failed to upload file", error);
+      setError(error instanceof Error ? error.message : "Failed to upload file");
     } finally {
       setIsUploading(false);
+      // Allow re-selecting the same file after a failed attempt.
+      e.target.value = "";
     }
   };
 
@@ -142,7 +168,13 @@ export function MediaSelector({ onSelect, triggerText = "Select Media", triggerI
                 </button>
               </div>
             </div>
-            
+
+            {error && (
+              <div className="mx-6 mt-4 rounded-md border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm text-red-400">
+                {error}
+              </div>
+            )}
+
             <div className="flex-1 overflow-y-auto p-6 bg-muted/30">
               {isLoading ? (
                 <div className="flex items-center justify-center h-full">

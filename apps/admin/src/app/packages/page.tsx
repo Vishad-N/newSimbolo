@@ -265,7 +265,16 @@ export default function PackagesPage() {
       if (editingPackageId) {
         await api.packages.update(editingPackageId, payload);
       } else {
-        await api.packages.create(payload);
+        const created = await api.packages.create(payload) as { id: string };
+        // Bullets typed before the package existed are only held in local state
+        // (tagged "local-") — flush them to the real endpoint now that there's a
+        // package id to attach them to.
+        const pendingBullets = packageFeatures.filter((feature) => feature.id.startsWith("local-"));
+        for (const bullet of pendingBullets) {
+          const kind = bullet.kind || "FEATURE";
+          const sortOrder = pendingBullets.filter((b) => (b.kind || "FEATURE") === kind).indexOf(bullet);
+          await api.packages.addFeature({ name: bullet.name, packageId: created.id, kind, sortOrder });
+        }
       }
       setIsModalOpen(false);
       setEditingPackageId(null);
@@ -278,11 +287,22 @@ export default function PackagesPage() {
     }
   };
 
+  // Before the package exists yet (creating a new one), bullets are held only in local
+  // state — tagged with a "local-" id — and flushed to the real API in handleSubmit once
+  // the package has been created. Once editingPackageId is set, each bullet is persisted
+  // immediately via the real endpoint, same as before.
   const addPackageBullet = async (kind: PackageFeatureKind, name: string) => {
-    if (!name || !editingPackageId) return;
+    if (!name) return;
 
     const setSaving = kind === "DELIVERABLE" ? setIsSavingDeliverable : setIsSavingFeature;
     const clearInput = kind === "DELIVERABLE" ? setDeliverableInput : setFeatureInput;
+
+    if (!editingPackageId) {
+      setPackageFeatures((current) => [...current, { id: `local-${Date.now()}-${Math.random().toString(36).slice(2)}`, name, kind }]);
+      clearInput("");
+      return;
+    }
+
     const sortOrder = packageFeatures.filter((feature) => (feature.kind || "FEATURE") === kind).length;
 
     setSaving(true);
@@ -312,6 +332,10 @@ export default function PackagesPage() {
   const handleAddDeliverable = () => addPackageBullet("DELIVERABLE", deliverableInput.trim());
 
   const handleDeleteFeature = async (featureId: string) => {
+    if (featureId.startsWith("local-")) {
+      setPackageFeatures((current) => current.filter((feature) => feature.id !== featureId));
+      return;
+    }
     try {
       await api.packages.deleteFeature(featureId);
       setPackageFeatures((current) => current.filter((feature) => feature.id !== featureId));
@@ -521,102 +545,94 @@ export default function PackagesPage() {
               <div>
                 <label className="block text-sm text-gray-400 mb-1">Everything Included</label>
                 <p className="mb-2 text-xs text-gray-500">Shown as the checkmark list on the expanded package details.</p>
-                {editingPackageId ? (
-                  <div className="space-y-2">
-                    {packageFeatures.filter((feature) => (feature.kind || "FEATURE") === "FEATURE").length > 0 && (
-                      <ul className="space-y-1.5">
-                        {packageFeatures.filter((feature) => (feature.kind || "FEATURE") === "FEATURE").map((feature) => (
-                          <li key={feature.id} className="flex items-center justify-between gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5">
-                            <span className="text-sm text-white">{feature.name}</span>
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteFeature(feature.id)}
-                              className="p-1 text-gray-400 hover:text-red-400 transition-colors"
-                              aria-label={`Remove feature ${feature.name}`}
-                            >
-                              <X className="w-4 h-4" />
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        className="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white"
-                        value={featureInput}
-                        onChange={e => setFeatureInput(e.target.value)}
-                        onKeyDown={e => {
-                          if (e.key === "Enter") {
-                            e.preventDefault();
-                            handleAddFeature();
-                          }
-                        }}
-                        placeholder="e.g. Weekly Optimization"
-                      />
-                      <button
-                        type="button"
-                        onClick={handleAddFeature}
-                        disabled={isSavingFeature || !featureInput.trim()}
-                        className="px-4 py-2 bg-white/10 hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors shrink-0"
-                      >
-                        {isSavingFeature ? "Adding..." : "Add"}
-                      </button>
-                    </div>
+                <div className="space-y-2">
+                  {packageFeatures.filter((feature) => (feature.kind || "FEATURE") === "FEATURE").length > 0 && (
+                    <ul className="space-y-1.5">
+                      {packageFeatures.filter((feature) => (feature.kind || "FEATURE") === "FEATURE").map((feature) => (
+                        <li key={feature.id} className="flex items-center justify-between gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5">
+                          <span className="text-sm text-white">{feature.name}</span>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteFeature(feature.id)}
+                            className="p-1 text-gray-400 hover:text-red-400 transition-colors"
+                            aria-label={`Remove feature ${feature.name}`}
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      className="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white"
+                      value={featureInput}
+                      onChange={e => setFeatureInput(e.target.value)}
+                      onKeyDown={e => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleAddFeature();
+                        }
+                      }}
+                      placeholder="e.g. Weekly Optimization"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddFeature}
+                      disabled={isSavingFeature || !featureInput.trim()}
+                      className="px-4 py-2 bg-white/10 hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors shrink-0"
+                    >
+                      {isSavingFeature ? "Adding..." : "Add"}
+                    </button>
                   </div>
-                ) : (
-                  <p className="text-xs text-gray-500">Save the package first, then reopen it to add feature bullet points.</p>
-                )}
+                </div>
               </div>
               <div>
                 <label className="block text-sm text-gray-400 mb-1">Monthly Deliverables</label>
                 <p className="mb-2 text-xs text-gray-500">Shown as the numbered list on the expanded package details.</p>
-                {editingPackageId ? (
-                  <div className="space-y-2">
-                    {packageFeatures.filter((feature) => feature.kind === "DELIVERABLE").length > 0 && (
-                      <ul className="space-y-1.5">
-                        {packageFeatures.filter((feature) => feature.kind === "DELIVERABLE").map((feature) => (
-                          <li key={feature.id} className="flex items-center justify-between gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5">
-                            <span className="text-sm text-white">{feature.name}</span>
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteFeature(feature.id)}
-                              className="p-1 text-gray-400 hover:text-red-400 transition-colors"
-                              aria-label={`Remove deliverable ${feature.name}`}
-                            >
-                              <X className="w-4 h-4" />
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        className="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white"
-                        value={deliverableInput}
-                        onChange={e => setDeliverableInput(e.target.value)}
-                        onKeyDown={e => {
-                          if (e.key === "Enter") {
-                            e.preventDefault();
-                            handleAddDeliverable();
-                          }
-                        }}
-                        placeholder="e.g. 5 Reels per Month"
-                      />
-                      <button
-                        type="button"
-                        onClick={handleAddDeliverable}
-                        disabled={isSavingDeliverable || !deliverableInput.trim()}
-                        className="px-4 py-2 bg-white/10 hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors shrink-0"
-                      >
-                        {isSavingDeliverable ? "Adding..." : "Add"}
-                      </button>
-                    </div>
+                <div className="space-y-2">
+                  {packageFeatures.filter((feature) => feature.kind === "DELIVERABLE").length > 0 && (
+                    <ul className="space-y-1.5">
+                      {packageFeatures.filter((feature) => feature.kind === "DELIVERABLE").map((feature) => (
+                        <li key={feature.id} className="flex items-center justify-between gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5">
+                          <span className="text-sm text-white">{feature.name}</span>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteFeature(feature.id)}
+                            className="p-1 text-gray-400 hover:text-red-400 transition-colors"
+                            aria-label={`Remove deliverable ${feature.name}`}
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      className="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white"
+                      value={deliverableInput}
+                      onChange={e => setDeliverableInput(e.target.value)}
+                      onKeyDown={e => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleAddDeliverable();
+                        }
+                      }}
+                      placeholder="e.g. 5 Reels per Month"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddDeliverable}
+                      disabled={isSavingDeliverable || !deliverableInput.trim()}
+                      className="px-4 py-2 bg-white/10 hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors shrink-0"
+                    >
+                      {isSavingDeliverable ? "Adding..." : "Add"}
+                    </button>
                   </div>
-                ) : (
-                  <p className="text-xs text-gray-500">Save the package first, then reopen it to add monthly deliverables.</p>
-                )}
+                </div>
               </div>
               {modalError && (
                 <div className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-2 text-sm text-red-400">

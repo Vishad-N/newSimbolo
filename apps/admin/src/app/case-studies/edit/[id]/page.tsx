@@ -34,6 +34,22 @@ const emptyMetricRow = (): MetricRow => ({
   saved: false,
 });
 
+interface TransformationRow {
+  id: string;
+  metric: string;
+  beforeValue: string;
+  afterValue: string;
+  saved: boolean;
+}
+
+const emptyTransformationRow = (): TransformationRow => ({
+  id: `new-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+  metric: "",
+  beforeValue: "",
+  afterValue: "",
+  saved: false,
+});
+
 export default function EditCaseStudyPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const resolvedParams = use(params);
@@ -42,6 +58,9 @@ export default function EditCaseStudyPage({ params }: { params: Promise<{ id: st
   const [isLoading, setIsLoading] = useState(!isNew);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [categories, setCategories] = useState<CategoryOption[]>([]);
+  const [isAddingCategory, setIsAddingCategory] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [isCreatingCategory, setIsCreatingCategory] = useState(false);
 
   const [title, setTitle] = useState("");
   const [clientName, setClientName] = useState("");
@@ -51,6 +70,7 @@ export default function EditCaseStudyPage({ params }: { params: Promise<{ id: st
   const [challenge, setChallenge] = useState("");
   const [solution, setSolution] = useState("");
   const [results, setResults] = useState("");
+  const [readTime, setReadTime] = useState("");
   const [status, setStatus] = useState<"DRAFT" | "PUBLISHED" | "ARCHIVED">("DRAFT");
 
   const [coverImageId, setCoverImageId] = useState<string | undefined>(undefined);
@@ -58,6 +78,7 @@ export default function EditCaseStudyPage({ params }: { params: Promise<{ id: st
 
   const [caseStudyId, setCaseStudyId] = useState<string | null>(isNew ? null : resolvedParams.id);
   const [metrics, setMetrics] = useState<MetricRow[]>([]);
+  const [transformations, setTransformations] = useState<TransformationRow[]>([]);
 
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
@@ -84,6 +105,7 @@ export default function EditCaseStudyPage({ params }: { params: Promise<{ id: st
           setChallenge(cs.challenge || "");
           setSolution(cs.solution || "");
           setResults(cs.results || "");
+          setReadTime(cs.readTime || "");
           setStatus(cs.status || "DRAFT");
           setCoverImageId(cs.coverImageId || cs.coverImage?.id || undefined);
           setCoverImagePreview(cs.coverImage?.secureUrl || cs.coverImage?.url || null);
@@ -96,6 +118,15 @@ export default function EditCaseStudyPage({ params }: { params: Promise<{ id: st
               prefix: m.prefix || "",
               suffix: m.suffix || "",
               accent: m.accent || "primary",
+              saved: true,
+            })),
+          );
+          setTransformations(
+            (cs.beforeAfters || []).map((ba: any) => ({
+              id: ba.id,
+              metric: ba.metric || "",
+              beforeValue: ba.beforeValue || "",
+              afterValue: ba.afterValue || "",
               saved: true,
             })),
           );
@@ -128,6 +159,7 @@ export default function EditCaseStudyPage({ params }: { params: Promise<{ id: st
       industry: industry || undefined,
       categoryId: categoryId || undefined,
       coverImageId: coverImageId || undefined,
+      readTime: readTime.trim() || undefined,
       status: nextStatus,
     };
     try {
@@ -146,6 +178,23 @@ export default function EditCaseStudyPage({ params }: { params: Promise<{ id: st
       setSaveMessage(error instanceof Error ? error.message : "Failed to save case study");
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleCreateCategory = async () => {
+    const name = newCategoryName.trim();
+    if (!name) return;
+    setIsCreatingCategory(true);
+    try {
+      const created = (await api.caseStudies.createCategory({ name })) as CategoryOption;
+      setCategories((current) => [...current, created].sort((a, b) => a.name.localeCompare(b.name)));
+      setCategoryId(created.id);
+      setNewCategoryName("");
+      setIsAddingCategory(false);
+    } catch (err) {
+      setSaveMessage(err instanceof Error ? err.message : "Failed to create category");
+    } finally {
+      setIsCreatingCategory(false);
     }
   };
 
@@ -186,6 +235,42 @@ export default function EditCaseStudyPage({ params }: { params: Promise<{ id: st
       }
     }
     setMetrics((current) => current.filter((_, i) => i !== index));
+  };
+
+  const updateTransformation = (index: number, patch: Partial<TransformationRow>) => {
+    setTransformations((current) => current.map((t, i) => (i === index ? { ...t, ...patch } : t)));
+  };
+
+  const handleAddTransformationRow = () => setTransformations((current) => [...current, emptyTransformationRow()]);
+
+  const handleSaveTransformation = async (index: number) => {
+    const row = transformations[index];
+    if (!caseStudyId || !row.metric.trim() || !row.beforeValue.trim() || !row.afterValue.trim()) return;
+    try {
+      const created = (await api.caseStudies.addBeforeAfter({
+        metric: row.metric.trim(),
+        beforeValue: row.beforeValue.trim(),
+        afterValue: row.afterValue.trim(),
+        caseStudyId,
+        sortOrder: index,
+      })) as { id: string };
+      updateTransformation(index, { id: created.id, saved: true });
+    } catch (err) {
+      setSaveMessage(err instanceof Error ? err.message : "Failed to save transformation stat");
+    }
+  };
+
+  const handleDeleteTransformation = async (index: number) => {
+    const row = transformations[index];
+    if (row.saved) {
+      try {
+        await api.caseStudies.deleteBeforeAfter(row.id);
+      } catch (err) {
+        setSaveMessage(err instanceof Error ? err.message : "Failed to remove transformation stat");
+        return;
+      }
+    }
+    setTransformations((current) => current.filter((_, i) => i !== index));
   };
 
   if (isLoading) {
@@ -245,19 +330,56 @@ export default function EditCaseStudyPage({ params }: { params: Promise<{ id: st
             <input type="text" value={industry} onChange={(e) => setIndustry(e.target.value)} className="w-full bg-background border border-white/10 rounded-lg px-4 py-2 text-white focus:border-primary/50 outline-none" placeholder="e.g. E-Commerce" />
           </div>
           <div className="space-y-2 text-left">
-            <label className="text-sm font-medium text-gray-400">Category</label>
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium text-gray-400">Category</label>
+              <button type="button" onClick={() => setIsAddingCategory((v) => !v)} className="text-xs font-medium text-primary hover:text-primary/80">
+                {isAddingCategory ? "Cancel" : "+ Add New Category"}
+              </button>
+            </div>
             <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} className="w-full bg-background border border-white/10 rounded-lg px-4 py-2 text-white focus:border-primary/50 outline-none appearance-none">
               <option value="">Uncategorized</option>
               {categories.map((c) => (
                 <option key={c.id} value={c.id}>{c.name}</option>
               ))}
             </select>
+            {isAddingCategory && (
+              <div className="flex gap-2 pt-1">
+                <input
+                  type="text"
+                  value={newCategoryName}
+                  onChange={(e) => setNewCategoryName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleCreateCategory();
+                    }
+                  }}
+                  placeholder="e.g. E-Commerce"
+                  className="flex-1 bg-background border border-white/10 rounded-lg px-4 py-2 text-white focus:border-primary/50 outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={handleCreateCategory}
+                  disabled={isCreatingCategory || !newCategoryName.trim()}
+                  className="px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary text-sm font-medium rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isCreatingCategory ? "Adding..." : "Add"}
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
         <div className="space-y-2 text-left">
           <label className="text-sm font-medium text-gray-400">Short Summary</label>
           <textarea rows={3} value={summary} onChange={(e) => setSummary(e.target.value)} className="w-full bg-background border border-white/10 rounded-lg px-4 py-2 text-white focus:border-primary/50 outline-none resize-none" />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-2 text-left">
+            <label className="text-sm font-medium text-gray-400">Read Time</label>
+            <input type="text" value={readTime} onChange={(e) => setReadTime(e.target.value)} className="w-full bg-background border border-white/10 rounded-lg px-4 py-2 text-white focus:border-primary/50 outline-none" placeholder="e.g. 5 min read" />
+          </div>
         </div>
 
         <div className="space-y-2 text-left">
@@ -329,6 +451,43 @@ export default function EditCaseStudyPage({ params }: { params: Promise<{ id: st
               </div>
             ))}
             {metrics.length === 0 && <p className="text-gray-500 italic text-sm text-center py-4">No metrics added yet.</p>}
+          </div>
+        )}
+      </section>
+
+      {/* The Transformation */}
+      <section className="bg-surface border border-white/5 rounded-xl p-6 space-y-6">
+        <div className="flex items-center justify-between border-b border-white/5 pb-4">
+          <div>
+            <h2 className="text-lg font-bold text-white">The Transformation</h2>
+            <p className="mt-1 text-xs text-gray-500">Before / after stat comparisons shown in "The Transformation" section on the case study page.</p>
+          </div>
+          <button onClick={handleAddTransformationRow} disabled={!caseStudyId} className="text-sm flex items-center gap-2 text-primary hover:text-primary/80 disabled:opacity-50 disabled:cursor-not-allowed shrink-0">
+            <Plus className="w-4 h-4" /> Add Stat
+          </button>
+        </div>
+
+        {!caseStudyId && <p className="text-gray-500 italic text-sm text-center py-4">Save the case study first, then add transformation stats here.</p>}
+
+        {caseStudyId && (
+          <div className="space-y-4">
+            {transformations.map((row, index) => (
+              <div key={row.id} className="flex items-center gap-3 bg-background p-4 rounded-lg border border-white/5 group flex-wrap">
+                <GripVertical className="w-5 h-5 text-gray-600 cursor-grab shrink-0" />
+                <input placeholder="Metric (e.g. Organic Traffic)" value={row.metric} onChange={(e) => updateTransformation(index, { metric: e.target.value })} className="flex-1 min-w-[160px] bg-transparent border-b border-white/10 px-2 py-1 text-white focus:border-primary outline-none" />
+                <input placeholder="Before (e.g. 500 / mo)" value={row.beforeValue} onChange={(e) => updateTransformation(index, { beforeValue: e.target.value })} className="w-36 bg-transparent border-b border-white/10 px-2 py-1 text-white focus:border-primary outline-none" />
+                <input placeholder="After (e.g. 5,000 / mo)" value={row.afterValue} onChange={(e) => updateTransformation(index, { afterValue: e.target.value })} className="w-36 bg-transparent border-b border-white/10 px-2 py-1 text-white focus:border-primary outline-none" />
+                {!row.saved && (
+                  <button onClick={() => handleSaveTransformation(index)} disabled={!row.metric.trim() || !row.beforeValue.trim() || !row.afterValue.trim()} className="px-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-medium rounded-md disabled:opacity-50 disabled:cursor-not-allowed">
+                    Save
+                  </button>
+                )}
+                <button onClick={() => handleDeleteTransformation(index)} className="p-2 text-red-500/50 hover:text-red-500 hover:bg-red-500/10 rounded opacity-0 group-hover:opacity-100 transition-all">
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            ))}
+            {transformations.length === 0 && <p className="text-gray-500 italic text-sm text-center py-4">No transformation stats added yet.</p>}
           </div>
         )}
       </section>

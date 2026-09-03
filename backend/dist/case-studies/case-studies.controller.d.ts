@@ -39,6 +39,7 @@ export declare class CaseStudiesController {
         solution: string;
         results: string;
         clientName: string;
+        readTime: string | null;
     }[]>;
     getAllCaseStudiesForAdmin(): Promise<{
         id: string;
@@ -61,6 +62,7 @@ export declare class CaseStudiesController {
         solution: string;
         results: string;
         clientName: string;
+        readTime: string | null;
     }[]>;
     getCaseStudyBySlug(slug: string): Promise<{
         id: string;
@@ -83,6 +85,7 @@ export declare class CaseStudiesController {
         solution: string;
         results: string;
         clientName: string;
+        readTime: string | null;
     }>;
     createCaseStudy(dto: CreateCaseStudyDto, user: JwtPayload): Promise<{
         id: string;
@@ -105,6 +108,7 @@ export declare class CaseStudiesController {
         solution: string;
         results: string;
         clientName: string;
+        readTime: string | null;
     }>;
     updateCaseStudy(id: string, dto: UpdateCaseStudyDto, user: JwtPayload): Promise<{
         id: string;
@@ -127,6 +131,7 @@ export declare class CaseStudiesController {
         solution: string;
         results: string;
         clientName: string;
+        readTime: string | null;
     }>;
     deleteCaseStudy(id: string, user: JwtPayload): Promise<{
         success: boolean;
@@ -167,8 +172,11 @@ export declare class CaseStudiesController {
         title: string | null;
         sortOrder: number;
         caseStudyId: string;
-        beforeImageId: string;
-        afterImageId: string;
+        metric: string | null;
+        beforeValue: string | null;
+        afterValue: string | null;
+        beforeImageId: string | null;
+        afterImageId: string | null;
     }>;
     deleteBeforeAfter(id: string): Promise<{
         success: boolean;

@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { DataTable } from "@/components/DataTable";
+import { ImageUploader } from "@/components/forms/ImageUploader";
 import { Plus, Users, X, Save, RefreshCw, Trash } from "lucide-react";
 import { api, getDataArray } from "@/services/api";
 
@@ -9,8 +11,20 @@ interface TeamMemberData {
   id: string;
   name: string;
   designation: string;
+  image: string;
   isActive: boolean;
 }
+
+const emptyForm = {
+  name: "",
+  designation: "",
+  bio: "",
+  image: "",
+  linkedin: "",
+  email: "",
+  isActive: true,
+  displayOrder: 0,
+};
 
 function getRequestMessage(error: unknown, fallback: string): string {
   if (!(error instanceof Error)) return fallback;
@@ -22,27 +36,27 @@ function getRequestMessage(error: unknown, fallback: string): string {
 
 export default function TeamMembersManager() {
   const [data, setData] = useState<TeamMemberData[]>([]);
+  const [rawData, setRawData] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newMember, setNewMember] = useState({
-    name: "",
-    designation: "",
-    bio: "",
-    isActive: true,
-    displayOrder: 0
-  });
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [form, setForm] = useState(emptyForm);
+  const [modalError, setModalError] = useState<string | null>(null);
 
   const fetchData = async () => {
     setIsLoading(true);
     setError(null);
     try {
       const response = await api.websiteTeam.getAll() as any;
-      const mappedData: TeamMemberData[] = getDataArray<any>(response).map((member: any) => ({
+      const list = getDataArray<any>(response);
+      setRawData(list);
+      const mappedData: TeamMemberData[] = list.map((member: any) => ({
         id: member.id,
         name: member.name,
         designation: member.designation,
+        image: member.image || "",
         isActive: member.isActive ?? true
       }));
       setData(mappedData);
@@ -68,15 +82,58 @@ export default function TeamMembersManager() {
     }
   };
 
-  const handleCreate = async (e: React.FormEvent) => {
+  const openCreateModal = () => {
+    setEditingId(null);
+    setForm(emptyForm);
+    setModalError(null);
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (row: TeamMemberData) => {
+    const member = rawData.find((m) => m.id === row.id);
+    if (!member) return;
+    setEditingId(member.id);
+    setForm({
+      name: member.name || "",
+      designation: member.designation || "",
+      bio: member.bio || "",
+      image: member.image || "",
+      linkedin: member.socialLinks?.linkedin || "",
+      email: member.socialLinks?.email || "",
+      isActive: member.isActive ?? true,
+      displayOrder: member.displayOrder || 0,
+    });
+    setModalError(null);
+    setIsModalOpen(true);
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    setModalError(null);
+    const socialLinks: Record<string, string> = {};
+    if (form.linkedin.trim()) socialLinks.linkedin = form.linkedin.trim();
+    if (form.email.trim()) socialLinks.email = form.email.trim();
+
+    const payload = {
+      name: form.name,
+      designation: form.designation,
+      bio: form.bio || undefined,
+      image: form.image || undefined,
+      socialLinks: Object.keys(socialLinks).length > 0 ? socialLinks : undefined,
+      isActive: form.isActive,
+      displayOrder: Number(form.displayOrder),
+    };
+
     try {
-      await api.websiteTeam.create(newMember);
+      if (editingId) {
+        await api.websiteTeam.update(editingId, payload);
+      } else {
+        await api.websiteTeam.create(payload);
+      }
       setIsModalOpen(false);
-      setNewMember({ name: "", designation: "", bio: "", isActive: true, displayOrder: 0 });
       fetchData();
     } catch (err) {
-      alert(getRequestMessage(err, "Failed to create team member"));
+      setModalError(getRequestMessage(err, `Failed to ${editingId ? "update" : "create"} team member`));
     }
   };
 
@@ -86,8 +143,13 @@ export default function TeamMembersManager() {
       header: "Member",
       render: (item: TeamMemberData) => (
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full overflow-hidden bg-white/5 border border-white/10 flex items-center justify-center">
-            <span className="text-sm font-bold text-gray-400">{item.name.charAt(0)}</span>
+          <div className="w-10 h-10 rounded-full overflow-hidden bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
+            {item.image ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-sm font-bold text-gray-400">{item.name.charAt(0)}</span>
+            )}
           </div>
           <div>
             <div className="font-medium text-white text-sm">{item.name}</div>
@@ -101,7 +163,7 @@ export default function TeamMembersManager() {
       header: "Status",
       render: (item: TeamMemberData) => (
         <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-          item.isActive ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 
+          item.isActive ? 'bg-green-500/10 text-green-400 border border-green-500/20' :
           'bg-gray-500/10 text-gray-400 border border-gray-500/20'
         }`}>
           {item.isActive ? 'Active' : 'Hidden'}
@@ -134,8 +196,8 @@ export default function TeamMembersManager() {
             <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
             Refresh
           </button>
-          <button 
-            onClick={() => setIsModalOpen(true)}
+          <button
+            onClick={openCreateModal}
             className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-hover text-white text-sm font-medium rounded-lg transition-colors shadow-[0_0_15px_var(--primary-glow)]"
           >
             <Plus className="w-4 h-4" />
@@ -151,50 +213,71 @@ export default function TeamMembersManager() {
       ) : isLoading ? (
         <div className="p-12 flex justify-center text-gray-400">Loading Team Members...</div>
       ) : (
-        <DataTable 
-          columns={columns} 
+        <DataTable
+          columns={columns}
           data={data}
+          onEdit={openEditModal}
         />
       )}
 
-      {/* CREATE MODAL */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-[#0B0F19] border border-white/10 p-6 rounded-xl w-full max-w-2xl shadow-2xl">
+      {/* CREATE / EDIT MODAL */}
+      {isModalOpen && typeof document !== "undefined" && createPortal(
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
+          <div className="bg-[#0B0F19] border border-white/10 p-6 rounded-xl w-full max-w-2xl shadow-2xl my-8">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-white">Add Team Member</h2>
+              <h2 className="text-xl font-bold text-white">{editingId ? "Edit Team Member" : "Add Team Member"}</h2>
               <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-white"><X className="w-5 h-5"/></button>
             </div>
-            
-            <form onSubmit={handleCreate} className="space-y-6">
+
+            <form onSubmit={handleSave} className="space-y-6">
+              <div>
+                <label className="block text-sm text-gray-400 mb-1">Photo</label>
+                <ImageUploader value={form.image} onChange={(image) => setForm({ ...form, image })} folder="team" />
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm text-gray-400 mb-1">Full Name</label>
-                  <input required type="text" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white" value={newMember.name} onChange={e => setNewMember({...newMember, name: e.target.value})} placeholder="Jane Doe" />
+                  <input required type="text" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white" value={form.name} onChange={e => setForm({...form, name: e.target.value})} placeholder="Jane Doe" />
                 </div>
                 <div>
                   <label className="block text-sm text-gray-400 mb-1">Role / Designation</label>
-                  <input required type="text" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white" value={newMember.designation} onChange={e => setNewMember({...newMember, designation: e.target.value})} placeholder="Creative Director" />
+                  <input required type="text" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white" value={form.designation} onChange={e => setForm({...form, designation: e.target.value})} placeholder="Creative Director" />
                 </div>
               </div>
 
               <div>
                 <label className="block text-sm text-gray-400 mb-1">Short Bio</label>
-                <textarea rows={3} className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white resize-none" value={newMember.bio} onChange={e => setNewMember({...newMember, bio: e.target.value})} placeholder="Brief bio..."></textarea>
+                <textarea rows={3} className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white resize-none" value={form.bio} onChange={e => setForm({...form, bio: e.target.value})} placeholder="Brief bio..."></textarea>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm text-gray-400 mb-1">LinkedIn URL (Optional)</label>
+                  <input type="text" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white" value={form.linkedin} onChange={e => setForm({...form, linkedin: e.target.value})} placeholder="https://linkedin.com/in/..." />
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-400 mb-1">Email (Optional)</label>
+                  <input type="email" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white" value={form.email} onChange={e => setForm({...form, email: e.target.value})} placeholder="jane@simbolo.com" />
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm text-gray-400 mb-1">Display Order</label>
-                  <input type="number" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white" value={newMember.displayOrder} onChange={e => setNewMember({...newMember, displayOrder: parseInt(e.target.value) || 0})} />
+                  <input type="number" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white" value={form.displayOrder} onChange={e => setForm({...form, displayOrder: parseInt(e.target.value) || 0})} />
                 </div>
                 <div className="flex flex-col justify-center pt-6">
                   <label className="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" checked={newMember.isActive} onChange={e => setNewMember({...newMember, isActive: e.target.checked})} className="w-4 h-4 rounded bg-white/5 border-white/10 text-primary focus:ring-primary/20" />
+                    <input type="checkbox" checked={form.isActive} onChange={e => setForm({...form, isActive: e.target.checked})} className="w-4 h-4 rounded bg-white/5 border-white/10 text-primary focus:ring-primary/20" />
                     <span className="text-sm text-white">Active (Visible on Site)</span>
                   </label>
                 </div>
               </div>
+
+              {modalError && (
+                <div className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-2 text-sm text-red-400">{modalError}</div>
+              )}
 
               <div className="flex justify-end gap-3 mt-8">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors">Cancel</button>
@@ -204,7 +287,8 @@ export default function TeamMembersManager() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

@@ -66,4 +66,9 @@ export class CreateCaseStudyDto {
   @IsOptional()
   @IsUUID('4')
   coverImageId?: string | null;
+
+  @ApiPropertyOptional({ example: '5 min read', description: 'Estimated reading time shown on the case study card and detail page' })
+  @IsOptional()
+  @IsString()
+  readTime?: string;
 }

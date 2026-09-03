@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { resolvePackageIllustration } from "@/data/package-illustrations";
+import { toSecureCloudinaryUrl } from "@/lib/utils";
 import type { MarketingPackage, PackageTheme } from "@/types/packages";
 
 interface BackendPackageFeature {
@@ -89,7 +90,9 @@ export function mapBackendPackage(pkg: BackendPackage, index: number): Marketing
     badge: pkg.isPopular ? "Most Popular" : undefined,
     rating: 5,
     icon: pkg.type === "ENTERPRISE" ? "crown" : "rocket",
-    illustration: pkg.thumbnailUrl?.trim() || resolvePackageIllustration(pkg.illustration, `${serviceName} ${pkg.service?.slug ?? ""}`),
+    illustration: pkg.thumbnailUrl?.trim()
+      ? toSecureCloudinaryUrl(pkg.thumbnailUrl.trim())
+      : resolvePackageIllustration(pkg.illustration, `${serviceName} ${pkg.service?.slug ?? ""}`),
     features,
     deliverables,
     idealFor: [pkg.type ? `${pkg.type.toLowerCase().replaceAll("_", " ")} businesses` : "Growing businesses"],
