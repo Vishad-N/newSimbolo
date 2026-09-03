@@ -6,6 +6,7 @@ import { HeroEditor } from "@/components/editors/HeroEditor";
 import { SEOEditor } from "@/components/editors/SEOEditor";
 import { StatsEditor } from "@/components/editors/StatsEditor";
 import { GallerySelector } from "@/components/editors/GallerySelector";
+import { FeaturedServicesEditor } from "@/components/editors/FeaturedServicesEditor";
 import { Home, Eye, Loader2 } from "lucide-react";
 import { getWebsiteUrl } from "@/utils/utils";
 import { api } from "@/services/api";
@@ -97,11 +98,10 @@ export default function HomepageEditor() {
 
       <SectionEditor
         title="Featured Services"
-        description="Select services to highlight on the homepage."
+        description="Configure the 5 service cards shown near the top of the homepage — thumbnail, title, starting price, and rating."
         onSave={() => handleSave("featuredServices")}
       >
-        <GallerySelector
-          label="Select Services"
+        <FeaturedServicesEditor
           initialData={sections.featuredServices}
           onChange={(data) => updateDraft("featuredServices", data)}
         />

@@ -27,9 +27,12 @@ export class PermissionsGuard implements CanActivate {
     }
 
     const userPermissions: string[] = user.permissions || [];
-    const hasAllPermissions = requiredPermissions.every((perm) => userPermissions.includes(perm));
+    // @Permissions(a, b, ...) is used throughout the app as "any of these" (e.g.
+    // 'orders.view' OR 'orders.manage', with services scoping visibility further
+    // based on which one is actually held) — never as "all of these".
+    const hasRequiredPermission = requiredPermissions.some((perm) => userPermissions.includes(perm));
 
-    if (!hasAllPermissions) {
+    if (!hasRequiredPermission) {
       throw new CustomForbiddenException(`Required permission(s): ${requiredPermissions.join(', ')}`);
     }
 

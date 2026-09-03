@@ -60,6 +60,7 @@ export default async function Home() {
         <LandingPage
           heroData={homepageData?.hero}
           whyChooseUs={homepageData?.whyChooseUs}
+          featuredServices={homepageData?.featuredServices}
           testimonial={featuredTestimonials[0]}
         />
       </Suspense>

@@ -1,6 +1,6 @@
 # Simbolo Admin Dashboard Workflow
 
-This guide is written for a non-technical admin who needs to manage website content, services, packages, media, leads, and settings from the Simbolo CMS.
+This guide is written for a non-technical admin who needs to manage website content, services, packages, pricing, videos, case studies, team members, media, leads, and settings from the Simbolo CMS.
 
 ## Main Flowchart
 
@@ -19,6 +19,7 @@ flowchart TD
 
     I --> J[Website Management]
     I --> K[Content Management]
+    I --> V[Sales and Affiliate]
     I --> L[Media Library]
     I --> M[SEO Settings]
     I --> N[Users and Settings]
@@ -26,16 +27,19 @@ flowchart TD
 
     J --> J1[Homepage]
     J --> J2[Services Overview]
-    J --> J3[Individual Service Pages]
+    J --> J3[Individual Service Pages and Pricing Tiers]
     J --> J4[Packages]
+    J --> J6[Video Catalog]
     J --> J5[Portfolio, FAQs, Technologies, Industries, Navigation]
 
     K --> K1[Leads]
     K --> K2[Blogs]
     K --> K3[Case Studies]
     K --> K4[Testimonials]
-    K --> K5[About Us and Team Members]
+    K --> K5[About Us]
+    K --> K6[Team Members]
 
+    V --> V1[Affiliate overview, payouts, affiliate settings]
     L --> L1[Upload, search, view, or delete media]
     M --> M1[Manage page SEO records]
     N --> N1[Manage users, theme, and system settings]
@@ -45,11 +49,13 @@ flowchart TD
     J2 --> O
     J3 --> O
     J4 --> P[Create, edit, or delete package]
+    J6 --> O
     J5 --> O
-    K2 --> Q[Create or delete content]
+    K2 --> Q[Create or edit content]
     K3 --> Q
     K4 --> Q
     K5 --> O
+    K6 --> Q
 
     O --> R[Preview live page where available]
     P --> R
@@ -81,9 +87,11 @@ flowchart TD
 Important note: the app currently has two access layers.
 
 1. Basic Auth protects the admin website itself when `ADMIN_USERNAME` and `ADMIN_PASSWORD` are configured.
-2. The top-right `Admin Sign In` modal signs into the backend API and saves the admin token in the browser. This is required for protected backend changes such as uploads, package edits, leads, blogs, and other CMS data.
+2. The top-right `Admin Sign In` modal signs into the backend API and saves the admin's session in the browser. This is required for protected backend changes such as uploads, package edits, leads, blogs, case studies, and other CMS data. The session refreshes itself automatically in the background, so an admin generally does not need to sign in again during normal use — only if the session has been idle for a very long time, in which case any save will fail with an authorization error and the admin should sign in again from the top-right button.
 
 ## Package Editing Workflow
+
+Packages are the pricing plans shown on the public `/packages` page (Starter, Professional, Enterprise, and similar tiers). Each package can optionally show a thumbnail image, and its "Everything Included" bullet points are fully editable from the form — nothing needs to be hardcoded by a developer.
 
 ```mermaid
 flowchart TD
@@ -99,12 +107,11 @@ flowchart TD
     I --> J[Enter service name, short description, type, and starting price]
     J --> K[Click Create Service and Select]
     K --> H
-    H --> L{Is this a base plan?}
-    L -->|Yes| M[Select package illustration]
-    L -->|No, add-on| N[Tick Is this a Service Add-on]
-    M --> O[Enter base price in INR]
-    N --> O
-    O --> P[Choose tier: Starter, Professional, Enterprise, or Custom]
+    H --> L[Upload a Thumbnail Image]
+    L --> M[Enter base price in INR]
+    M --> N[Choose tier: Starter, Professional, Enterprise, or Custom]
+    N --> O[Add or edit Everything Included bullet points]
+    O --> P[Add or edit Monthly Deliverables bullet points]
     P --> Q[Optionally mark as Popular]
     Q --> R[Click Create Package or Save Package]
     R --> S[Refresh list]
@@ -114,8 +121,8 @@ flowchart TD
 ### Package Rules For Non-Technical Admins
 
 - Every package must be connected to a service.
-- A base package must have an illustration.
-- An add-on does not need an illustration.
+- Upload a `Thumbnail Image` for each package — this is the picture shown on the pricing card on the public website. If a package has no thumbnail, the site falls back to a generic illustration, so a real photo/image always looks better.
+- `Everything Included` and `Monthly Deliverables` are plain bullet-point lists — type one item, press Enter (or click Add), and repeat. Remove a bullet with its delete icon. These points appear exactly as typed on the public pricing card.
 - Use `Popular` for the plan that should be highlighted on the website.
 - Use the delete icon only when the package should be removed permanently. The app asks for confirmation before deleting.
 - If saving fails with an authorization message, sign in again using the top-right `Admin Sign In` button.
@@ -232,16 +239,14 @@ flowchart TD
     B --> C[Edit Stats Bar]
     C --> D[Edit Service Items and Unit Pricing]
     D --> E[Edit Result Metrics]
-    E --> F{Need packages or add-ons?}
-    F -->|Yes| G[Click Manage Packages]
-    G --> H[Create or update package]
-    H --> I[Return to service page]
-    F -->|No| I[Continue]
-    I --> J{Need FAQs?}
-    J -->|Yes| K[Click Manage FAQs]
+    E --> F{Does this service support Pricing Tiers?}
+    F -->|Yes: SEO, Google Ads, Meta Ads, Website Design, E-Commerce| G[Edit Pricing Tiers section]
+    F -->|No: Video Editing, Graphic Design| I
+    G --> I{Need FAQs?}
+    I -->|Yes| K[Click Manage FAQs]
     K --> L[Create or update FAQ]
     L --> M[Return to service page]
-    J -->|No| M[Continue]
+    I -->|No| M[Continue]
     M --> N[Click Save Configuration]
     N --> O[Click Preview Live]
     O --> P[Check public service page]
@@ -253,7 +258,8 @@ flowchart TD
 - Stats Bar: proof points such as project count, speed, savings, or growth metrics.
 - Service Items and Unit Pricing: detailed offerings inside the service, such as logo design, ad setup, or SEO audit pricing.
 - Result Metrics: measurable outcomes used for trust and case-study preview.
-- Packages and Add-ons: managed centrally in `Packages`, not inside the service page.
+- Pricing Tiers: a dedicated pricing-plan section that only appears on the SEO, Google Ads, Meta Ads, Website Design, and E-Commerce pages. Each tier has its own name, price, billing period, and list of included bullet points (up to 4 tiers per page). This is separate from `Packages` — it lets a single service page show tiers specific to that service without needing a matching entry in the main `Packages` list.
+- Packages: the general cross-service pricing plans shown on `/packages`, managed centrally in `Packages`.
 - FAQs: managed centrally in `FAQs`, not inside the service page.
 
 ## Website Management Workflow
@@ -264,22 +270,50 @@ flowchart TD
     A --> C[Services Overview]
     A --> D[Individual Services]
     A --> E[Packages]
+    A --> K[Video Catalog]
     A --> F[Portfolio]
     A --> G[FAQs]
     A --> H[Technologies]
     A --> I[Industries]
     A --> J[Navigation]
 
-    B --> K[Hero, featured services, benefits, brands, SEO]
-    C --> L[Hero, business goals, timeline, core services, SEO]
-    D --> M[Service-specific benefits, stats, items, metrics]
-    E --> N[Pricing plans and add-ons]
-    F --> O[Public work examples]
-    G --> P[Questions and answers]
-    H --> Q[Technology stack list]
-    I --> R[Industry list]
-    J --> S[Navbar, sidebar menus, and footer links]
+    B --> L[Hero, featured services, benefits, brands, SEO]
+    C --> M[Hero, business goals, timeline, core services, SEO]
+    D --> N[Service-specific benefits, stats, items, metrics, pricing tiers]
+    E --> O[Pricing plans, thumbnails, and included bullet points]
+    K --> P[Video portfolio cards shown on the Video Editing page]
+    F --> Q[Public work examples]
+    G --> R[Questions and answers]
+    H --> S[Technology stack list]
+    I --> T[Industry list]
+    J --> U[Navbar, sidebar menus, and footer links]
 ```
+
+## Video Catalog Workflow
+
+The Video Catalog controls the video showcase cards on the public `/video-editing` page — each card has a thumbnail, a video link, and a category, but no price (prices were removed from these cards; only a "Connect to Team" call-to-action is shown).
+
+```mermaid
+flowchart TD
+    A[Open Video Catalog from sidebar] --> B[Review video card list]
+    B --> C{Need new video card or edit existing?}
+    C -->|New| D[Click Add Video]
+    C -->|Edit| E[Open row action menu and choose Edit]
+    D --> F[Upload Thumbnail Image]
+    E --> F
+    F --> G[Enter video title and category]
+    G --> H[Paste the video link/URL to showcase]
+    H --> I[Choose display order]
+    I --> J[Click Save]
+    J --> K[Refresh list]
+    K --> L[Preview /video-editing page on the public site]
+```
+
+### Video Catalog Rules For Non-Technical Admins
+
+- Always upload a real `Thumbnail Image` — cards fall back to a generic illustration if none is set, which looks unfinished on the public site.
+- The video link should point to the actual video (e.g. a hosted or embeddable video URL) the card should open or play.
+- Use display order to control which cards appear first.
 
 ## Content Management Workflow
 
@@ -294,11 +328,71 @@ flowchart TD
 
     B --> B1[Review enquiries and update lead status]
     C --> C1[Add blog title, excerpt, content, author, category, status, tags]
-    D --> D1[Add or edit case study details]
+    D --> D1[Write case study story, KPI metrics, before/after results, cover image]
     E --> E1[Add or manage customer testimonials]
-    F --> F1[Manage company story, stats, values, team, technologies, timeline]
-    G --> G1[Manage website team profiles]
+    F --> F1[Manage company story, stats, values, technologies, timeline]
+    G --> G1[Manage team member photos, roles, bios, and social links]
 ```
+
+### Case Studies: What They Are And How To Edit Them
+
+A case study is a success-story page (challenge, strategy, results) that proves the agency's work to potential clients. Opening `Case Studies` shows every case study, including unpublished drafts, so an admin can keep working on a story before it goes live.
+
+```mermaid
+flowchart TD
+    A[Open Case Studies] --> B{New or existing?}
+    B -->|New| C[Click New Case Study]
+    B -->|Existing| D[Click a case study to open the editor]
+    C --> E[Fill Basic Info: title, client name, industry, category]
+    D --> E
+    E --> F{Right category exists?}
+    F -->|No| G[Click + Add New Category and type a name]
+    G --> H[New category is created and auto-selected]
+    F -->|Yes| H
+    H --> I[Set Status: Draft, Published, or Archived]
+    I --> J[Enter Read Time, e.g. 5 min read]
+    J --> K[Upload Cover Image]
+    K --> L[Write Summary, Challenge, Strategy, and Results using the rich text editor]
+    L --> M[Use bullet or numbered lists inside the editor for readability]
+    M --> N[Add KPI Metrics: label, value, and optional prefix/suffix]
+    N --> O[Add The Transformation: metric name, Before value, After value]
+    O --> P[Click Save Case Study]
+    P --> Q[Refresh list]
+    Q --> R[Preview the case study on the public site]
+```
+
+- **Basic Info**: title, client name, industry, and category. Categories can be created inline — click `+ Add New Category`, type a name, and it is created and selected immediately without leaving the page.
+- **Status**: `Draft` (not visible to the public), `Published` (live on the website), or `Archived` (hidden but kept for records). Status can be changed at any time, not just when first creating the case study.
+- **Read Time**: a short text shown on the case study card and detail page, for example `5 min read`.
+- **Cover Image**: the hero image used on the case study card and detail page.
+- **Story fields** (Summary, Challenge, Strategy/Solution, Results): each uses a rich text editor, so bullet points and numbered lists can be added directly instead of typing plain paragraphs — the public site renders these as real formatted lists.
+- **KPI Metrics**: the highlight numbers shown near the top of a case study (for example "+400% Organic Traffic"). Each metric has a label, a value, and optional prefix/suffix symbols.
+- **The Transformation**: the before/after comparison shown on the case study page (for example "Monthly Leads — Before: 12, After: 87"). Each row needs a metric name, a Before value, and an After value; a row only appears on the public site once all three are filled in and saved.
+
+### Team Members: What They Are And How To Edit Them
+
+Team Members has its own page in the sidebar (separate from `About Us`) and controls the team directory shown on the public `/about-us` page.
+
+```mermaid
+flowchart TD
+    A[Open Team Members] --> B{New or existing member?}
+    B -->|New| C[Click Add Member]
+    B -->|Existing| D[Click a row to edit]
+    C --> E[Upload Photo]
+    D --> E
+    E --> F[Enter Full Name and Role/Designation]
+    F --> G[Enter a Short Bio]
+    G --> H[Add LinkedIn URL and/or Email if available]
+    H --> I[Set Display Order]
+    I --> J[Toggle Active to show or hide on the website]
+    J --> K[Click Save]
+    K --> L[Refresh list]
+    L --> M[Confirm member appears on /about-us]
+```
+
+- The `About Us` page's Team section now simply links to `Team Members` — team profiles are no longer edited from inside `About Us`.
+- A member must have a photo uploaded to look correct on the public team grid; the initial letter of their name is shown as a placeholder until a photo is added.
+- Setting `Active` to off hides a member from the public site without deleting their record.
 
 ## Media Library Workflow
 
@@ -316,20 +410,23 @@ flowchart TD
     H -->|No| J[Use media in page editors or selectors]
 ```
 
-Folders currently available in the media library are `general`, `blogs`, `services`, `homepage`, and `case-studies`.
+Folders currently available in the media library include `general`, `blogs`, `services`, `homepage`, `case-studies`, `packages`, `team`, and `video-catalog`. Most editors (Packages, Team Members, Video Catalog, Case Studies) automatically upload into their own matching folder; a few less-used upload spots (Industries, Technologies, Settings logo, Homepage gallery/hero, SEO images) currently save into the shared `general` folder.
 
 ## Common Admin Actions
 
 | Action | Where to go | What to do |
 | --- | --- | --- |
 | Edit website homepage | `Homepage` | Open a section, edit text/media, preview live page. |
-| Edit a service landing page | `Individual Services` | Choose service, edit benefits/stats/items/metrics, save configuration, preview live. |
-| Add a new pricing plan | `Packages` | Click `New Package`, select or create linked service, enter price/tier, save. |
-| Add a service add-on | `Packages` | Click `New Package`, tick add-on, select linked service, enter price, save. |
+| Edit a service landing page | `Individual Services` | Choose service, edit benefits/stats/items/metrics/pricing tiers, save configuration, preview live. |
+| Add a new pricing plan | `Packages` | Click `New Package`, select or create linked service, upload thumbnail, enter price/tier, edit bullet points, save. |
+| Add a service-specific pricing tier | `Individual Services` (SEO, Google Ads, Meta Ads, Website Design, E-Commerce only) | Open the service page's Pricing Tiers section, add a tier with name/price/bullets, save configuration. |
+| Add or edit a video showcase card | `Video Catalog` | Click `Add Video`, upload thumbnail, enter title/category/link, save. |
 | Create a new client user | `Users` | Fill Manual Client Creation form, enter temporary password, optionally assign package, click `Create Client`. |
 | Assign a plan to a new client | `Users` | Select a package in `Assign Package`, choose interval, confirm price/currency, then create client. |
 | Add FAQ | `FAQs` | Click `Add FAQ`, enter question, answer, category, status, create. |
 | Add blog | `Blogs` | Click `Add Blog`, enter article details, choose author/category/status, save. |
+| Create or edit a case study | `Case Studies` | Fill basic info, pick or create a category, write the story with the rich text editor, add KPI metrics and The Transformation, save. |
+| Add or edit a team member | `Team Members` | Click `Add Member`, upload photo, fill name/role/bio/links, save. |
 | Upload website image | `Media Library` | Pick folder, click `Upload Asset`, select file. |
 | Check customer enquiries | `Leads` | Review lead list and update/delete as needed. |
 | Change menu links | `Navigation` | Edit top navbar, sidebar menus, marketing services menu, or footer links. |
@@ -341,12 +438,13 @@ Folders currently available in the media library are `general`, `blogs`, `servic
 2. For content edits, change one section at a time.
 3. Use `Preview Live` after saving whenever the page has a preview button.
 4. Refresh the admin list after create, update, or delete actions.
-5. Do not delete packages, media, blogs, FAQs, or testimonials unless you are sure they are no longer needed.
-6. Keep prices in INR where the package manager asks for base price.
+5. Do not delete packages, media, blogs, FAQs, case studies, team members, or testimonials unless you are sure they are no longer needed.
+6. Keep prices in INR where the package or pricing-tier manager asks for a price.
 7. Before creating a client, confirm the email address and assigned package are correct.
 8. Share temporary client passwords only through an approved private channel.
-9. Use `Draft` for content that is not ready for public display and `Published` only when it can go live.
-10. If an action fails with `401` or authorization error, sign out and sign in again from the top-right admin account menu.
+9. Use `Draft` for content that is not ready for public display and `Published` only when it can go live — this applies to blogs, testimonials, and case studies.
+10. Always upload real thumbnail/cover images for packages, case studies, video catalog cards, and team members — several of these show a plain placeholder if left empty.
+11. If an action fails with `401` or authorization error, sign out and sign in again from the top-right admin account menu.
 
 ## Feature Map
 
@@ -355,8 +453,9 @@ Folders currently available in the media library are `general`, `blogs`, `servic
 | Dashboard | Dashboard | Main landing screen for the CMS. |
 | Website Management | Homepage | Manage landing page sections and homepage SEO. |
 | Website Management | Services Overview | Manage the main services index page. |
-| Website Management | Individual Services | Manage each service landing page content and connect to packages/FAQs. |
-| Website Management | Packages | Create, edit, delete, and highlight pricing packages and service add-ons. |
+| Website Management | Individual Services | Manage each service landing page content, pricing tiers (on 5 select pages), and connect to FAQs. |
+| Website Management | Packages | Create, edit, delete, and highlight pricing packages, thumbnails, and included bullet points. |
+| Website Management | Video Catalog | Manage the video showcase cards on the Video Editing page. |
 | Website Management | Portfolio | Manage public work examples. |
 | Website Management | FAQs | Create and delete frequently asked questions. |
 | Website Management | Technology Stack | Manage technology list used on the website. |
@@ -364,20 +463,23 @@ Folders currently available in the media library are `general`, `blogs`, `servic
 | Website Management | Navigation | Manage top navbar, sidebar menus, marketing services menu, and footer links. |
 | Content Management | Leads | Review and manage customer enquiries. |
 | Content Management | Blogs | Create/delete blogs and control draft/published status. |
-| Content Management | Case Studies | Manage case-study content and edit existing case studies. |
+| Content Management | Case Studies | Write case study stories with rich text lists, KPI metrics, before/after transformation stats, cover image, categories, and read time. |
 | Content Management | Testimonials | Manage customer testimonials. |
-| Content Management | About Us | Manage company story, statistics, values, team, technologies, and timeline sections. |
-| Content Management | Team Members | Manage website team member profiles. |
-| Global | Media Library | Upload, search, view, and delete public media assets. |
+| Content Management | About Us | Manage company story, statistics, values, technologies, and timeline sections (team is managed separately). |
+| Content Management | Team Members | Manage team member photos, roles, bios, social links, and display order. |
+| Sales & Affiliate | Affiliate Overview, Payouts, Affiliate Settings | Manage the affiliate/referral program and its payouts. |
+| Global | Documents | Store and share files such as contracts, NDAs, proposals, and reports. |
+| Global | Media Library | Upload, search, view, and delete public media assets across all folders. |
 | Global | SEO Settings | Manage SEO records. |
 | Global | Users | Create client accounts manually, assign plans, and review recent clients. |
-| Global | Settings | Manage theme and system settings. |
+| Global | Settings | Manage theme, logos, and system settings. |
 
 ## When To Ask The Technical Team
 
 - The browser Basic Auth username/password is not accepted.
-- The top-right Admin Sign In account is not accepted.
+- The top-right Admin Sign In account is not accepted, even after retrying.
 - A save action fails repeatedly after signing in again.
 - A required blog author, FAQ category, service, or package is missing and cannot be created from the screen.
 - A public page does not update after saving and refreshing.
-- A media upload fails or an uploaded image does not appear on the website.
+- A media upload fails or an uploaded image/thumbnail does not appear on the website.
+- Case study KPI Metrics or The Transformation rows do not appear on the public page after being saved in the editor.

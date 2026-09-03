@@ -2,11 +2,31 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { services } from "@/data/landing";
-import { ServiceCard } from "@/components/ui/ServiceCard";
+import { services as mockServices } from "@/data/landing";
+import { ServiceCard, type AccentColor } from "@/components/ui/ServiceCard";
 
-export function FeaturedServices() {
+const ACCENT_COLORS: AccentColor[] = ["blue", "green", "cyan", "purple", "pink", "orange", "teal"];
+
+interface FeaturedServiceItem {
+  id?: string;
+  title: string;
+  image: string;
+  price: string;
+  rating: string;
+  accent?: string;
+}
+
+interface FeaturedServicesProps {
+  services?: FeaturedServiceItem[];
+}
+
+export function FeaturedServices({ services }: FeaturedServicesProps) {
   const router = useRouter();
+
+  const hasCmsServices = Array.isArray(services) && services.some((s) => s.title && s.image && s.price);
+  const cards = hasCmsServices
+    ? services!.filter((s) => s.title && s.image && s.price)
+    : mockServices;
 
   return (
     <section className="mx-auto max-w-[1290px] border-t border-white/10 px-4 pt-4 sm:px-8 lg:px-10">
@@ -21,16 +41,17 @@ export function FeaturedServices() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-        {services.map((service, index) => (
+        {cards.map((service, index) => (
           <ServiceCard
             key={service.title}
             title={service.title}
             image={service.image}
-            bullets={service.bullets}
+            bullets={(service as any).bullets}
             price={service.price}
             rating={service.rating}
-            accent={service.accent as any}
+            accent={(ACCENT_COLORS.includes(service.accent as AccentColor) ? service.accent : ACCENT_COLORS[index % ACCENT_COLORS.length]) as AccentColor}
             delay={index * 0.05}
+            showCta={false}
             onClick={() => router.push("/packages")}
           />
         ))}

@@ -11,10 +11,11 @@ import { SearchResults } from "@/components/sections/search-results";
 interface LandingPageProps {
   heroData?: { title?: string; highlightedText?: string; subtitle?: string };
   whyChooseUs?: { id: string; title: string; iconName: string }[];
+  featuredServices?: { id: string; title: string; image: string; price: string; rating: string; accent: string }[];
   testimonial?: { quote: string; name: string; role: string; rating: number };
 }
 
-export function LandingPage({ heroData, whyChooseUs, testimonial }: LandingPageProps) {
+export function LandingPage({ heroData, whyChooseUs, featuredServices, testimonial }: LandingPageProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryParam = searchParams.get("q");
@@ -52,7 +53,7 @@ export function LandingPage({ heroData, whyChooseUs, testimonial }: LandingPageP
       {!hasSearched ? (
         <>
           <Hero onSearch={handleSearch} data={heroData} />
-          <FeaturedServices />
+          <FeaturedServices services={featuredServices} />
           <InfoCards whyChooseUs={whyChooseUs} testimonial={testimonial} />
           <BrandSection />
         </>

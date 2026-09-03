@@ -24,6 +24,34 @@ const redirectToDashboard = ({ accessToken, refreshToken, user }: Authentication
   if (user?.role) callbackUrl.searchParams.set("role", user.role);
   window.location.replace(callbackUrl.toString());
 };
+
+// Where to send the user once they are authenticated. A package "Buy Now" flow
+// sets `checkout`, which always wins so an in-progress purchase is never lost.
+// Otherwise, if the login was triggered by the client dashboard bouncing an
+// unauthenticated visitor back here (see apps/client's fetchProxy 401 handler),
+// `returnUrl` carries the page they were trying to reach — honor it instead of
+// dropping them on the generic dashboard. Only same-origin (dashboard app)
+// returnUrls are trusted, to avoid an open-redirect via a crafted query param.
+const getPostLoginNext = (searchParams: URLSearchParams, role?: string): string => {
+  const checkoutPackage = searchParams.get("checkout");
+  if (checkoutPackage) {
+    return `/checkout?package=${encodeURIComponent(checkoutPackage)}`;
+  }
+
+  const returnUrl = searchParams.get("returnUrl");
+  if (returnUrl) {
+    try {
+      const parsed = new URL(returnUrl);
+      if (parsed.origin === new URL(DASHBOARD_URL).origin) {
+        return `${parsed.pathname}${parsed.search}`;
+      }
+    } catch {
+      // Malformed returnUrl — ignore and fall through to the default.
+    }
+  }
+
+  return role === "AFFILIATE" ? "/affiliate" : "/dashboard";
+};
 export function AuthModals() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -42,25 +70,17 @@ export function AuthModals() {
   const refreshToken = searchParams.get("refreshToken");
   useEffect(() => {
     if (accessToken && refreshToken) {
-      const checkoutPackage = localStorage.getItem("redirectAfterLogin");
-      localStorage.removeItem("redirectAfterLogin");
-
-      const next = checkoutPackage
-        ? `/checkout?package=${encodeURIComponent(checkoutPackage)}`
-        : "/dashboard";
-      redirectToDashboard({ accessToken, refreshToken }, next);
+      redirectToDashboard({ accessToken, refreshToken }, getPostLoginNext(searchParams));
     }
-  }, [accessToken, refreshToken]);
+  }, [accessToken, refreshToken, searchParams]);
 
   useEffect(() => {
-    // If the modal is triggered but they are already logged in
+    // If the modal is triggered but they are already logged in, skip the
+    // modal entirely and send them straight to where they were headed.
     if (isOpen) {
       const hasToken = document.cookie.includes("accessToken=");
-      if (hasToken) {
-        const checkoutPackage = searchParams.get("checkout");
-        if (checkoutPackage) {
-          window.location.href = `${DASHBOARD_URL}/checkout?package=${checkoutPackage}`;
-        }
+      if (hasToken && (searchParams.get("checkout") || searchParams.get("returnUrl"))) {
+        window.location.href = `${DASHBOARD_URL}${getPostLoginNext(searchParams)}`;
       }
     }
   }, [isOpen, searchParams]);
@@ -147,12 +167,7 @@ function LoginModal({ onClose }: { onClose: () => void }) {
         throw new Error(Array.isArray(payload.message) ? payload.message.join(" ") : payload.message || "Unable to sign in.");
       }
 
-      const checkoutPackage = searchParams.get("checkout");
-      const next = checkoutPackage
-        ? `/checkout?package=${encodeURIComponent(checkoutPackage)}`
-        : authentication.user?.role === "AFFILIATE"
-        ? "/affiliate"
-        : "/dashboard";
+      const next = getPostLoginNext(searchParams, authentication.user?.role);
       redirectToDashboard(authentication, next);
     } catch (loginError) {
       setError(loginError instanceof Error ? loginError.message : "Unable to sign in.");
@@ -483,8 +498,7 @@ function RegisterModal({ onClose }: { onClose: () => void }) {
       setIsLoading(false);
       setIsSuccess(true);
 
-      const checkoutPackage = searchParams.get("checkout");
-      const next = checkoutPackage ? `/checkout?package=${encodeURIComponent(checkoutPackage)}` : "/dashboard";
+      const next = getPostLoginNext(searchParams, authentication.user?.role);
 
       setTimeout(() => {
         if (loginResponse.ok && authentication.accessToken && authentication.refreshToken) {

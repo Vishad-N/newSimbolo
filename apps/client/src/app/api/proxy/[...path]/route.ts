@@ -103,15 +103,34 @@ async function handleProxy(request: Request, pathArray: string[]) {
       }
     }
 
-    const data = await res.text();
-    let parsedData;
-    try {
-      parsedData = JSON.parse(data);
-    } catch {
-      parsedData = data;
-    }
+    const responseContentType = res.headers.get('content-type') || '';
+    const isBinaryResponse = !responseContentType.includes('application/json') && !responseContentType.includes('text/');
 
-    const response = NextResponse.json(parsedData, { status: res.status });
+    let response: NextResponse;
+    if (isBinaryResponse) {
+      // Binary bodies (e.g. invoice PDFs) must be streamed through as-is —
+      // decoding them as text and re-wrapping in NextResponse.json() corrupts
+      // the bytes and discards the real content type.
+      const arrayBuffer = await res.arrayBuffer();
+      response = new NextResponse(arrayBuffer, {
+        status: res.status,
+        headers: {
+          'Content-Type': responseContentType || 'application/octet-stream',
+          ...(res.headers.get('content-disposition')
+            ? { 'Content-Disposition': res.headers.get('content-disposition')! }
+            : {}),
+        },
+      });
+    } else {
+      const data = await res.text();
+      let parsedData;
+      try {
+        parsedData = JSON.parse(data);
+      } catch {
+        parsedData = data;
+      }
+      response = NextResponse.json(parsedData, { status: res.status });
+    }
 
     if (newTokens) {
       const secure = process.env.NODE_ENV === 'production';

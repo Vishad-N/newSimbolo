@@ -130,7 +130,19 @@ async function fetchFromApi<T>(endpoint: string, options?: RequestInit, fallback
       },
     });
     if (!res.ok) {
-      throw new Error(`API error (${res.status}): ${res.statusText}`);
+      // The backend's error responses carry the real reason in the JSON body's
+      // `message` field (e.g. "Case study \"X\" already exists"). `res.statusText`
+      // is frequently empty (HTTP/2 has no reason phrase), so fall back to it only
+      // when the body can't be read/parsed at all.
+      let backendMessage: string | undefined;
+      try {
+        const errorBody = await res.json();
+        const message = errorBody?.message;
+        backendMessage = Array.isArray(message) ? message.join(' ') : message;
+      } catch {
+        // Body wasn't JSON (or was empty) — fall through to the status-based message.
+      }
+      throw new Error(backendMessage || `API error (${res.status}): ${res.statusText || res.status}`);
     }
     return unwrapEnvelope<T>(await res.json());
   } catch (error) {

@@ -78,7 +78,12 @@ const fetchProxy = async (path: string, options: RequestInit = {}) => {
     },
   });
   if (res.status === 401) {
-    if (typeof window !== 'undefined' && !window.location.pathname.includes('/checkout')) {
+    if (typeof window !== 'undefined') {
+      // Previously /checkout was excluded from this redirect, which meant an
+      // unauthenticated (or session-expired) visit there just failed silently
+      // instead of prompting login — landing's auth-modals now reads
+      // `returnUrl` and sends the user straight back here after signing in,
+      // so there is no more reason to special-case this path.
       const redirectUrl = redirectToLanding('/', {
         auth: 'login',
         returnUrl: window.location.href,

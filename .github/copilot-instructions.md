@@ -1,5 +1,5 @@
 <!-- SKILLGOD:START v1.1 -->
-# SkillGod Project Memory (auto-generated — do not edit; updated 2026-09-03 13:29)
+# SkillGod Project Memory (auto-generated — do not edit; updated 2026-09-03 16:41)
 
 # SkillGod Active
 
@@ -18,20 +18,20 @@ After completing **meaningful** work (decisions, architecture, non-obvious fixes
 ## SkillGod health
 - version: 1.0.1+794a995
 - project_id: `visha-90fc8883`
-- last inject: 2026-09-03T13:29:37 (runtime)
+- last inject: 2026-09-03T16:40:47 (runtime)
 - last capture: never (-)
 - markers: SKILLGOD:START v1.1
 
 ## Project memory
 
 ## Decisions
-- {"stdout": "âš The \"middleware\" file convention is deprecated. Please use \"proxy\" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy\n Creating an optimi
-- {"stdout": "âš The \"middleware\" file convention is deprecated. Please use \"proxy\" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy\n Creating an optimi
-- {"filePath": "C:\\Users\\visha\\simbolonew\\backend\\prisma\\schema.prisma", "oldString": " status CaseStudyStatusEnum @default(DRAFT)\n publishDate DateTime?\n clientName String\n
-- {"stdout": "âš The \"middleware\" file convention is deprecated. Please use \"proxy\" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy\n Creating an optimi
-- {"filePath": "C:\\Users\\visha\\simbolonew\\apps\\admin\\src\\services\\api.ts", "oldString": " addMetric: async (data: { label: string; value: string; changePercentage?: string; p
-- {"filePath": "C:\\Users\\visha\\simbolonew\\backend\\src\\case-studies\\dto\\create-before-after.dto.ts", "oldString": " @ApiProperty({ example: 'c0a80123-4567-89ab-cdef-0123456789
-- {"filePath": "C:\\Users\\visha\\simbolonew\\backend\\prisma\\schema.prisma", "oldString": "model BeforeAfterComparison {\n id String @id @default(uuid()) @db.Uuid\n title String
+- {"stdout": "{\"success\":true,\"message\":\"Operation successful\",\"data\":[{\"id\":\"56e8cc4f-1950-44f3-a157-e7de48bdef99\",\"title\":\"Pinnacleâ€™s Local & AI Visibility Growth\
+- {"filePath": "C:\\Users\\visha\\simbolonew\\apps\\admin\\src\\services\\api.ts", "oldString": " if (!res.ok) {\n throw new Error(`API error (${res.status}): ${res.statusText}`);\n 
+- {"filePath": "C:\\Users\\visha\\simbolonew\\apps\\client\\src\\services\\api.ts", "oldString": " if (res.status === 401) {\n if (typeof window !== 'undefined' && !window.location.p
+- {"filePath": "C:\\Users\\visha\\simbolonew\\apps\\landing\\src\\data\\services\\ecommerce.ts", "oldString": " buttonLink: `${process.env.NEXT_PUBLIC_DASHBOARD_URL || \"http://local
+- {"filePath": "C:\\Users\\visha\\simbolonew\\apps\\landing\\src\\data\\services\\ecommerce.ts", "oldString": " buttonLink: `${process.env.NEXT_PUBLIC_DASHBOARD_URL || \"http://local
+- {"filePath": "C:\\Users\\visha\\simbolonew\\apps\\landing\\src\\data\\services\\ecommerce.ts", "oldString": " buttonLink: `${process.env.NEXT_PUBLIC_DASHBOARD_URL || \"http://local
+- {"filePath": "C:\\Users\\visha\\simbolonew\\apps\\landing\\src\\data\\services\\websiteDesign.ts", "oldString": " buttonLink: `${process.env.NEXT_PUBLIC_DASHBOARD_URL || \"http://l
 
 ## Notes
 

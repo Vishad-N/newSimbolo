@@ -143,7 +143,7 @@ export const ecommercePackages: SharedPackage[] = [
     priceYearly: 19999,
     currency: "INR",
     buttonText: "Choose Starter",
-    buttonLink: `${process.env.NEXT_PUBLIC_DASHBOARD_URL || "http://localhost:3002"}/checkout?package=ecommerce-starter`,
+    buttonLink: "?auth=register&checkout=ecommerce-starter",
     features: [
       "Basic Shopify/WooCommerce Setup",
       "Up to 50 Products",
@@ -162,7 +162,7 @@ export const ecommercePackages: SharedPackage[] = [
     isPopular: true,
     badge: "Most Popular",
     buttonText: "Choose Growth",
-    buttonLink: `${process.env.NEXT_PUBLIC_DASHBOARD_URL || "http://localhost:3002"}/checkout?package=ecommerce-growth`,
+    buttonLink: "?auth=register&checkout=ecommerce-growth",
     features: [
       "Custom Theme Modification",
       "Up to 500 Products",
@@ -180,7 +180,7 @@ export const ecommercePackages: SharedPackage[] = [
     priceYearly: 79999,
     currency: "INR",
     buttonText: "Choose Premium",
-    buttonLink: `${process.env.NEXT_PUBLIC_DASHBOARD_URL || "http://localhost:3002"}/checkout?package=ecommerce-premium`,
+    buttonLink: "?auth=register&checkout=ecommerce-premium",
     features: [
       "Fully Custom Design",
       "Unlimited Products",
