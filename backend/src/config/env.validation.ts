@@ -29,6 +29,12 @@ class EnvironmentVariables {
   @IsString()
   FRONTEND_URLS: string;
 
+  // Explicit target for the Google OAuth callback bridge, so it doesn't have to
+  // guess which entry of FRONTEND_URLS is the dashboard app by position.
+  @IsOptional()
+  @IsString()
+  DASHBOARD_URL?: string;
+
   @IsString()
   JWT_SECRET: string;
 

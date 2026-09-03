@@ -12,3 +12,13 @@ export function cn(...classes: Array<string | false | null | undefined>) {
 export function toSecureCloudinaryUrl(url: string): string {
   return url.startsWith("http://res.cloudinary.com/") ? url.replace("http://", "https://") : url;
 }
+
+// Builds an autoplaying embed URL for the inline in-card video preview. YouTube and
+// Vimeo use different query param names for mute ("mute" vs "muted"), and the stored
+// previewUrl may or may not already have a query string (Vimeo embeds often carry a
+// "?h=" hash param), so params must be appended with the right separator either way.
+export function buildInlinePreviewSrc(previewUrl: string, previewType: "youtube" | "vimeo", muted: boolean): string {
+  const separator = previewUrl.includes("?") ? "&" : "?";
+  const muteParam = previewType === "vimeo" ? "muted" : "mute";
+  return `${previewUrl}${separator}autoplay=1&playsinline=1&${muteParam}=${muted ? 1 : 0}`;
+}

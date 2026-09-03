@@ -5,7 +5,6 @@ import { createPortal } from "react-dom";
 import { X, Check, ArrowRight, Zap, Target, Briefcase } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import Image from "next/image";
 import type { MarketingPackage, BillingCycle } from "@/types/packages";
 
 type ExpandedPackageModalProps = {
@@ -233,104 +232,11 @@ export function ExpandedPackageModal({ pkg, isOpen, onClose, defaultBilling = "m
               </div>
 
             </div>
-            
-            <MascotMessage pkgName={pkg.name} />
             </div>
           </motion.div>
         </div>
       )}
     </AnimatePresence>,
     document.body
-  );
-}
-
-function MascotMessage({ pkgName }: { pkgName: string }) {
-  const [step, setStep] = useState(0);
-
-  useEffect(() => {
-    setStep(0);
-  }, [pkgName]);
-
-  useEffect(() => {
-    let timer: NodeJS.Timeout;
-    const runCycle = () => {
-      const delay = step % 2 === 0 ? 2000 : 4000;
-      timer = setTimeout(() => {
-        setStep((prev) => (prev + 1) % 6);
-      }, delay);
-    };
-    runCycle();
-    return () => clearTimeout(timer);
-  }, [step, pkgName]);
-
-  const planMessages: Record<string, string[]> = {
-    "Starter": [
-      "This covers all the essential basics! ✨",
-      "Perfect for kicking things off! 🚀",
-      "Ready to grow? Let's get started!"
-    ],
-    "Growth": [
-      "Our most popular choice! 📈",
-      "Double down on what works!",
-      "Ready to explode your leads?"
-    ],
-    "Pro": [
-      "Maximum ROI and market dominance! 👑",
-      "Outperform all your competitors!",
-      "Let's scale your business to the moon! 🚀"
-    ],
-    "Enterprise": [
-      "Custom solutions for massive scale! 🏢",
-      "Dedicated team, just for you!",
-      "Let's build an empire together! 🤝"
-    ]
-  };
-
-  const msgs = planMessages[pkgName] || [
-    "This plan looks absolutely amazing! ✨",
-    "Great choice for your goals! 🎯",
-    "Shall we get this started? 🚀"
-  ];
-
-  const isThinking = step % 2 === 0;
-  const msgIndex = Math.floor(step / 2);
-  const currentMessage = msgs[msgIndex];
-
-  return (
-    <div className="absolute bottom-6 right-6 lg:bottom-8 lg:right-10 flex items-end gap-3 z-20 pointer-events-none">
-      <div className="relative mb-8 rounded-2xl rounded-br-sm bg-[var(--bubble-bg)] p-4 shadow-[0_15px_40px_rgba(34,211,238,0.25)] text-[0.95rem] font-bold text-[var(--bubble-text)] w-[240px]">
-        {/* Speech Bubble Tail */}
-        <div className="absolute bottom-3 -right-4 h-5 w-5 bg-[var(--bubble-bg)]" style={{ clipPath: 'polygon(0 0, 0 100%, 100% 100%)' }}></div>
-        
-        <AnimatePresence mode="wait">
-          {isThinking ? (
-            <motion.div
-              key="thinking"
-              initial={{ opacity: 0, y: 5 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -5 }}
-              className="flex justify-center gap-1.5 py-2 px-2"
-            >
-              <motion.span animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1.5, repeat: Infinity, delay: 0 }} className="h-2 w-2 rounded-full bg-[var(--accent)]" />
-              <motion.span animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1.5, repeat: Infinity, delay: 0.2 }} className="h-2 w-2 rounded-full bg-[var(--accent)]" />
-              <motion.span animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1.5, repeat: Infinity, delay: 0.4 }} className="h-2 w-2 rounded-full bg-[var(--accent)]" />
-            </motion.div>
-          ) : (
-            <motion.div
-              key={`msg-${msgIndex}`}
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="text-center leading-snug"
-            >
-              {currentMessage}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-      <div className="relative h-28 w-28 shrink-0 mascot-float drop-shadow-[0_0_20px_rgba(255,255,255,0.2)] -mr-2">
-        <Image src="/assets/logo1.png" alt="Simbolo Mascot" fill className="object-contain" />
-      </div>
-    </div>
   );
 }

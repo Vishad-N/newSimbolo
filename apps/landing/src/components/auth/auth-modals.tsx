@@ -25,13 +25,59 @@ const redirectToDashboard = ({ accessToken, refreshToken, user }: Authentication
   window.location.replace(callbackUrl.toString());
 };
 
+// Only same-origin (dashboard app) returnUrls are trusted as a redirect target,
+// to avoid an open-redirect via a crafted query param.
+const toSafeDashboardPath = (returnUrl: string): string | null => {
+  try {
+    const parsed = new URL(returnUrl);
+    if (parsed.origin === new URL(DASHBOARD_URL).origin) {
+      return `${parsed.pathname}${parsed.search}`;
+    }
+  } catch {
+    // Malformed returnUrl.
+  }
+  return null;
+};
+
+// The rest of this flow (register/login forms, the Google OAuth handoff) can
+// take the user through a page reload or an external redirect and back, which
+// loses whatever was in the URL's query string. Stash the original "Buy Now"
+// intent in localStorage the moment it's seen, so it survives that round trip
+// even if the `checkout`/`returnUrl` query params don't.
+const POST_LOGIN_INTENT_KEY = "simbolo_post_login_intent";
+
+const persistPostLoginIntent = (searchParams: URLSearchParams) => {
+  if (typeof window === "undefined") return;
+  const checkoutPackage = searchParams.get("checkout");
+  if (checkoutPackage) {
+    localStorage.setItem(POST_LOGIN_INTENT_KEY, JSON.stringify({ type: "checkout", value: checkoutPackage }));
+    return;
+  }
+  const returnUrl = searchParams.get("returnUrl");
+  if (returnUrl) {
+    localStorage.setItem(POST_LOGIN_INTENT_KEY, JSON.stringify({ type: "returnUrl", value: returnUrl }));
+  }
+};
+
+const consumePostLoginIntent = (): { type: "checkout" | "returnUrl"; value: string } | null => {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(POST_LOGIN_INTENT_KEY);
+    if (!raw) return null;
+    localStorage.removeItem(POST_LOGIN_INTENT_KEY);
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+};
+
 // Where to send the user once they are authenticated. A package "Buy Now" flow
 // sets `checkout`, which always wins so an in-progress purchase is never lost.
 // Otherwise, if the login was triggered by the client dashboard bouncing an
 // unauthenticated visitor back here (see apps/client's fetchProxy 401 handler),
 // `returnUrl` carries the page they were trying to reach — honor it instead of
-// dropping them on the generic dashboard. Only same-origin (dashboard app)
-// returnUrls are trusted, to avoid an open-redirect via a crafted query param.
+// dropping them on the generic dashboard. Falls back to the localStorage-backed
+// intent (see above) if the query params themselves got lost along the way.
 const getPostLoginNext = (searchParams: URLSearchParams, role?: string): string => {
   const checkoutPackage = searchParams.get("checkout");
   if (checkoutPackage) {
@@ -40,14 +86,17 @@ const getPostLoginNext = (searchParams: URLSearchParams, role?: string): string 
 
   const returnUrl = searchParams.get("returnUrl");
   if (returnUrl) {
-    try {
-      const parsed = new URL(returnUrl);
-      if (parsed.origin === new URL(DASHBOARD_URL).origin) {
-        return `${parsed.pathname}${parsed.search}`;
-      }
-    } catch {
-      // Malformed returnUrl — ignore and fall through to the default.
-    }
+    const safePath = toSafeDashboardPath(returnUrl);
+    if (safePath) return safePath;
+  }
+
+  const storedIntent = consumePostLoginIntent();
+  if (storedIntent?.type === "checkout") {
+    return `/checkout?package=${encodeURIComponent(storedIntent.value)}`;
+  }
+  if (storedIntent?.type === "returnUrl") {
+    const safePath = toSafeDashboardPath(storedIntent.value);
+    if (safePath) return safePath;
   }
 
   return role === "AFFILIATE" ? "/affiliate" : "/dashboard";
@@ -75,6 +124,10 @@ export function AuthModals() {
   }, [accessToken, refreshToken, searchParams]);
 
   useEffect(() => {
+    if (isOpen) {
+      persistPostLoginIntent(searchParams);
+    }
+
     // If the modal is triggered but they are already logged in, skip the
     // modal entirely and send them straight to where they were headed.
     if (isOpen) {

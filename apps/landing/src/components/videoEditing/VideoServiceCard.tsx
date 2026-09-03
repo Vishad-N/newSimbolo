@@ -1,9 +1,11 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Play, Clock, Sparkles } from "lucide-react";
+import { Play, Sparkles, Volume2, VolumeX, Maximize2, X } from "lucide-react";
 import { motion } from "framer-motion";
+import { buildInlinePreviewSrc } from "@/lib/utils";
 import type { VideoEditingService } from "@/types/video-editing";
 
 type VideoServiceCardProps = {
@@ -13,6 +15,32 @@ type VideoServiceCardProps = {
 };
 
 export function VideoServiceCard({ service, onPreview, index }: VideoServiceCardProps) {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  // Instagram embeds don't expose any playback/mute control of their own, so an
+  // inline preview would just be a dead widget — send those straight to the
+  // existing full modal (which already has a "coming soon" fallback for them)
+  // instead of pretending to support inline play/mute for them.
+  const canPlayInline = service.previewType !== "instagram";
+
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.muted = isMuted;
+    }
+  }, [isMuted, isPlaying]);
+
+  const handlePlayClick = () => {
+    if (!canPlayInline) {
+      onPreview(service);
+      return;
+    }
+    setIsPlaying(true);
+  };
+
+  const stopPreview = () => setIsPlaying(false);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -23,38 +51,94 @@ export function VideoServiceCard({ service, onPreview, index }: VideoServiceCard
     >
       {/* Thumbnail & Preview */}
       <div className="relative aspect-video w-full overflow-hidden bg-black">
-        <Image
-          src={service.thumbnail}
-          alt={service.title}
-          fill
-          className="object-cover transition-transform duration-700 group-hover:scale-105 opacity-80 group-hover:opacity-100"
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-        />
-        
-        {/* Badges */}
-        <div className="absolute left-3 top-3 flex flex-wrap gap-2">
-          {service.badge && (
-            <span className="font-heading flex items-center gap-1 rounded-full bg-[var(--accent)]/90 px-2.5 py-0.5 text-[0.7rem] font-bold uppercase tracking-wide text-black backdrop-blur-md">
-              <Sparkles className="h-3 w-3" />
-              {service.badge}
-            </span>
-          )}
-          {service.complexity && (
-            <span className="font-heading rounded-full bg-black/60 px-2.5 py-0.5 text-[0.7rem] font-bold text-white/90 backdrop-blur-md border border-white/20">
-              {service.complexity} Level
-            </span>
-          )}
-        </div>
+        {isPlaying && canPlayInline ? (
+          <>
+            {(service.previewType === "youtube" || service.previewType === "vimeo") && (
+              <iframe
+                key={`${service.id}-${isMuted}`}
+                src={buildInlinePreviewSrc(service.previewUrl, service.previewType, isMuted)}
+                title={service.title}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                className="absolute inset-0 h-full w-full border-0"
+              />
+            )}
 
-        {/* Hover Overlay */}
-        <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 backdrop-blur-[2px] transition-opacity duration-300 group-hover:opacity-100">
-          <button
-            onClick={() => onPreview(service)}
-            className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--accent)] text-black transition-transform hover:scale-110 shadow-[0_0_20px_var(--accent-glow)]"
-          >
-            <Play className="h-5 w-5 fill-black ml-1" />
-          </button>
-        </div>
+            {service.previewType === "direct" && (
+              <video
+                ref={videoRef}
+                src={service.previewUrl}
+                autoPlay
+                loop
+                playsInline
+                muted={isMuted}
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+            )}
+
+            {/* Inline preview controls */}
+            <div className="absolute inset-x-0 top-0 flex items-center justify-between p-2">
+              <button
+                onClick={stopPreview}
+                aria-label="Close preview"
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-white/90 backdrop-blur-md transition hover:bg-black/80 hover:text-white"
+              >
+                <X className="h-4 w-4" />
+              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setIsMuted((muted) => !muted)}
+                  aria-label={isMuted ? "Unmute preview" : "Mute preview"}
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-white/90 backdrop-blur-md transition hover:bg-black/80 hover:text-white"
+                >
+                  {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+                </button>
+                <button
+                  onClick={() => onPreview(service)}
+                  aria-label="Open fullscreen preview"
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-white/90 backdrop-blur-md transition hover:bg-black/80 hover:text-white"
+                >
+                  <Maximize2 className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
+            <Image
+              src={service.thumbnail}
+              alt={service.title}
+              fill
+              className="object-cover transition-transform duration-700 group-hover:scale-105 opacity-80 group-hover:opacity-100"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            />
+
+            {/* Badges */}
+            <div className="absolute left-3 top-3 flex flex-wrap gap-2">
+              {service.badge && (
+                <span className="font-heading flex items-center gap-1 rounded-full bg-[var(--accent)]/90 px-2.5 py-0.5 text-[0.7rem] font-bold uppercase tracking-wide text-black backdrop-blur-md">
+                  <Sparkles className="h-3 w-3" />
+                  {service.badge}
+                </span>
+              )}
+              {service.complexity && (
+                <span className="font-heading rounded-full bg-black/60 px-2.5 py-0.5 text-[0.7rem] font-bold text-white/90 backdrop-blur-md border border-white/20">
+                  {service.complexity} Level
+                </span>
+              )}
+            </div>
+
+            {/* Hover Overlay */}
+            <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 backdrop-blur-[2px] transition-opacity duration-300 group-hover:opacity-100">
+              <button
+                onClick={handlePlayClick}
+                aria-label={`Play preview for ${service.title}`}
+                className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--accent)] text-black transition-transform hover:scale-110 shadow-[0_0_20px_var(--accent-glow)]"
+              >
+                <Play className="h-5 w-5 fill-black ml-1" />
+              </button>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Content */}

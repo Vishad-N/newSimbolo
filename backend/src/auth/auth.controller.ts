@@ -153,9 +153,15 @@ export class AuthController {
     // email/password login uses), instead of round-tripping through the
     // landing app — that hop left the dashboard with no reliable way to tell
     // the browser was already authenticated, causing a login loop.
-    // FRONTEND_URLS is ordered [landing, dashboard, ...]; state carries the
+    // Prefer the explicit DASHBOARD_URL; fall back to guessing position [1] of
+    // FRONTEND_URLS only when it isn't set. That guess previously assumed
+    // FRONTEND_URLS was ordered [landing, dashboard, ...], but in production it
+    // resolved to the *landing* URL instead — sending the browser to a
+    // /auth/callback route that only exists in the dashboard app, a 404, which
+    // then dropped the in-progress checkout entirely. state carries the
     // package slug the user was trying to check out when the guard set it.
-    const dashboardUrl = process.env.FRONTEND_URLS?.split(',')[1] || 'http://localhost:3002';
+    const dashboardUrl =
+      process.env.DASHBOARD_URL || process.env.FRONTEND_URLS?.split(',')[1] || 'http://localhost:3002';
     const checkoutPackage = typeof req.query?.state === 'string' ? req.query.state : undefined;
     const next = checkoutPackage ? `/checkout?package=${encodeURIComponent(checkoutPackage)}` : '/dashboard';
 
