@@ -4,7 +4,7 @@ import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { CreditCard, CheckCircle2, AlertCircle, ShieldCheck, FileText, ArrowRight, Check, X, Loader2 } from "lucide-react";
 import { RazorpayCheckout } from "@/components/checkout/RazorpayCheckout";
-import { mockApi, splitStoredPhone } from "@/services/api";
+import { clientApi, splitStoredPhone } from "@/services/api";
 import {
   sanitizeNameInput,
   sanitizeStateCodeInput,
@@ -118,11 +118,9 @@ function CheckoutContent() {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api/v1";
-        
         // Fetch package details by slug
         if (packageId && packageId !== "custom") {
-          const pkgRes = await fetch(`${apiUrl}/packages/${packageId}`);
+          const pkgRes = await fetch(`/api/public/packages/${packageId}`);
           if (pkgRes.ok) {
             const pkgData = await pkgRes.json() as BackendPackage & { data?: BackendPackage };
             const pkg: BackendPackage = pkgData.data ?? pkgData;
@@ -217,7 +215,7 @@ function CheckoutContent() {
   const handleSaveProfileBeforeCheckout = async () => {
     try {
       if (userProfile) {
-        await mockApi.profile.update({
+        await clientApi.profile.update({
           gstNumber: userProfile.gstNumber,
           billingAddress: userProfile.billingAddress,
           stateCode: userProfile.stateCode

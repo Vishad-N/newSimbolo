@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AlertTriangle, X, RefreshCw } from "lucide-react";
-import { mockApi, redirectToLanding } from "@/services/api";
+import { clientApi, redirectToLanding } from "@/services/api";
 import { cn } from "@/utils/utils";
 
 export function StickyRenewCard() {
@@ -12,7 +12,7 @@ export function StickyRenewCard() {
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
-    mockApi.subscription.get().then(setSubscription);
+    clientApi.subscription.get().then(setSubscription);
   }, []);
 
   if (!subscription || !isVisible) return null;

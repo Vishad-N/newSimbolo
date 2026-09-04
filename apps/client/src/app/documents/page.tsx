@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { FileText, Folder, File, FileImage, FileVideo, Download, Upload, MoreVertical, Loader2 } from "lucide-react";
 import { UploadModal } from "@/components/documents/UploadModal";
-import { mockApi } from "@/services/api";
+import { clientApi } from "@/services/api";
 
 interface DocumentRecord {
   id: string;
@@ -46,7 +46,7 @@ export default function DocumentsPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const data = await mockApi.documents.getAll();
+      const data = await clientApi.documents.getAll();
       setDocuments(Array.isArray(data) ? data : []);
     } catch (requestError) {
       console.error("Failed to fetch documents", requestError);
@@ -62,7 +62,7 @@ export default function DocumentsPage() {
 
   const handleDownload = async (doc: DocumentRecord) => {
     try {
-      await mockApi.documents.trackDownload(doc.id);
+      await clientApi.documents.trackDownload(doc.id);
     } catch (requestError) {
       console.error("Failed to record download", requestError);
     }
@@ -178,7 +178,7 @@ export default function DocumentsPage() {
           // own Document record, using the file's own name as the title since
           // this modal doesn't collect one separately.
           for (const file of files) {
-            await mockApi.documents.upload(file, file.name);
+            await clientApi.documents.upload(file, file.name);
           }
           await fetchDocuments();
         }}

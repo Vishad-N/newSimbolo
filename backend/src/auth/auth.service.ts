@@ -6,8 +6,10 @@ import { BaseService } from '../shared/abstractions/base.service';
 import { EmailService } from '../shared/email/email.service';
 import { AuditService } from '../shared/audit/audit.service';
 import { SessionsService } from '../sessions/sessions.service';
+import { CacheService } from '../cache/cache.service';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
+import { authenticator } from 'otplib';
 import { UserStatusEnum } from '@prisma/client';
 import {
   CustomConflictException,
@@ -38,6 +40,7 @@ export class AuthService extends BaseService {
     private readonly emailService: EmailService,
     private readonly auditService: AuditService,
     private readonly sessionsService: SessionsService,
+    private readonly cacheService: CacheService,
   ) {
     super(AuthService.name);
     this.bcryptRounds = this.configService.get<number>('auth.bcryptRounds', 12);
@@ -147,6 +150,107 @@ export class AuthService extends BaseService {
       );
     }
 
+    if (user.twoFactorEnabled) {
+      // Password is correct, but this account requires a TOTP code before we hand out
+      // real tokens. Stash the (already-authenticated) user id behind a short-lived,
+      // single-use code — same handoff pattern as createLoginHandoff — instead of
+      // issuing tokens the caller hasn't proven they're allowed to have yet.
+      const mfaToken = crypto.randomBytes(32).toString('hex');
+      await this.cacheService.set(`mfa-challenge:${mfaToken}`, { userId: user.id }, 300);
+      return { mfaRequired: true, mfaToken };
+    }
+
+    await this.auditService.logEvent({
+      userId: user.id,
+      action: 'LOGIN',
+      entityType: 'User',
+      entityId: user.id,
+      ipAddress: ip,
+      userAgent,
+    });
+
+    return this.issueSessionForUser(user, ip, userAgent);
+  }
+
+  /**
+   * Verifies a TOTP (or backup) code against the account referenced by a 2FA
+   * challenge minted by login(), and — only on success — issues real tokens.
+   */
+  async verifyTwoFactorLogin(mfaToken: string, code: string, ip?: string, userAgent?: string) {
+    const key = `mfa-challenge:${mfaToken}`;
+    const challenge = await this.cacheService.get<{ userId: string }>(key);
+    if (!challenge) {
+      throw new CustomUnauthorizedException('This login attempt has expired. Please sign in again.');
+    }
+    await this.cacheService.delete(key); // single-use regardless of outcome below
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: challenge.userId },
+      include: { role: { include: { permissions: true } } },
+    });
+    if (!user || !user.twoFactorEnabled || !user.twoFactorSecret) {
+      throw new CustomUnauthorizedException('Two-factor authentication is not active for this account.');
+    }
+
+    const isValid = await this.verifyTwoFactorCode(user.id, user.twoFactorSecret, user.twoFactorBackupCodes, code);
+    if (!isValid) {
+      await this.auditService.logEvent({
+        userId: user.id,
+        action: 'LOGIN_FAILED',
+        entityType: 'User',
+        entityId: user.id,
+        ipAddress: ip,
+        userAgent,
+        newValue: 'Invalid 2FA code',
+      });
+      throw new CustomUnauthorizedException('Invalid two-factor authentication code');
+    }
+
+    await this.auditService.logEvent({
+      userId: user.id,
+      action: 'LOGIN',
+      entityType: 'User',
+      entityId: user.id,
+      ipAddress: ip,
+      userAgent,
+      newValue: 'Verified via 2FA',
+    });
+
+    return this.issueSessionForUser(user, ip, userAgent);
+  }
+
+  /** Checks a submitted code against the TOTP secret first, then falls back to
+   * single-use backup codes. Consumes (and persists removal of) a matched backup
+   * code so it can never be replayed. */
+  private async verifyTwoFactorCode(
+    userId: string,
+    secret: string,
+    backupCodes: string[],
+    code: string,
+  ): Promise<boolean> {
+    const normalized = code.trim();
+    if (authenticator.verify({ token: normalized, secret })) {
+      return true;
+    }
+
+    for (const hashedCode of backupCodes) {
+      if (await bcrypt.compare(normalized, hashedCode)) {
+        await this.prisma.user.update({
+          where: { id: userId },
+          data: { twoFactorBackupCodes: backupCodes.filter((c) => c !== hashedCode) },
+        });
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  private async issueSessionForUser(
+    user: { id: string; email: string; firstName: string; lastName: string; avatarUrl: string | null; status: UserStatusEnum; organizationId: string | null; role: { slug: string; permissions: { slug: string }[] } },
+    ip?: string,
+    userAgent?: string,
+  ) {
     const permissionSlugs = user.role.permissions ? user.role.permissions.map((p) => p.slug) : [];
     const tokens = await this.generateTokens(
       user.id,
@@ -170,15 +274,6 @@ export class AuthService extends BaseService {
 
     const sessionToken = crypto.randomBytes(24).toString('hex');
     await this.sessionsService.createSession(user.id, sessionToken, refreshExpiresAt, ip, userAgent);
-
-    await this.auditService.logEvent({
-      userId: user.id,
-      action: 'LOGIN',
-      entityType: 'User',
-      entityId: user.id,
-      ipAddress: ip,
-      userAgent,
-    });
 
     return {
       accessToken: tokens.accessToken,
@@ -584,6 +679,37 @@ export class AuthService extends BaseService {
         hasActivePlan: !!(user.clientProfile?.subscriptions?.length || user.clientProfile?.orders?.length),
       },
     };
+  }
+
+  /**
+   * Wraps an already-issued token pair into a short-lived, single-use code so a
+   * cross-origin redirect (Google OAuth callback -> dashboard app, or the landing
+   * app's own login/register -> dashboard app) never has to carry the raw JWTs on
+   * the query string, where they'd land in browser history, server access logs,
+   * and a possible Referer header. The access token must verify (it was already
+   * issued by us to whoever is calling this), so this mints no new capability —
+   * it only re-packages tokens the caller already legitimately holds.
+   */
+  async createLoginHandoff(accessToken: string, refreshToken: string): Promise<string> {
+    let payload: JwtPayload;
+    try {
+      payload = this.jwtService.verify<JwtPayload>(accessToken, { secret: this.jwtSecret });
+    } catch {
+      throw new CustomUnauthorizedException('Invalid access token');
+    }
+
+    const code = crypto.randomBytes(32).toString('hex');
+    await this.cacheService.set(`auth-handoff:${code}`, { accessToken, refreshToken, role: payload.role }, 60);
+    return code;
+  }
+
+  /** Single-use: the code is deleted on first read, valid or not. */
+  async consumeLoginHandoff(code: string): Promise<{ accessToken: string; refreshToken: string; role: string } | null> {
+    const key = `auth-handoff:${code}`;
+    const payload = await this.cacheService.get<{ accessToken: string; refreshToken: string; role: string }>(key);
+    if (!payload) return null;
+    await this.cacheService.delete(key);
+    return payload;
   }
 
   private async generateTokens(

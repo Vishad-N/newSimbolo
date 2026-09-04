@@ -39,7 +39,7 @@ export const dynamic = "force-dynamic";
 
 import { fetchMappedPackages } from "@/lib/package-mapper";
 import { fetchMappedFaqs, fetchMappedTestimonials } from "@/lib/content-mapper";
-import { landingApi } from "@/lib/api";
+import { landingApi, unwrapLandingEnvelope } from "@/lib/api";
 
 const jsonLd = {
   "@context": "https://schema.org",
@@ -56,12 +56,13 @@ const jsonLd = {
 };
 
 export default async function MetaAdsPage() {
-  const [livePackages, liveConfig, liveFaqs, liveTestimonials] = await Promise.all([
+  const [livePackages, rawConfig, liveFaqs, liveTestimonials] = await Promise.all([
     fetchMappedPackages('meta-ads', []),
     landingApi.getServicePageConfig('meta-ads', null),
     fetchMappedFaqs([]),
     fetchMappedTestimonials([]),
   ]);
+  const liveConfig = unwrapLandingEnvelope(rawConfig, null);
 
   return (
     <>

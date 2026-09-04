@@ -5,11 +5,19 @@ import { AuditService } from '../shared/audit/audit.service';
 import { SessionsService } from '../sessions/sessions.service';
 import { UserStatusEnum } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import * as crypto from 'crypto';
+import { authenticator } from 'otplib';
+import * as QRCode from 'qrcode';
 import { CustomUnauthorizedException, BusinessException } from '../common/exceptions/custom.exceptions';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { CreateStaffUserDto } from './dto/create-staff-user.dto';
+import { EnableTwoFactorDto } from './dto/enable-two-factor.dto';
+import { DisableTwoFactorDto } from './dto/disable-two-factor.dto';
 import { CustomConflictException } from '../common/exceptions/custom.exceptions';
+
+const TOTP_ISSUER = 'The Simbolo';
+const BACKUP_CODE_COUNT = 8;
 
 @Injectable()
 export class UsersService extends BaseService {
@@ -247,6 +255,79 @@ export class UsersService extends BaseService {
     });
 
     return { success: true, message: 'Password changed successfully. All other sessions have been logged out.' };
+  }
+
+  /**
+   * Generates a fresh TOTP secret and its QR code, but does NOT enable 2FA yet —
+   * that only happens once the user proves they've actually set up their
+   * authenticator app by submitting a valid code to enableTwoFactor(). Re-calling
+   * this simply overwrites any prior unconfirmed secret.
+   */
+  async setupTwoFactor(userId: string) {
+    const user = this.checkEntityExists(await this.prisma.user.findUnique({ where: { id: userId } }), 'User', userId);
+
+    const secret = authenticator.generateSecret();
+    await this.prisma.user.update({ where: { id: userId }, data: { twoFactorSecret: secret } });
+
+    const otpauthUrl = authenticator.keyuri(user.email, TOTP_ISSUER, secret);
+    const qrCodeDataUrl = await QRCode.toDataURL(otpauthUrl);
+
+    return { secret, otpauthUrl, qrCodeDataUrl };
+  }
+
+  /** Confirms setupTwoFactor() by verifying a real code from the authenticator app, then turns 2FA on. */
+  async enableTwoFactor(userId: string, dto: EnableTwoFactorDto) {
+    const user = this.checkEntityExists(await this.prisma.user.findUnique({ where: { id: userId } }), 'User', userId);
+
+    if (!user.twoFactorSecret) {
+      throw new BusinessException('Call setup first to generate a secret before enabling two-factor authentication.');
+    }
+    if (!authenticator.verify({ token: dto.code.trim(), secret: user.twoFactorSecret })) {
+      throw new CustomUnauthorizedException('Invalid verification code');
+    }
+
+    const backupCodes = Array.from({ length: BACKUP_CODE_COUNT }, () =>
+      crypto.randomBytes(5).toString('hex').toUpperCase(),
+    );
+    const hashedBackupCodes = await Promise.all(backupCodes.map((code) => bcrypt.hash(code, 10)));
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { twoFactorEnabled: true, twoFactorBackupCodes: hashedBackupCodes },
+    });
+
+    await this.auditService.logEvent({
+      userId,
+      action: 'TWO_FACTOR_ENABLED',
+      entityType: 'User',
+      entityId: userId,
+    });
+
+    // Backup codes are only ever shown once, in plaintext, right here.
+    return { success: true, backupCodes };
+  }
+
+  /** Requires the current password (not a TOTP code) so losing your authenticator app doesn't lock you out of disabling it. */
+  async disableTwoFactor(userId: string, dto: DisableTwoFactorDto) {
+    const user = this.checkEntityExists(await this.prisma.user.findUnique({ where: { id: userId } }), 'User', userId);
+
+    if (!user.passwordHash || !(await bcrypt.compare(dto.password, user.passwordHash))) {
+      throw new CustomUnauthorizedException('Current password is not correct');
+    }
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { twoFactorEnabled: false, twoFactorSecret: null, twoFactorBackupCodes: [] },
+    });
+
+    await this.auditService.logEvent({
+      userId,
+      action: 'TWO_FACTOR_DISABLED',
+      entityType: 'User',
+      entityId: userId,
+    });
+
+    return { success: true, message: 'Two-factor authentication has been disabled.' };
   }
 
   async remove(id: string, deletedBy?: string) {

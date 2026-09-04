@@ -35,8 +35,7 @@ export default function ClientPackagesPage() {
   useEffect(() => {
     const fetchPackages = async () => {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api/v1";
-        const res = await fetch(`${apiUrl}/packages`);
+        const res = await fetch(`/api/public/packages`);
         if (!res.ok) throw new Error("Failed to load packages");
         const json = await res.json();
         const data: BackendPackage[] = json.data || json || [];

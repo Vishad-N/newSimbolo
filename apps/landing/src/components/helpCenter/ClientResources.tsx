@@ -6,6 +6,13 @@ import { clientResources } from "@/data/helpCenter";
 import { SectionCard } from "@/components/seo/SectionCard";
 import Link from "next/link";
 
+// No downloadable files are hosted yet — route the request to /contact with the
+// resource name pre-filled instead of pointing "Download" at a dead "#".
+const resourceContactHref = (title: string) => {
+  const params = new URLSearchParams({ type: "Other", message: `Could you send me the ${title}?` });
+  return `/contact?${params.toString()}`;
+};
+
 export function ClientResources() {
   return (
     <SectionCard className="p-5 sm:p-8">
@@ -30,7 +37,7 @@ export function ClientResources() {
               transition={{ delay: index * 0.05, duration: 0.3 }}
             >
               <Link
-                href={resource.link}
+                href={resourceContactHref(resource.title)}
                 className="group flex items-center justify-between rounded-[8px] border border-white/10 bg-[var(--background)] p-4 transition-all hover:border-[var(--accent)]/30 hover:bg-[var(--surface)]"
               >
                 <div className="flex items-center gap-3">

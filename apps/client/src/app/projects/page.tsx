@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { DataTable } from "@/components/ui/DataTable";
 import { ProgressBar } from "@/components/ui/ProgressBar";
-import { mockApi } from "@/services/api";
+import { clientApi } from "@/services/api";
 import { FolderKanban, ExternalLink } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -12,11 +12,11 @@ export default function ProjectsPage() {
   const router = useRouter();
 
   useEffect(() => {
-    mockApi.profile.get()
+    clientApi.profile.get()
       .then(profileData => {
         const clientId = profileData?.clientId || profileData?.id;
         if (clientId) {
-          mockApi.projects.getAll(clientId).then(setProjects);
+          clientApi.projects.getAll(clientId).then(setProjects);
         }
       })
       .catch(console.error);

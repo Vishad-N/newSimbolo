@@ -1,23 +1,53 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { DataTable } from "@/components/ui/DataTable";
-import { mockApi } from "@/services/api";
+import { clientApi } from "@/services/api";
 import { ShoppingCart, Download, ExternalLink, Layers } from "lucide-react";
 
 export default function OrdersPage() {
+  const router = useRouter();
   const [orders, setOrders] = useState<any[]>([]);
+  const [invoicesByOrderId, setInvoicesByOrderId] = useState<Record<string, string>>({});
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
   useEffect(() => {
-    mockApi.profile.get()
+    clientApi.profile.get()
       .then(profileData => {
         const clientId = profileData?.clientId || profileData?.id;
         if (clientId) {
-          mockApi.orders.getAll(clientId).then(setOrders);
+          clientApi.orders.getAll(clientId).then(setOrders);
         }
       })
       .catch(console.error);
+
+    // The order list itself doesn't carry invoice data — map each order to its
+    // invoice (if one has been generated yet) so "Download" can target the right PDF.
+    clientApi.invoices.getAll()
+      .then((invoices: any[]) => {
+        const map: Record<string, string> = {};
+        for (const invoice of invoices) {
+          if (invoice.orderId) map[invoice.orderId] = invoice.id;
+        }
+        setInvoicesByOrderId(map);
+      })
+      .catch(console.error);
   }, []);
+
+  const handleDownload = async (orderId: string) => {
+    const invoiceId = invoicesByOrderId[orderId];
+    if (!invoiceId) return;
+    setDownloadingId(orderId);
+    try {
+      await clientApi.invoices.downloadPdf(invoiceId);
+    } catch (error) {
+      console.error("Download failed:", error);
+      alert("Failed to download invoice PDF.");
+    } finally {
+      setDownloadingId(null);
+    }
+  };
 
   const columns = [
     { key: "orderNumber", header: "Order #" },
@@ -55,16 +85,30 @@ export default function OrdersPage() {
     {
       key: "actions",
       header: "",
-      render: (item: any) => (
-        <div className="flex gap-2 justify-end">
-          <button className="p-1.5 bg-white/5 hover:bg-white/10 text-gray-300 rounded transition-colors border border-white/10">
-            <Download className="w-4 h-4" />
-          </button>
-          <button className="p-1.5 bg-white/5 hover:bg-white/10 text-gray-300 rounded transition-colors border border-white/10">
-            <ExternalLink className="w-4 h-4" />
-          </button>
-        </div>
-      )
+      render: (item: any) => {
+        const invoiceId = invoicesByOrderId[item.id];
+        const projectId = item.project?.id;
+        return (
+          <div className="flex gap-2 justify-end">
+            <button
+              onClick={() => invoiceId && handleDownload(item.id)}
+              disabled={!invoiceId || downloadingId === item.id}
+              title={invoiceId ? "Download invoice" : "No invoice generated yet"}
+              className="p-1.5 bg-white/5 hover:bg-white/10 text-gray-300 rounded transition-colors border border-white/10 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-white/5"
+            >
+              <Download className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => projectId && router.push(`/projects/${projectId}`)}
+              disabled={!projectId}
+              title={projectId ? "View project" : "No project linked yet"}
+              className="p-1.5 bg-white/5 hover:bg-white/10 text-gray-300 rounded transition-colors border border-white/10 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-white/5"
+            >
+              <ExternalLink className="w-4 h-4" />
+            </button>
+          </div>
+        );
+      }
     }
   ];
 

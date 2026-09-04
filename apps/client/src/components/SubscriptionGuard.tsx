@@ -5,7 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import {
   AuthenticationRedirectError,
   isSubscriptionExpired,
-  mockApi,
+  clientApi,
 } from "@/services/api";
 import type { ClientSubscription } from "@/services/api";
 import { getUserRole } from "@/utils/utils";
@@ -35,9 +35,9 @@ export function SubscriptionGuard({ children }: { children: React.ReactNode }) {
     
     const checkSubscription = async () => {
       try {
-        const profile = await mockApi.profile.get();
+        const profile = await clientApi.profile.get();
         if (profile?.clientId) {
-          const sub = await mockApi.subscription.get(profile.clientId);
+          const sub = await clientApi.subscription.get(profile.clientId);
 
           const hasExpired = sub ? isSubscriptionExpired(sub) : false;
 

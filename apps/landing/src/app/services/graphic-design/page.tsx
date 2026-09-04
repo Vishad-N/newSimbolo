@@ -64,17 +64,18 @@ const jsonLd = {
   },
 };
 
-import { landingApi } from "@/lib/api";
+import { landingApi, unwrapLandingEnvelope } from "@/lib/api";
 import { fetchMappedFaqs, fetchMappedTestimonials } from "@/lib/content-mapper";
 
 export const dynamic = "force-dynamic";
 
 export default async function Page() {
-  const [liveConfig, liveFaqs, liveTestimonials] = await Promise.all([
+  const [rawConfig, liveFaqs, liveTestimonials] = await Promise.all([
     landingApi.getServicePageConfig('graphic-design', null),
     fetchMappedFaqs([]),
     fetchMappedTestimonials([]),
   ]);
+  const liveConfig = unwrapLandingEnvelope(rawConfig, null);
 
   return (
     <>

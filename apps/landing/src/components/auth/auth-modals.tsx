@@ -16,12 +16,25 @@ interface AuthenticationTokens {
   user?: { role?: string };
 }
 
-const redirectToDashboard = ({ accessToken, refreshToken, user }: AuthenticationTokens, next = "/dashboard") => {
+// Wraps the just-issued tokens into a short-lived, single-use code before they
+// ever touch a URL — the dashboard app's /auth/callback exchanges that code for
+// the real tokens server-to-server. Putting the raw accessToken/refreshToken on
+// this redirect's query string would otherwise leak them into browser history,
+// server access logs, and a possible Referer header on this cross-origin hop.
+const redirectToDashboard = async ({ accessToken, refreshToken }: AuthenticationTokens, next = "/dashboard") => {
+  const handoffRes = await fetch(`${API_BASE_URL}/auth/handoff`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ accessToken, refreshToken }),
+  });
+  if (!handoffRes.ok) {
+    throw new Error("Unable to complete sign-in. Please try again.");
+  }
+  const handoffPayload = await handoffRes.json();
+  const { code } = handoffPayload.data || handoffPayload;
   const callbackUrl = new URL("/auth/callback", DASHBOARD_URL);
-  callbackUrl.searchParams.set("accessToken", accessToken);
-  callbackUrl.searchParams.set("refreshToken", refreshToken);
+  callbackUrl.searchParams.set("code", code);
   callbackUrl.searchParams.set("next", next);
-  if (user?.role) callbackUrl.searchParams.set("role", user.role);
   window.location.replace(callbackUrl.toString());
 };
 
@@ -115,14 +128,6 @@ export function AuthModals() {
     router.push(`?${newParams.toString()}`, { scroll: false });
   };
 
-  const accessToken = searchParams.get("accessToken");
-  const refreshToken = searchParams.get("refreshToken");
-  useEffect(() => {
-    if (accessToken && refreshToken) {
-      redirectToDashboard({ accessToken, refreshToken }, getPostLoginNext(searchParams));
-    }
-  }, [accessToken, refreshToken, searchParams]);
-
   useEffect(() => {
     if (isOpen) {
       persistPostLoginIntent(searchParams);
@@ -171,9 +176,12 @@ function LoginModal({ onClose }: { onClose: () => void }) {
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const [mode, setMode] = useState<"login" | "forgot" | "forgot-sent">("login");
+  const [mode, setMode] = useState<"login" | "forgot" | "forgot-sent" | "2fa">("login");
   const [forgotEmail, setForgotEmail] = useState("");
   const [isSendingReset, setIsSendingReset] = useState(false);
+  const [mfaToken, setMfaToken] = useState("");
+  const [twoFactorCode, setTwoFactorCode] = useState("");
+  const [isVerifyingTwoFactor, setIsVerifyingTwoFactor] = useState(false);
 
   const handleForgotPassword = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -216,15 +224,52 @@ function LoginModal({ onClose }: { onClose: () => void }) {
       const payload = await response.json();
       const authentication = payload.data || payload;
 
-      if (!response.ok || !authentication.accessToken || !authentication.refreshToken) {
+      if (!response.ok) {
         throw new Error(Array.isArray(payload.message) ? payload.message.join(" ") : payload.message || "Unable to sign in.");
       }
 
+      if (authentication.mfaRequired) {
+        setMfaToken(authentication.mfaToken);
+        setMode("2fa");
+        setIsLoading(false);
+        return;
+      }
+
+      if (!authentication.accessToken || !authentication.refreshToken) {
+        throw new Error("Unable to sign in.");
+      }
+
       const next = getPostLoginNext(searchParams, authentication.user?.role);
-      redirectToDashboard(authentication, next);
+      await redirectToDashboard(authentication, next);
     } catch (loginError) {
       setError(loginError instanceof Error ? loginError.message : "Unable to sign in.");
       setIsLoading(false);
+    }
+  };
+
+  const handleVerifyTwoFactor = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsVerifyingTwoFactor(true);
+    setError("");
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/2fa/verify`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mfaToken, code: twoFactorCode }),
+      });
+      const payload = await response.json();
+      const authentication = payload.data || payload;
+
+      if (!response.ok || !authentication.accessToken || !authentication.refreshToken) {
+        throw new Error(Array.isArray(payload.message) ? payload.message.join(" ") : payload.message || "Invalid code.");
+      }
+
+      const next = getPostLoginNext(searchParams, authentication.user?.role);
+      await redirectToDashboard(authentication, next);
+    } catch (verifyError) {
+      setError(verifyError instanceof Error ? verifyError.message : "Invalid code.");
+      setIsVerifyingTwoFactor(false);
     }
   };
 
@@ -233,6 +278,63 @@ function LoginModal({ onClose }: { onClose: () => void }) {
     newParams.set("auth", "register");
     router.push(`?${newParams.toString()}`, { scroll: false });
   };
+
+  if (mode === "2fa") {
+    return (
+      <div className="relative overflow-hidden rounded-[24px] border border-white/[0.08] bg-[var(--surface)]/90 p-8 shadow-[0_24px_48px_rgba(0,0,0,0.5)] backdrop-blur-2xl">
+        <button
+          onClick={onClose}
+          className="absolute right-4 top-4 rounded-full p-1 text-[#64748B] transition-colors hover:bg-white/10 hover:text-white"
+        >
+          <X className="h-5 w-5" />
+        </button>
+        <div className="pointer-events-none absolute -right-20 -top-20 h-40 w-40 rounded-full bg-[var(--primary)]/20 blur-[50px]" />
+
+        <div className="relative z-10 text-center">
+          <h2 className="mb-2 text-2xl font-bold text-white">Two-factor authentication</h2>
+          <p className="mb-8 text-sm text-[var(--muted)]">Enter the 6-digit code from your authenticator app, or a backup code.</p>
+
+          {error && (
+            <div className="mb-4 rounded-lg bg-red-500/10 p-3 text-sm text-red-400 border border-red-500/20">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleVerifyTwoFactor} className="space-y-4">
+            <input
+              type="text"
+              required
+              autoFocus
+              value={twoFactorCode}
+              onChange={(e) => setTwoFactorCode(e.target.value.trim())}
+              maxLength={10}
+              className="w-full rounded-[12px] border border-white/[0.08] bg-white/[0.035] p-3 text-center text-lg tracking-[0.4em] text-white placeholder:text-[#64748B] placeholder:tracking-normal transition-colors focus:border-[var(--primary)] focus:bg-white/[0.05] focus:outline-none"
+              placeholder="000000"
+            />
+
+            <button
+              type="submit"
+              disabled={isVerifyingTwoFactor || twoFactorCode.length < 6}
+              className="group relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-[14px] bg-[var(--primary)] p-3.5 text-sm font-bold text-white transition-all hover:bg-[var(--primary-hover)] active:scale-[0.98] disabled:opacity-70"
+            >
+              {isVerifyingTwoFactor ? <Loader2 className="h-4 w-4 animate-spin" /> : "Verify & Sign In"}
+            </button>
+          </form>
+
+          <button
+            onClick={() => {
+              setError("");
+              setTwoFactorCode("");
+              setMode("login");
+            }}
+            className="mt-6 text-sm font-semibold text-white hover:text-[var(--primary)] transition-colors"
+          >
+            Back to Sign In
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (mode === "forgot" || mode === "forgot-sent") {
     return (
@@ -554,15 +656,19 @@ function RegisterModal({ onClose }: { onClose: () => void }) {
       const next = getPostLoginNext(searchParams, authentication.user?.role);
 
       setTimeout(() => {
-        if (loginResponse.ok && authentication.accessToken && authentication.refreshToken) {
-          redirectToDashboard(authentication, next);
-        } else {
-          // Auto-login failed unexpectedly (e.g. account got suspended between register
-          // and login) — fall back to sending them to sign in manually instead of a
-          // silently unauthenticated checkout/dashboard visit.
+        const fallbackToManualLogin = () => {
+          // Auto-login (or the handoff to the dashboard app) failed unexpectedly —
+          // fall back to sending them to sign in manually instead of a silently
+          // unauthenticated checkout/dashboard visit.
           const newParams = new URLSearchParams(searchParams.toString());
           newParams.set("auth", "login");
           window.location.href = `?${newParams.toString()}`;
+        };
+
+        if (loginResponse.ok && authentication.accessToken && authentication.refreshToken) {
+          redirectToDashboard(authentication, next).catch(fallbackToManualLogin);
+        } else {
+          fallbackToManualLogin();
         }
       }, 1500);
     } catch (registerError) {

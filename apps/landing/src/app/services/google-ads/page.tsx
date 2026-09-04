@@ -3,7 +3,7 @@ import Script from "next/script";
 import { GoogleAdsPage } from "@/components/googleAds/GoogleAdsPage";
 import { fetchMappedPackages } from "@/lib/package-mapper";
 import { fetchMappedFaqs, fetchMappedTestimonials } from "@/lib/content-mapper";
-import { landingApi } from "@/lib/api";
+import { landingApi, unwrapLandingEnvelope } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
@@ -39,12 +39,13 @@ const jsonLd = {
 };
 
 export default async function GoogleAdsRoute() {
-  const [livePackages, liveConfig, liveFaqs, liveTestimonials] = await Promise.all([
+  const [livePackages, rawConfig, liveFaqs, liveTestimonials] = await Promise.all([
     fetchMappedPackages('google-ads', []),
     landingApi.getServicePageConfig('google-ads', null),
     fetchMappedFaqs([]),
     fetchMappedTestimonials([]),
   ]);
+  const liveConfig = unwrapLandingEnvelope(rawConfig, null);
 
   return (
     <>

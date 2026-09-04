@@ -41,6 +41,14 @@ export class CacheService extends BaseService implements OnModuleDestroy {
     this.memoryCache.set(key, { value: serialized, expiresAt: Date.now() + ttlSeconds * 1000 });
   }
 
+  async delete(key: string): Promise<void> {
+    if (this.client) {
+      await this.client.del(key);
+      return;
+    }
+    this.memoryCache.delete(key);
+  }
+
   async deleteByPrefix(prefix: string): Promise<void> {
     if (!this.client) {
       for (const key of this.memoryCache.keys()) {

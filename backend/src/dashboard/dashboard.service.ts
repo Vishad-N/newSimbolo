@@ -88,7 +88,7 @@ export class DashboardService extends BaseService {
   async getClientDashboard(clientId: string) {
     const now = new Date();
 
-    const [activeProjects, pendingDeliverables, upcomingMeetings, openTickets, recentActivity, projects] =
+    const [activeProjects, pendingDeliverables, upcomingMeetings, pendingInvoices, recentActivity, projects] =
       await Promise.all([
         this.prisma.project.count({
           where: { clientId, deletedAt: null, status: { in: ['PLANNING', 'ACTIVE', 'IN_PROGRESS'] } },
@@ -97,8 +97,8 @@ export class DashboardService extends BaseService {
           where: { project: { clientId }, deletedAt: null, status: { in: ['PENDING', 'SUBMITTED'] } },
         }),
         this.prisma.meeting.count({ where: { clientId, deletedAt: null, startTime: { gte: now } } }),
-        this.prisma.supportTicket.count({
-          where: { clientId, deletedAt: null, status: { in: ['OPEN', 'IN_PROGRESS'] } },
+        this.prisma.invoice.count({
+          where: { clientId, deletedAt: null, status: { in: ['SENT', 'OVERDUE'] } },
         }),
         this.prisma.timeline.findMany({
           where: { clientId },
@@ -121,7 +121,7 @@ export class DashboardService extends BaseService {
       ]);
 
     return {
-      metrics: { activeProjects, pendingDeliverables, upcomingMeetings, openTickets },
+      metrics: { activeProjects, pendingDeliverables, upcomingMeetings, pendingInvoices },
       projects,
       recentActivity,
     };

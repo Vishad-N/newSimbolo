@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { mockApi } from "@/services/api";
+import { clientApi } from "@/services/api";
 import { SubscriptionCard } from "@/components/ui/SubscriptionCard";
 import { UpgradeCard } from "@/components/ui/UpgradeCard";
 import { Card } from "@/components/ui/Card";
@@ -13,11 +13,11 @@ export default function SubscriptionPage() {
   const [subscription, setSubscription] = useState<any>(null);
 
   useEffect(() => {
-    mockApi.profile.get()
+    clientApi.profile.get()
       .then(profileData => {
         const clientId = profileData?.clientId || profileData?.id;
         if (clientId) {
-          mockApi.subscription.get(clientId).then(setSubscription);
+          clientApi.subscription.get(clientId).then(setSubscription);
         } else {
           setSubscription(null);
         }

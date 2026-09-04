@@ -3,18 +3,18 @@
 import { useEffect, useState } from "react";
 import { DataTable } from "@/components/ui/DataTable";
 import { ProgressBar } from "@/components/ui/ProgressBar";
-import { mockApi } from "@/services/api";
+import { clientApi } from "@/services/api";
 import { CheckSquare } from "lucide-react";
 
 export default function TasksPage() {
   const [tasks, setTasks] = useState<any[]>([]);
 
   useEffect(() => {
-    mockApi.profile.get()
+    clientApi.profile.get()
       .then(profileData => {
         const clientId = profileData?.clientId || profileData?.id;
         if (clientId) {
-          mockApi.tasks.getAll(clientId).then(setTasks);
+          clientApi.tasks.getAll(clientId).then(setTasks);
         }
       })
       .catch(console.error);

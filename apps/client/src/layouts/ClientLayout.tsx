@@ -7,7 +7,7 @@ import { Sidebar } from "@/components/Sidebar";
 import { SubscriptionGuard } from "@/components/SubscriptionGuard";
 import { StickyRenewCard } from "@/components/ui/StickyRenewCard";
 import { cn } from "@/utils/utils";
-import { mockApi, redirectToLanding } from "@/services/api";
+import { clientApi, redirectToLanding } from "@/services/api";
 import { Bell, Search, Menu, User, LogOut } from "lucide-react";
 
 export function ClientLayout({ children }: { children: React.ReactNode }) {
@@ -18,7 +18,7 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    mockApi.profile.get().then(setProfile).catch(() => {});
+    clientApi.profile.get().then(setProfile).catch(() => {});
   }, []);
 
   useEffect(() => {

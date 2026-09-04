@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { mockApi } from "@/services/api";
+import { clientApi } from "@/services/api";
 import { User, Save, Building, Mail, Phone, MapPin, Hash, Map } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import Image from "next/image";
@@ -36,7 +36,7 @@ export default function ProfilePage() {
   const [gstError, setGstError] = useState("");
 
   useEffect(() => {
-    mockApi.profile.get().then(data => {
+    clientApi.profile.get().then(data => {
       setProfile(data);
       setFormData(data);
     });
@@ -85,10 +85,10 @@ export default function ProfilePage() {
     setIsSaving(true);
     setSaveMessage("");
     try {
-      // Assuming mockApi maps formData back to the backend
+      // Assuming clientApi maps formData back to the backend
       // Backend clientProfile DTO might need structured data, 
       // but for frontend we pass the updated properties.
-      await mockApi.profile.update({
+      await clientApi.profile.update({
         gstNumber: formData.gst,
         countryCode: formData.phone ? formData.countryCode : undefined,
         phone: formData.phone || undefined,

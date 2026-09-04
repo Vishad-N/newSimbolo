@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
-import { mockApi } from "@/services/api";
+import { clientApi } from "@/services/api";
 
 interface RazorpayCheckoutProps {
   amount: number;
@@ -105,7 +105,9 @@ export function RazorpayCheckout({ amount, packageName, packageId, profile, empl
         currency: "INR",
         name: "The Simbolo",
         description: `Payment for ${packageName}`,
-        image: "https://thesimbolo.com/logo.png",
+        // Razorpay's checkout iframe renders this from its own origin, so it must be an
+        // absolute URL. The actual asset is served at /assets/logo1.png (see Sidebar.tsx).
+        image: "https://thesimbolo.com/assets/logo1.png",
         order_id: gatewayOrderId, 
         handler: async function (response: any) {
           // Success handler

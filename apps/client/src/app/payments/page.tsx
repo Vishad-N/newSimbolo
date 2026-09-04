@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { DataTable } from "@/components/ui/DataTable";
-import { mockApi } from "@/services/api";
+import { clientApi } from "@/services/api";
 import { CreditCard, Download, AlertCircle, FileText, Receipt } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 
@@ -12,13 +12,22 @@ export default function BillingPage() {
   const [invoices, setInvoices] = useState<any[]>([]);
 
   useEffect(() => {
-    mockApi.payments.getAll().then(setPayments);
-    mockApi.invoices.getAll().then(setInvoices);
+    clientApi.payments.getAll().then(setPayments);
+    clientApi.invoices.getAll().then(setInvoices);
   }, []);
+
+  const successfulPayments = payments.filter((p) => p.status === "SUCCESSFUL" || p.status === "Successful");
+  const lastPayment = successfulPayments.length > 0
+    ? successfulPayments.reduce((latest, p) => (new Date(p.createdAt) > new Date(latest.createdAt) ? p : latest))
+    : null;
+
+  const outstandingBalance = invoices
+    .filter((inv) => inv.status === "SENT" || inv.status === "OVERDUE")
+    .reduce((sum, inv) => sum + (inv.totalAmount || 0), 0);
 
   const handleDownloadInvoice = async (invoiceId: string) => {
     try {
-      await mockApi.invoices.downloadPdf(invoiceId);
+      await clientApi.invoices.downloadPdf(invoiceId);
     } catch (error) {
       console.error("Download failed:", error);
       alert("Failed to download invoice PDF.");
@@ -130,10 +139,16 @@ export default function BillingPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card className="flex flex-col justify-center p-6 space-y-1">
           <div className="text-gray-400 text-sm font-medium">Outstanding Balance</div>
-          <div className="text-3xl font-heading font-bold text-white">₹0.00</div>
-          <div className="text-green-400 text-xs font-medium flex items-center gap-1 mt-1">
-            <AlertCircle className="w-3 h-3" /> All caught up
-          </div>
+          <div className="text-3xl font-heading font-bold text-white">₹{outstandingBalance.toLocaleString('en-IN')}</div>
+          {outstandingBalance === 0 ? (
+            <div className="text-green-400 text-xs font-medium flex items-center gap-1 mt-1">
+              <AlertCircle className="w-3 h-3" /> All caught up
+            </div>
+          ) : (
+            <div className="text-red-400 text-xs font-medium flex items-center gap-1 mt-1">
+              <AlertCircle className="w-3 h-3" /> Payment due
+            </div>
+          )}
         </Card>
         <Card className="flex flex-col justify-center p-6 space-y-1">
           <div className="text-gray-400 text-sm font-medium">Total Invoices</div>
@@ -144,9 +159,13 @@ export default function BillingPage() {
         </Card>
         <Card className="flex flex-col justify-center p-6 space-y-1">
           <div className="text-gray-400 text-sm font-medium">Last Payment</div>
-          <div className="text-3xl font-heading font-bold text-white">₹24,999</div>
+          <div className="text-3xl font-heading font-bold text-white">
+            {lastPayment ? `₹${lastPayment.amount.toLocaleString('en-IN')}` : "—"}
+          </div>
           <div className="text-gray-400 text-xs font-medium mt-1">
-            05 June 2026
+            {lastPayment
+              ? new Date(lastPayment.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })
+              : "No payments yet"}
           </div>
         </Card>
       </div>

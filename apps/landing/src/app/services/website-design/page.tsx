@@ -69,18 +69,19 @@ const jsonLd = {
   },
 };
 
-import { landingApi } from "@/lib/api";
+import { landingApi, unwrapLandingEnvelope } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
 export default async function WebsiteDesignRoute() {
-  const [livePackages, liveProjectsToPass, liveConfig, liveFaqs, liveTestimonials] = await Promise.all([
+  const [livePackages, liveProjectsToPass, rawConfig, liveFaqs, liveTestimonials] = await Promise.all([
     fetchMappedPackages('website-design', []),
     fetchMappedPortfolioProjects('website-design', []),
     landingApi.getServicePageConfig('website-design', null),
     fetchMappedFaqs([]),
     fetchMappedTestimonials([]),
   ]);
+  const liveConfig = unwrapLandingEnvelope(rawConfig, null);
 
   return (
     <>

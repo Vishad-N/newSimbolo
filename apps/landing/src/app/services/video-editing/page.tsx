@@ -66,19 +66,22 @@ const jsonLd = {
   },
 };
 
-import { landingApi } from "@/lib/api";
+import { landingApi, unwrapLandingEnvelope } from "@/lib/api";
 import { fetchMappedFaqs, fetchMappedTestimonials } from "@/lib/content-mapper";
 
 export const dynamic = "force-dynamic";
 
 export default async function Page() {
-  const [liveConfig, liveFaqs, liveTestimonials, liveVideoServices, liveVideoCategories] = await Promise.all([
+  const [rawConfig, liveFaqs, liveTestimonials, rawVideoServices, rawVideoCategories] = await Promise.all([
     landingApi.getServicePageConfig('video-editing', null),
     fetchMappedFaqs([]),
     fetchMappedTestimonials([]),
     landingApi.getVideoCatalogItems([]),
     landingApi.getVideoCatalogCategories([]),
   ]);
+  const liveConfig = unwrapLandingEnvelope(rawConfig, null);
+  const liveVideoServices = unwrapLandingEnvelope(rawVideoServices, []);
+  const liveVideoCategories = unwrapLandingEnvelope(rawVideoCategories, []);
 
   return (
     <>

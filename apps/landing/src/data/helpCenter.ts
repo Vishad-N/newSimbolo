@@ -23,6 +23,25 @@ import {
 import type { SeoFaq } from "@/types/seo";
 import type { SharedResult } from "@/types/shared";
 
+// Maps a Help Center category label onto one of ContactForm's fixed "Service of
+// Interest" options, so a topic link that forwards to /contact can prefill it
+// where a real match exists instead of guessing.
+const CONTACT_SERVICE_BY_CATEGORY: Record<string, string> = {
+  "Website Design": "Website Design",
+  "E-Commerce": "Ecommerce",
+  "Graphic Design": "Graphic Design",
+  "Video Editing": "Video Editing",
+};
+
+export function contactServiceForCategory(category: string): string {
+  return CONTACT_SERVICE_BY_CATEGORY[category] || "";
+}
+
+// The client dashboard is a separate app; cross-app links to it (e.g. "Track My
+// Project") go through this base URL, same pattern as the login redirect in
+// components/auth/auth-modals.tsx.
+const DASHBOARD_URL = process.env.NEXT_PUBLIC_DASHBOARD_URL || "http://localhost:3002";
+
 export const popularSearches = [
   "Shopify",
   "Website Design",
@@ -52,14 +71,14 @@ export const quickActions = [
     title: "Track My Project",
     description: "Check project progress.",
     icon: Activity,
-    link: "#"
+    link: `${DASHBOARD_URL}/projects`
   },
   {
     id: "qa-4",
     title: "Billing & Payments",
     description: "Invoices and payment help.",
     icon: CreditCard,
-    link: "#"
+    link: `${DASHBOARD_URL}/payments`
   },
   {
     id: "qa-5",
@@ -77,48 +96,45 @@ export const quickActions = [
   }
 ];
 
+// No dedicated per-category link: clicking a category filters the Knowledge Base
+// below instead (see HelpCategories/KnowledgeBase), so there is nothing here to
+// link to that doesn't already exist on the page.
 export const helpCategories = [
   {
     id: "hc-1",
     title: "Website Design",
     articleCount: 12,
     icon: MonitorPlay,
-    link: "#"
   },
   {
     id: "hc-2",
     title: "E-Commerce",
     articleCount: 15,
     icon: ShoppingCart,
-    link: "#"
   },
   {
     id: "hc-3",
     title: "Mobile Apps",
     articleCount: 8,
     icon: Smartphone,
-    link: "#"
   },
   {
     id: "hc-4",
     title: "Digital Marketing",
     articleCount: 20,
     icon: TrendingUp,
-    link: "#"
   },
   {
     id: "hc-5",
     title: "Graphic Design",
     articleCount: 10,
     icon: Palette,
-    link: "#"
   },
   {
     id: "hc-6",
     title: "Video Editing",
     articleCount: 7,
     icon: Video,
-    link: "#"
   }
 ];
 
@@ -176,6 +192,8 @@ export const helpFaqs: SeoFaq[] = [
   }
 ];
 
+// No individual article pages exist yet, so "Read Article" forwards to /contact
+// with the topic pre-filled instead of pointing at a dead "#" (see KnowledgeBase).
 export const knowledgeBaseArticles = [
   {
     id: "kb-1",
@@ -183,7 +201,6 @@ export const knowledgeBaseArticles = [
     readTime: "5 min read",
     category: "E-Commerce",
     icon: ShoppingCart,
-    link: "#"
   },
   {
     id: "kb-2",
@@ -191,7 +208,6 @@ export const knowledgeBaseArticles = [
     readTime: "4 min read",
     category: "Website Design",
     icon: FileCheck,
-    link: "#"
   },
   {
     id: "kb-3",
@@ -199,7 +215,6 @@ export const knowledgeBaseArticles = [
     readTime: "6 min read",
     category: "Content",
     icon: PenTool,
-    link: "#"
   },
   {
     id: "kb-4",
@@ -207,7 +222,6 @@ export const knowledgeBaseArticles = [
     readTime: "3 min read",
     category: "Graphic Design",
     icon: Palette,
-    link: "#"
   },
   {
     id: "kb-5",
@@ -215,7 +229,6 @@ export const knowledgeBaseArticles = [
     readTime: "7 min read",
     category: "Digital Marketing",
     icon: Search,
-    link: "#"
   },
   {
     id: "kb-6",
@@ -223,40 +236,36 @@ export const knowledgeBaseArticles = [
     readTime: "4 min read",
     category: "Project Management",
     icon: CheckSquare,
-    link: "#"
   }
 ];
 
+// No downloadable files are hosted yet, so each resource forwards to /contact
+// with the request pre-filled instead of pointing at a dead "#" (see ClientResources).
 export const clientResources = [
   {
     id: "cr-1",
     title: "Website Requirement Template",
     icon: FileCheck,
-    link: "#"
   },
   {
     id: "cr-2",
     title: "Brand Questionnaire",
     icon: PenTool,
-    link: "#"
   },
   {
     id: "cr-3",
     title: "Logo Checklist",
     icon: Palette,
-    link: "#"
   },
   {
     id: "cr-4",
     title: "SEO Checklist",
     icon: Search,
-    link: "#"
   },
   {
     id: "cr-5",
     title: "Content Checklist",
     icon: CheckSquare,
-    link: "#"
   }
 ];
 

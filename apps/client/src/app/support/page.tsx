@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { DataTable } from "@/components/ui/DataTable";
-import { mockApi } from "@/services/api";
+import { clientApi } from "@/services/api";
 import { LifeBuoy, MessageCircle, FileQuestion, Plus } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 
@@ -10,7 +10,7 @@ export default function SupportPage() {
   const [tickets, setTickets] = useState<any[]>([]);
 
   useEffect(() => {
-    mockApi.support.getTickets().then(setTickets);
+    clientApi.support.getTickets().then(setTickets);
   }, []);
 
   const columns = [

@@ -307,6 +307,13 @@ async function main() {
       module: 'meetings',
       description: 'Can schedule, update, and cancel meetings',
     },
+    // Chat module
+    {
+      name: 'Manage Support Conversations',
+      slug: 'chat.manage',
+      module: 'chat',
+      description: 'Can view and join any client support conversation, not just ones already a participant in',
+    },
     // Milestones module
     {
       name: 'Manage Milestones',
@@ -577,6 +584,7 @@ async function main() {
     'documents.upload',
     'dashboard.view',
     'projects.read',
+    'meetings.read',
   ];
   await prisma.role.update({
     where: { id: createdRoles['CLIENT'] },

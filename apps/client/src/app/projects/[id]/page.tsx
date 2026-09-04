@@ -1,7 +1,7 @@
 "use client";
 
 import { use, useEffect, useState } from "react";
-import { mockApi } from "@/services/api";
+import { clientApi } from "@/services/api";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { Card } from "@/components/ui/Card";
 import { 
@@ -28,7 +28,7 @@ export default function ProjectWorkspace({ params }: { params: Promise<{ id: str
   const [activeTab, setActiveTab] = useState("overview");
 
   useEffect(() => {
-    mockApi.projects.getById(resolvedParams.id).then(setProject);
+    clientApi.projects.getById(resolvedParams.id).then(setProject);
   }, [resolvedParams.id]);
 
   if (!project) return <div className="text-white animate-pulse p-4">Loading workspace...</div>;

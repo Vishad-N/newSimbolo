@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/Card";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { SubscriptionCard } from "@/components/ui/SubscriptionCard";
 import { UpgradeCard } from "@/components/ui/UpgradeCard";
-import { mockApi } from "@/services/api";
+import { clientApi } from "@/services/api";
 import { Briefcase, CheckCircle, Clock, Video, FileText, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
@@ -20,19 +20,37 @@ export default function DashboardPage() {
 
   useEffect(() => {
     setError(null);
-    mockApi.profile.get()
-      .then(profileData => {
+    clientApi.profile.get()
+      .then(async (profileData) => {
         setProfile(profileData);
         const clientId = profileData?.clientId || profileData?.id;
-        if (clientId) {
-          return Promise.all([
-            mockApi.stats.getDashboard(clientId).then(setStats),
-            mockApi.projects.getAll(clientId).then(setProjects),
-            mockApi.subscription.get(clientId).then(setSubscription),
-            mockApi.orders.getAll(clientId).then(setOrders),
-          ]);
+        if (!clientId) {
+          setStats({ activeProjects: 0, pendingTasks: 0, invoicesDue: 0, upcomingMeetings: 0 });
+          return;
         }
-        setStats({ activeProjects: 0, pendingTasks: 0, invoicesDue: 0, upcomingMeetings: 0 });
+
+        // A permission gap or hiccup on any ONE of these (e.g. orders 403) must not
+        // blank the whole dashboard for the others — settle independently and degrade
+        // each widget on its own instead of failing the page.
+        const [statsResult, projectsResult, subscriptionResult, ordersResult] = await Promise.allSettled([
+          clientApi.stats.getDashboard(clientId),
+          clientApi.projects.getAll(clientId),
+          clientApi.subscription.get(clientId),
+          clientApi.orders.getAll(clientId),
+        ]);
+
+        if (statsResult.status === "fulfilled") {
+          setStats(statsResult.value);
+        } else {
+          console.error("Failed to load dashboard stats:", statsResult.reason);
+          setStats({ activeProjects: 0, pendingTasks: 0, invoicesDue: 0, upcomingMeetings: 0 });
+        }
+        if (projectsResult.status === "fulfilled") setProjects(projectsResult.value);
+        else console.error("Failed to load projects:", projectsResult.reason);
+        if (subscriptionResult.status === "fulfilled") setSubscription(subscriptionResult.value);
+        else console.error("Failed to load subscription:", subscriptionResult.reason);
+        if (ordersResult.status === "fulfilled") setOrders(ordersResult.value);
+        else console.error("Failed to load orders:", ordersResult.reason);
       })
       .catch((err) => {
         console.error(err);

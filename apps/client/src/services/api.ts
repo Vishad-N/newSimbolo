@@ -337,7 +337,7 @@ export const affiliateApi = {
     fetchProxyDetailed(`affiliate/me/payout-methods/${id}`, { method: 'DELETE' }),
 };
 
-export const mockApi = {
+export const clientApi = {
   affiliate: affiliateApi,
 
   projects: {
@@ -353,10 +353,20 @@ export const mockApi = {
   },
   
   tasks: {
+    // Tasks are scoped per-project on the backend (GET /tasks/project/:projectId) —
+    // there is no per-client tasks endpoint. Fetch the client's projects first, then
+    // fetch each project's tasks and flatten them.
     getAll: async (clientId?: string) => {
       if (!clientId) return [];
-      const res = await fetchProxy(`tasks?clientId=${clientId}`);
-      return res.data || res || [];
+      const projects = await clientApi.projects.getAll(clientId);
+      const perProject = await Promise.all(
+        projects.map((project: any) =>
+          fetchProxy(`tasks/project/${project.id}`)
+            .then((res) => (res.data || res || []).map((task: any) => ({ ...task, projectName: project.name })))
+            .catch(() => []),
+        ),
+      );
+      return perProject.flat();
     }
   },
 
@@ -430,7 +440,7 @@ export const mockApi = {
         activeProjects: res.metrics?.activeProjects || 0,
         pendingTasks: res.metrics?.pendingDeliverables || 0, // Maps deliverables to tasks
         upcomingMeetings: res.metrics?.upcomingMeetings || 0,
-        invoicesDue: res.metrics?.openTickets || 0, // Using tickets for now as per dashboard mapping
+        invoicesDue: res.metrics?.pendingInvoices || 0,
         projectCompletionAvg: 0 // Can be calculated if needed
       };
     }
@@ -497,6 +507,17 @@ export const mockApi = {
       // Wait, backend notifications usually use the logged in user ID
       const res = await fetchProxy(`notifications`);
       return res.data || res || [];
+    },
+    getPreferences: async () => {
+      const res = await fetchProxy(`notifications/preferences`);
+      return res.data || res;
+    },
+    updatePreferences: async (dto: { emailOrderUpdates?: boolean; smsUrgentAlerts?: boolean }) => {
+      const res = await fetchProxy(`notifications/preferences`, {
+        method: 'PUT',
+        body: JSON.stringify(dto),
+      });
+      return res.data || res;
     }
   },
 
@@ -504,6 +525,55 @@ export const mockApi = {
     getTickets: async () => {
       // Backend does not have tickets yet. Return empty array for now.
       return [];
+    }
+  },
+
+  security: {
+    changePassword: async (currentPassword: string, newPassword: string) => {
+      const res = await fetchProxy(`users/me/change-password`, {
+        method: 'POST',
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      return res.data || res;
+    },
+    setupTwoFactor: async () => {
+      const res = await fetchProxy(`users/me/2fa/setup`, { method: 'POST' });
+      return res.data || res;
+    },
+    enableTwoFactor: async (code: string) => {
+      const res = await fetchProxy(`users/me/2fa/enable`, {
+        method: 'POST',
+        body: JSON.stringify({ code }),
+      });
+      return res.data || res;
+    },
+    disableTwoFactor: async (password: string) => {
+      const res = await fetchProxy(`users/me/2fa/disable`, {
+        method: 'POST',
+        body: JSON.stringify({ password }),
+      });
+      return res.data || res;
+    }
+  },
+
+  chat: {
+    getSupportConversation: async () => {
+      const res = await fetchProxy(`chat/support-conversation`);
+      return res.data || res;
+    },
+    getMessages: async (conversationId: string) => {
+      const res = await fetchProxy(`chat/conversations/${conversationId}/messages`);
+      return res.data || res;
+    },
+    sendMessage: async (conversationId: string, content: string) => {
+      const res = await fetchProxy(`chat/conversations/${conversationId}/messages`, {
+        method: 'POST',
+        body: JSON.stringify({ content }),
+      });
+      return res.data || res;
+    },
+    markAsRead: async (conversationId: string) => {
+      await fetchProxy(`chat/conversations/${conversationId}/read`, { method: 'POST' });
     }
   },
 
@@ -529,7 +599,8 @@ export const mockApi = {
         stateCode: profile.stateCode || profile.company?.stateCode || "",
         logo: res.avatarUrl || `https://ui-avatars.com/api/?name=${res.firstName}+${res.lastName}&background=14B8A6&color=fff`,
         theme: "dark",
-        notifications: { email: true, inApp: true, sms: false }
+        notifications: { email: true, inApp: true, sms: false },
+        twoFactorEnabled: res.twoFactorEnabled || false,
       };
     },
     update: async (data: ClientProfileUpdate) => {

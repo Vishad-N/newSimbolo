@@ -9,12 +9,15 @@ import {
   WebSocketServer,
   WsException,
 } from '@nestjs/websockets';
-import { Logger } from '@nestjs/common';
+import { Logger, UseGuards } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 import { Server, Socket } from 'socket.io';
 import { ChatService } from './chat.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { SendMessageDto } from './dto/chat.dto';
 import { MetricsService } from '../observability/metrics.service';
+import { WsJwtGuard } from './guards/ws-jwt.guard';
 
 interface AuthenticatedSocket extends Socket {
   user?: {
@@ -31,6 +34,7 @@ interface AuthenticatedSocket extends Socket {
   pingTimeout: 20000,
   namespace: 'chat',
 })
+@UseGuards(WsJwtGuard)
 export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
@@ -41,14 +45,41 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     private readonly chatService: ChatService,
     private readonly notificationsService: NotificationsService,
     private readonly metricsService: MetricsService,
+    private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
   ) {}
 
   afterInit() {
     this.logger.log('Chat WebSocket gateway initialized');
   }
 
-  handleConnection(client: Socket) {
-    this.logger.log(`WebSocket client connected: ${client.id}`);
+  // WsJwtGuard (applied to every @SubscribeMessage handler below) is the real
+  // authorization boundary. This just authenticates eagerly on connect so the
+  // socket can join its personal `user:{id}` room immediately — that's what
+  // emitNotificationToUser() broadcasts to — instead of waiting for the first
+  // message. An unauthenticated or invalid token disconnects the socket outright.
+  handleConnection(client: AuthenticatedSocket) {
+    const token =
+      client.handshake.auth?.token ??
+      (client.handshake.headers?.authorization as string | undefined)?.replace('Bearer ', '') ??
+      (client.handshake.query?.token as string | undefined);
+
+    if (!token) {
+      client.disconnect(true);
+      return;
+    }
+
+    try {
+      const secret = this.configService.get<string>('auth.jwtSecret', 'super-secret-jwt-key');
+      const payload = this.jwtService.verify(token, { secret });
+      client.user = payload;
+      client.join(`user:${payload.sub}`);
+    } catch {
+      client.disconnect(true);
+      return;
+    }
+
+    this.logger.log(`WebSocket client connected: ${client.id} (user ${client.user?.sub})`);
     this.metricsService.setWebsocketConnections(this.server.engine.clientsCount);
   }
 

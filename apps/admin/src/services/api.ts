@@ -191,6 +191,7 @@ export interface AdminLoginResponse {
   accessToken: string;
   refreshToken: string;
   user: {
+    id?: string;
     email: string;
     firstName?: string;
     lastName?: string;
@@ -535,6 +536,19 @@ export const api = {
     getAll: async () => fetchFromApi('/clients', { method: 'GET' }),
     createManual: async (data: ManualClientPayload) =>
       fetchFromApi('/clients/manual', { method: 'POST', body: JSON.stringify(data) }),
+  },
+
+  chat: {
+    getSupportConversations: async (page = 1, limit = 20) =>
+      fetchFromApi(`/chat/admin/support-conversations?page=${page}&limit=${limit}`, { method: 'GET' }),
+    join: async (conversationId: string) =>
+      fetchFromApi(`/chat/admin/support-conversations/${conversationId}/join`, { method: 'POST' }),
+    getMessages: async (conversationId: string) =>
+      fetchFromApi(`/chat/conversations/${conversationId}/messages`, { method: 'GET' }),
+    sendMessage: async (conversationId: string, content: string) =>
+      fetchFromApi(`/chat/conversations/${conversationId}/messages`, { method: 'POST', body: JSON.stringify({ content }) }),
+    markAsRead: async (conversationId: string) =>
+      fetchFromApi(`/chat/conversations/${conversationId}/read`, { method: 'POST' }),
   },
 
   roles: {

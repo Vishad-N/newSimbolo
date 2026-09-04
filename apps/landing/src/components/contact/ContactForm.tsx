@@ -10,6 +10,7 @@ import { normalizeEmail, sanitizeNameInput, validatePersonName, validatePhone } 
 export function ContactForm() {
   const searchParams = useSearchParams();
   const defaultService = searchParams.get("service") || searchParams.get("type") || "";
+  const defaultMessage = searchParams.get("message") || "";
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -23,7 +24,7 @@ export function ContactForm() {
     phone: "",
     company: "",
     service: defaultService.replace(/-/g, " ").replace(/\b\w/g, (letter: string) => letter.toUpperCase()),
-    message: "",
+    message: defaultMessage,
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {

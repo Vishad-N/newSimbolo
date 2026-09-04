@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { mockApi } from "@/services/api";
+import { clientApi } from "@/services/api";
 import { Bell, CheckCircle, FileText, CheckSquare, AlertTriangle, Search } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 
@@ -9,7 +9,7 @@ export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<any[]>([]);
 
   useEffect(() => {
-    mockApi.notifications.getAll().then(setNotifications);
+    clientApi.notifications.getAll().then(setNotifications);
   }, []);
 
   const getIcon = (type: string) => {

@@ -29,7 +29,8 @@ import {
   Building2,
   BadgeIndianRupee,
   Wallet,
-  FileText
+  FileText,
+  Inbox
 } from "lucide-react";
 import { useState } from "react";
 
@@ -77,6 +78,7 @@ const navigation: NavItem[] = [
     isGroup: true,
     items: [
       { name: "Leads", href: "/leads", icon: MessageSquare },
+      { name: "Client Messages", href: "/messages", icon: Inbox },
       { name: "Blogs", href: "/blogs", icon: PenTool },
       { name: "Case Studies", href: "/case-studies", icon: Briefcase },
       { name: "Testimonials", href: "/testimonials", icon: MessageSquare },

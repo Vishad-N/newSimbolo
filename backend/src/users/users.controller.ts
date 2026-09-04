@@ -15,6 +15,8 @@ import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags, ApiQuery } from '@ne
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { EnableTwoFactorDto } from './dto/enable-two-factor.dto';
+import { DisableTwoFactorDto } from './dto/disable-two-factor.dto';
 import { CreateStaffUserDto } from './dto/create-staff-user.dto';
 import { Permissions } from '../common/decorators/permissions.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
@@ -51,6 +53,29 @@ export class UsersController {
   @ApiResponse({ status: 401, description: 'Incorrect current password.' })
   async changePassword(@CurrentUser() user: JwtPayload, @Body() dto: ChangePasswordDto) {
     return this.usersService.changePassword(user.sub, dto);
+  }
+
+  @Post('me/2fa/setup')
+  @ApiOperation({ summary: 'Generate a new TOTP secret and its QR code (does not enable 2FA yet)' })
+  @ApiResponse({ status: 200, description: 'Secret and QR code returned.' })
+  async setupTwoFactor(@CurrentUser() user: JwtPayload) {
+    return this.usersService.setupTwoFactor(user.sub);
+  }
+
+  @Post('me/2fa/enable')
+  @ApiOperation({ summary: 'Confirm setup with a real authenticator code and turn 2FA on' })
+  @ApiResponse({ status: 200, description: '2FA enabled; one-time backup codes returned.' })
+  @ApiResponse({ status: 401, description: 'Invalid verification code.' })
+  async enableTwoFactor(@CurrentUser() user: JwtPayload, @Body() dto: EnableTwoFactorDto) {
+    return this.usersService.enableTwoFactor(user.sub, dto);
+  }
+
+  @Post('me/2fa/disable')
+  @ApiOperation({ summary: 'Turn 2FA off (requires current password)' })
+  @ApiResponse({ status: 200, description: '2FA disabled.' })
+  @ApiResponse({ status: 401, description: 'Incorrect password.' })
+  async disableTwoFactor(@CurrentUser() user: JwtPayload, @Body() dto: DisableTwoFactorDto) {
+    return this.usersService.disableTwoFactor(user.sub, dto);
   }
 
   @Get()

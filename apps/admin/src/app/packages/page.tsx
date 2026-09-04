@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { DataTable } from "@/components/DataTable";
 import { PackageIllustrationSelect } from "@/components/packages/PackageIllustrationSelect";
 import { ImageUploader } from "@/components/forms/ImageUploader";
-import { Plus, Package as PackageIcon, RefreshCw, Trash, X } from "lucide-react";
+import { Plus, Package as PackageIcon, RefreshCw, Trash, X, Copy, Loader2 } from "lucide-react";
 import { api } from "@/services/api";
 
 type PackageFeatureKind = "FEATURE" | "DELIVERABLE";
@@ -175,6 +175,42 @@ export default function PackagesPage() {
       fetchData();
     } catch (err: unknown) {
       alert("Failed to delete package: " + getErrorMessage(err, "Unknown error"));
+    }
+  };
+
+  const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
+
+  // Copies every field this page manages (name gets a " (Copy)" suffix so it's
+  // never mistaken for the original) plus its feature/deliverable bullets, so a
+  // new tier that's 90% identical to an existing one can be created in one click
+  // and then hand-edited instead of retyped from scratch. Not marked Popular by
+  // default — two "Most Popular" badges on the public page would be confusing.
+  const handleDuplicate = async (item: PackageData) => {
+    setDuplicatingId(item.id);
+    try {
+      const created = await api.packages.create({
+        name: `${item.name} (Copy)`,
+        description: item.description,
+        illustration: item.illustration || null,
+        thumbnailUrl: item.thumbnailUrl || null,
+        serviceId: item.serviceId,
+        basePrice: item.basePrice,
+        type: item.type,
+        isPopular: false,
+        billingInterval: "monthly",
+      }) as { id: string };
+
+      for (const feature of item.features) {
+        const kind = feature.kind || "FEATURE";
+        const sortOrder = item.features.filter((f) => (f.kind || "FEATURE") === kind).indexOf(feature);
+        await api.packages.addFeature({ name: feature.name, packageId: created.id, kind, sortOrder });
+      }
+
+      fetchData();
+    } catch (err: unknown) {
+      alert("Failed to duplicate package: " + getErrorMessage(err, "Unknown error"));
+    } finally {
+      setDuplicatingId(null);
     }
   };
 
@@ -395,9 +431,19 @@ export default function PackagesPage() {
       key: "actions",
       header: "Actions",
       render: (item: PackageData) => (
-        <button onClick={() => handleDelete(item.id)} className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors">
-          <Trash className="w-4 h-4" />
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => handleDuplicate(item)}
+            disabled={duplicatingId === item.id}
+            title="Duplicate package"
+            className="p-2 text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {duplicatingId === item.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Copy className="w-4 h-4" />}
+          </button>
+          <button onClick={() => handleDelete(item.id)} className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors">
+            <Trash className="w-4 h-4" />
+          </button>
+        </div>
       )
     }
   ];

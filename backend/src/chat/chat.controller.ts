@@ -16,6 +16,7 @@ import {
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { ChatService } from './chat.service';
 import { CreateConversationDto, SendMessageDto } from './dto/chat.dto';
+import { Permissions } from '../common/decorators/permissions.decorator';
 
 @ApiTags('Chat')
 @ApiBearerAuth('JWT-auth')
@@ -27,6 +28,31 @@ export class ChatController {
   @ApiOperation({ summary: 'Create a new conversation' })
   createConversation(@Body() dto: CreateConversationDto, @Request() req: any) {
     return this.chatService.createConversation(dto, req.user?.sub);
+  }
+
+  @Get('support-conversation')
+  @ApiOperation({ summary: 'Get (or create) the SUPPORT_ROOM conversation between the current client and their account manager / admin team' })
+  getSupportConversation(@Request() req: any) {
+    return this.chatService.getOrCreateSupportConversation(req.user?.sub);
+  }
+
+  @Get('admin/support-conversations')
+  @Permissions('chat.manage')
+  @ApiOperation({ summary: 'Admin: list every client support conversation, not just ones already joined' })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  findAllSupportConversations(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
+  ) {
+    return this.chatService.findAllSupportConversations(page, limit);
+  }
+
+  @Post('admin/support-conversations/:id/join')
+  @Permissions('chat.manage')
+  @ApiOperation({ summary: 'Admin: join a support conversation to view and reply to it' })
+  joinSupportConversation(@Param('id', ParseUUIDPipe) id: string, @Request() req: any) {
+    return this.chatService.adminJoinSupportConversation(id, req.user?.sub);
   }
 
   @Get('conversations')

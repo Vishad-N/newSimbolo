@@ -5,6 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { EmailService } from '../shared/email/email.service';
 import { AuditService } from '../shared/audit/audit.service';
 import { SessionsService } from '../sessions/sessions.service';
+import { CacheService } from '../cache/cache.service';
 import { UserStatusEnum } from '@prisma/client';
 import {
   CustomConflictException,
@@ -13,6 +14,7 @@ import {
   BusinessException,
 } from '../common/exceptions/custom.exceptions';
 import * as bcrypt from 'bcrypt';
+import { authenticator } from 'otplib';
 
 // Low bcrypt rounds so tests stay fast — security of the real work factor is
 // covered by env.validation.ts's production config checks, not this suite.
@@ -25,6 +27,7 @@ describe('AuthService', () => {
   let emailService: { sendVerificationEmail: jest.Mock; sendPasswordResetEmail: jest.Mock; sendWelcomeEmail: jest.Mock };
   let auditService: { logEvent: jest.Mock };
   let sessionsService: { createSession: jest.Mock; terminateAllSessions: jest.Mock };
+  let cacheService: { get: jest.Mock; set: jest.Mock; delete: jest.Mock };
 
   beforeEach(() => {
     prisma = {
@@ -61,6 +64,11 @@ describe('AuthService', () => {
       createSession: jest.fn().mockResolvedValue(undefined),
       terminateAllSessions: jest.fn().mockResolvedValue(undefined),
     };
+    cacheService = {
+      get: jest.fn().mockResolvedValue(null),
+      set: jest.fn().mockResolvedValue(undefined),
+      delete: jest.fn().mockResolvedValue(undefined),
+    };
 
     service = new AuthService(
       prisma as unknown as PrismaService,
@@ -69,6 +77,7 @@ describe('AuthService', () => {
       emailService as unknown as EmailService,
       auditService as unknown as AuditService,
       sessionsService as unknown as SessionsService,
+      cacheService as unknown as CacheService,
     );
   });
 
@@ -157,9 +166,114 @@ describe('AuthService', () => {
 
       const result = await service.login({ email: 'a@b.com', password: 'correct-password' } as any);
 
+      if (!('accessToken' in result)) throw new Error('Expected tokens, got an MFA challenge');
       expect(result.accessToken).toBe('signed-token');
       expect(sessionsService.createSession).toHaveBeenCalled();
       expect(result.user.role).toBe('CLIENT');
+    });
+
+    it('issues an MFA challenge instead of tokens when the account has 2FA enabled', async () => {
+      const passwordHash = await bcrypt.hash('correct-password', TEST_BCRYPT_ROUNDS);
+      prisma.user.findUnique.mockResolvedValue({ ...baseUser, passwordHash, twoFactorEnabled: true });
+
+      const result = await service.login({ email: 'a@b.com', password: 'correct-password' } as any);
+
+      if (!('mfaRequired' in result)) throw new Error('Expected an MFA challenge, got tokens');
+      expect(result.mfaRequired).toBe(true);
+      expect(typeof result.mfaToken).toBe('string');
+      expect(cacheService.set).toHaveBeenCalledWith(
+        `mfa-challenge:${result.mfaToken}`,
+        { userId: 'user-1' },
+        300,
+      );
+      expect(sessionsService.createSession).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('verifyTwoFactorLogin', () => {
+    it('rejects a missing or expired mfaToken', async () => {
+      cacheService.get.mockResolvedValue(null);
+
+      await expect(service.verifyTwoFactorLogin('bad-token', '123456')).rejects.toBeInstanceOf(
+        CustomUnauthorizedException,
+      );
+    });
+
+    it('rejects an incorrect TOTP code and does not issue tokens', async () => {
+      const secret = authenticator.generateSecret();
+      cacheService.get.mockResolvedValue({ userId: 'user-1' });
+      prisma.user.findUnique.mockResolvedValue({
+        id: 'user-1',
+        email: 'a@b.com',
+        status: UserStatusEnum.ACTIVE,
+        twoFactorEnabled: true,
+        twoFactorSecret: secret,
+        twoFactorBackupCodes: [],
+        role: { slug: 'CLIENT', permissions: [] },
+      });
+
+      await expect(service.verifyTwoFactorLogin('token', '000000')).rejects.toBeInstanceOf(
+        CustomUnauthorizedException,
+      );
+      // Single-use: the challenge is deleted on the very first read, valid or not.
+      expect(cacheService.delete).toHaveBeenCalledWith('mfa-challenge:token');
+      expect(sessionsService.createSession).not.toHaveBeenCalled();
+    });
+
+    it('issues tokens for a correct TOTP code', async () => {
+      const secret = authenticator.generateSecret();
+      const code = authenticator.generate(secret);
+      cacheService.get.mockResolvedValue({ userId: 'user-1' });
+      prisma.user.findUnique.mockResolvedValue({
+        id: 'user-1',
+        email: 'a@b.com',
+        firstName: 'A',
+        lastName: 'B',
+        avatarUrl: null,
+        status: UserStatusEnum.ACTIVE,
+        organizationId: null,
+        twoFactorEnabled: true,
+        twoFactorSecret: secret,
+        twoFactorBackupCodes: [],
+        role: { slug: 'CLIENT', permissions: [{ slug: 'x' }] },
+      });
+      prisma.refreshToken.create.mockResolvedValue({});
+
+      const result = await service.verifyTwoFactorLogin('token', code);
+
+      expect(result.accessToken).toBe('signed-token');
+      expect(sessionsService.createSession).toHaveBeenCalled();
+    });
+
+    it('accepts a valid backup code exactly once', async () => {
+      const secret = authenticator.generateSecret();
+      const backupCode = 'ABCD1234EF';
+      const hashedBackupCode = await bcrypt.hash(backupCode, TEST_BCRYPT_ROUNDS);
+      cacheService.get.mockResolvedValue({ userId: 'user-1' });
+      prisma.user.findUnique.mockResolvedValue({
+        id: 'user-1',
+        email: 'a@b.com',
+        firstName: 'A',
+        lastName: 'B',
+        avatarUrl: null,
+        status: UserStatusEnum.ACTIVE,
+        organizationId: null,
+        twoFactorEnabled: true,
+        twoFactorSecret: secret,
+        twoFactorBackupCodes: [hashedBackupCode],
+        role: { slug: 'CLIENT', permissions: [] },
+      });
+      prisma.refreshToken.create.mockResolvedValue({});
+      prisma.user.update.mockResolvedValue({});
+
+      const result = await service.verifyTwoFactorLogin('token', backupCode);
+
+      expect(result.accessToken).toBe('signed-token');
+      // The consumed backup code must be removed so it can never be replayed.
+      expect(prisma.user.update).toHaveBeenCalledWith({
+        where: { id: 'user-1' },
+        data: { twoFactorBackupCodes: [] },
+      });
     });
   });
 

@@ -1,5 +1,5 @@
 <!-- SKILLGOD:START v1.1 -->
-# SkillGod Project Memory (auto-generated — do not edit; updated 2026-09-04 14:29)
+# SkillGod Project Memory (auto-generated — do not edit; updated 2026-09-04 18:45)
 
 # SkillGod Active
 
@@ -18,20 +18,20 @@ After completing **meaningful** work (decisions, architecture, non-obvious fixes
 ## SkillGod health
 - version: 1.0.1+794a995
 - project_id: `visha-90fc8883`
-- last inject: never (-)
+- last inject: 2026-09-04T18:45:26 (runtime)
 - last capture: never (-)
 - markers: SKILLGOD:START v1.1
 
 ## Project memory
 
 ## Decisions
-- {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\client\\src\\services\\api.ts", "oldString": "const fetchProxyDetailed = async (path: string, options: RequestInit = {}) => {\n co
-- {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\client\\src\\services\\api.ts", "oldString": "const fetchProxy = async (path: string, options: RequestInit = {}) => {\n const res 
-- {"questions": [{"question": "What exactly should change about the Featured Services card prices?", "header": "Price update", "options": [{"label": "Set specific new prices", "descr
-- {"filePath": "C:\\Users\\visha\\simbolonew\\backend\\src\\auth\\auth.controller.ts", "oldString": " // Bridge straight into the dashboard app's own /auth/callback (same bridge\n //
-- {"mode": "content", "numFiles": 0, "filenames": [], "content": "11-import { VerifyEmailDto, ResendVerificationDto } from './dto/verify-email.dto';\n12-import { Public } from '../co
-- {"stdout": "23aa19e Punjab Police\n5039cf2 Weeds\n2927b60 Idiot\n02e69e0 Invisible\nbd6951a Joystick in the ass\n---check if auth-modals.tsx changed after Punjab Police---\n23aa19e
-- {"questions": [{"question": "When you click Buy Now while logged out, where does it actually go wrong?", "header": "Break point", "options": [{"label": "Never shows the login/regis
+- {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\admin\\src\\app\\packages\\page.tsx", "oldString": " {\n key: \"actions\",\n header: \"Actions\",\n render: (item: PackageData) =>
+- {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\admin\\src\\app\\packages\\page.tsx", "oldString": " const handleDelete = async (id: string) => {\n if (!confirm(\"Are you sure yo
+- {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\landing\\src\\lib\\api.ts", "oldString": "async function fetchPublicApi<T>(endpoint: string, fallback: T, revalidateSeconds: numbe
+- {"filePath": "c:\\Users\\visha\\simbolonew\\backend\\src\\auth\\auth.service.spec.ts", "oldString": " if (!('accessToken' in result)) throw new Error('Expected tokens, got an MFA c
+- {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\admin\\src\\services\\api.ts", "oldString": " user: {\n email: string;\n firstName?: string;\n lastName?: string;\n role?: string;
+- {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\admin\\src\\services\\api.ts", "oldString": " roles: {", "newString": " chat: {\n getSupportConversations: async (page = 1, limit 
+- {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\landing\\src\\components\\auth\\auth-modals.tsx", "oldString": " if (mode === \"forgot\" || mode === \"forgot-sent\") {", "newStri
 
 ## Notes
 

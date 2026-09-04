@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, Req, Res, UseGuards, HttpStatus, HttpCode } from '@nestjs/common';
+import { Controller, Post, Get, Body, Req, Res, UseGuards, HttpStatus, HttpCode, UnauthorizedException } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiBody } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { Request, Response } from 'express';
@@ -9,6 +9,9 @@ import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { VerifyEmailDto, ResendVerificationDto } from './dto/verify-email.dto';
+import { CreateHandoffDto } from './dto/create-handoff.dto';
+import { ExchangeHandoffDto } from './dto/exchange-handoff.dto';
+import { VerifyTwoFactorDto } from './dto/verify-two-factor.dto';
 import { Public } from '../common/decorators/public.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
@@ -47,6 +50,19 @@ export class AuthController {
   }
 
   @Public()
+  @Post('2fa/verify')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
+  @ApiOperation({ summary: 'Complete a login that required 2FA by submitting the TOTP (or backup) code' })
+  @ApiResponse({ status: 200, description: 'Authentication successful. Returns JWT tokens.' })
+  @ApiResponse({ status: 401, description: 'Invalid code, or the login attempt expired.' })
+  async verifyTwoFactor(@Body() dto: VerifyTwoFactorDto, @Req() req: Request) {
+    const ip = req.ip || req.socket?.remoteAddress;
+    const userAgent = req.headers['user-agent'];
+    return this.authService.verifyTwoFactorLogin(dto.mfaToken, dto.code, ip, userAgent);
+  }
+
+  @Public()
   @Post('refresh-token')
   @HttpCode(HttpStatus.OK)
   @Throttle({ default: { limit: 10, ttl: 60000 } })
@@ -57,6 +73,40 @@ export class AuthController {
     const ip = req.ip || req.socket?.remoteAddress;
     const userAgent = req.headers['user-agent'];
     return this.authService.refreshToken(dto, ip, userAgent);
+  }
+
+  @Public()
+  @Post('handoff')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
+  @ApiOperation({
+    summary: 'Wrap an already-issued token pair into a one-time code for a cross-origin redirect',
+    description:
+      'Used by the landing app to bridge a login/register response into the dashboard app without ' +
+      'putting the raw access/refresh tokens on a redirect URL (browser history, server logs, Referer). ' +
+      'The access token must verify, so this mints no new capability.',
+  })
+  @ApiResponse({ status: 200, description: 'One-time code returned.' })
+  @ApiResponse({ status: 401, description: 'Access token does not verify.' })
+  async createHandoff(@Body() dto: CreateHandoffDto) {
+    const code = await this.authService.createLoginHandoff(dto.accessToken, dto.refreshToken);
+    return { code };
+  }
+
+  @Public()
+  @Post('handoff/exchange')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 20, ttl: 60000 } })
+  @ApiOperation({
+    summary: 'Exchange a one-time handoff code for its token pair (server-to-server)',
+    description: 'The code is deleted on first read regardless of outcome, so it can never be replayed.',
+  })
+  @ApiResponse({ status: 200, description: 'Token pair returned.' })
+  @ApiResponse({ status: 401, description: 'Code is invalid, already used, or expired.' })
+  async exchangeHandoff(@Body() dto: ExchangeHandoffDto) {
+    const result = await this.authService.consumeLoginHandoff(dto.code);
+    if (!result) throw new UnauthorizedException('Invalid or expired code');
+    return result;
   }
 
   @Post('logout')
@@ -165,11 +215,14 @@ export class AuthController {
     const checkoutPackage = typeof req.query?.state === 'string' ? req.query.state : undefined;
     const next = checkoutPackage ? `/checkout?package=${encodeURIComponent(checkoutPackage)}` : '/dashboard';
 
+    // Carry only a short-lived, single-use code on this redirect — never the raw
+    // tokens themselves, which would otherwise land in browser history, server
+    // access logs, and a possible Referer header on this cross-origin hop.
+    const code = await this.authService.createLoginHandoff(result.accessToken, result.refreshToken);
+
     const callbackUrl = new URL('/auth/callback', dashboardUrl);
-    callbackUrl.searchParams.set('accessToken', result.accessToken);
-    callbackUrl.searchParams.set('refreshToken', result.refreshToken);
+    callbackUrl.searchParams.set('code', code);
     callbackUrl.searchParams.set('next', next);
-    callbackUrl.searchParams.set('role', result.user.role);
 
     return res.redirect(callbackUrl.toString());
   }

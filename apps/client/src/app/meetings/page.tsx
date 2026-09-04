@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { DataTable } from "@/components/ui/DataTable";
-import { mockApi } from "@/services/api";
+import { clientApi } from "@/services/api";
 import { Video, Calendar, Users, ExternalLink } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 
@@ -10,11 +10,11 @@ export default function MeetingsPage() {
   const [meetings, setMeetings] = useState<any[]>([]);
 
   useEffect(() => {
-    mockApi.profile.get()
+    clientApi.profile.get()
       .then(profileData => {
         const clientId = profileData?.clientId || profileData?.id;
         if (clientId) {
-          mockApi.meetings.getAll(clientId).then(setMeetings);
+          clientApi.meetings.getAll(clientId).then(setMeetings);
         }
       })
       .catch(console.error);

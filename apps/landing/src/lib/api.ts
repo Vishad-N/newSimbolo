@@ -30,6 +30,19 @@ function isEmptyResult(value: unknown): boolean {
   return false;
 }
 
+// fetchPublicApi deliberately returns the backend's raw {success, data} envelope
+// as-is (see isEmptyResult's comment) — most callers unwrap it themselves. This
+// helper is for the callers that were passing the envelope straight through to a
+// component expecting the unwrapped value (e.g. `liveConfig?.heroBenefits`
+// instead of `liveConfig?.data?.heroBenefits`), which silently always fell back
+// to mock data since the envelope object never has those properties directly.
+export function unwrapLandingEnvelope<T>(value: unknown, fallback: T): T {
+  if (value && typeof value === 'object' && 'success' in (value as Record<string, unknown>) && 'data' in (value as Record<string, unknown>)) {
+    return ((value as Record<string, unknown>).data as T) ?? fallback;
+  }
+  return (value as T) ?? fallback;
+}
+
 async function fetchPublicApi<T>(endpoint: string, fallback: T, revalidateSeconds: number = 60): Promise<T> {
   if (shouldSkipBuildApiFetch) {
     return fallback;
