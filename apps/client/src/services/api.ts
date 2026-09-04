@@ -69,8 +69,14 @@ export const redirectToLanding = (pathname = '/', searchParams?: Record<string, 
   return redirectUrl;
 };
 
+// A transient connection reset between the browser and the Vercel proxy (seen right after
+// the Razorpay redirect back to /dashboard) surfaces as fetch() throwing, not as an HTTP
+// error status. One silent retry absorbs that blip instead of blanking the whole page.
+const fetchWithRetry = (input: string, init: RequestInit) =>
+  fetch(input, init).catch(() => fetch(input, init));
+
 const fetchProxy = async (path: string, options: RequestInit = {}) => {
-  const res = await fetch(`/api/proxy/${path}`, {
+  const res = await fetchWithRetry(`/api/proxy/${path}`, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
@@ -120,7 +126,7 @@ export class ApiRequestError extends Error {
 
 /** Like fetchProxy, but rejects with an ApiRequestError that preserves status + backend message. */
 const fetchProxyDetailed = async (path: string, options: RequestInit = {}) => {
-  const res = await fetch(`/api/proxy/${path}`, {
+  const res = await fetchWithRetry(`/api/proxy/${path}`, {
     ...options,
     headers: {
       'Content-Type': 'application/json',

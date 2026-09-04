@@ -128,7 +128,13 @@ export class OrdersService extends BaseService {
       throw new NotFoundException(`Package with ID ${dto.packageId} not found`);
     }
 
-    // 3. Create Order
+    // 3. Compute GST so the amount actually charged (netAmount + taxAmount, per
+    // CommissionService's documented GRAND_TOTAL mapping) matches what checkout displays.
+    // netAmount is the post-discount taxable base — it does NOT include tax.
+    const gstRate = pkg.gstRate ?? 18;
+    const taxAmount = (pkg.basePrice * gstRate) / 100;
+
+    // 4. Create Order
     return this.prisma.order.create({
       data: {
         orderNumber: this.generateOrderNumber(),
@@ -137,6 +143,7 @@ export class OrdersService extends BaseService {
         serviceId: pkg.serviceId,
         status: OrderStatusEnum.PENDING_PAYMENT,
         totalAmount: pkg.basePrice,
+        taxAmount,
         netAmount: pkg.basePrice,
         currency: 'INR',
       },

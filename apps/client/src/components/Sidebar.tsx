@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useUIStore } from "@/store/uiStore";
 import { cn, getUserRole } from "@/utils/utils";
+import { redirectToLanding } from "@/services/api";
 import Image from "next/image";
 import { 
   LayoutDashboard, 
@@ -196,7 +197,15 @@ export function Sidebar() {
 
       {/* Footer (Logout) */}
       <div className="p-4 border-t border-white/10 shrink-0 overflow-x-hidden">
-        <button className={cn(
+        <button
+          onClick={async () => {
+            try {
+              await fetch("/api/auth/logout", { method: "POST" });
+            } finally {
+              redirectToLanding("/");
+            }
+          }}
+          className={cn(
           "flex items-center gap-3 py-2 rounded-lg text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors group",
           sidebarOpen ? "w-full px-3" : "justify-center w-12 h-12 mx-auto"
         )}>

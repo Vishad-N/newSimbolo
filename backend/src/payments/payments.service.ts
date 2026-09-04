@@ -80,10 +80,13 @@ export class PaymentsService extends BaseService {
 
     const receipt = order.orderNumber;
     const currency = dto.currency ?? order.currency ?? 'INR';
+    // netAmount is the pre-tax taxable base (see CommissionService's documented mapping);
+    // the amount actually payable — and the amount to charge on the gateway — includes tax.
+    const grandTotal = Number(order.netAmount) + Number(order.taxAmount);
 
     // The gateway call is deliberately OUTSIDE any DB transaction — an external HTTP
     // call cannot be rolled back, so it is sequenced between the two DB writes.
-    const gatewayOrder = await this.razorpayGateway.createOrder(Number(order.netAmount), currency, receipt);
+    const gatewayOrder = await this.razorpayGateway.createOrder(grandTotal, currency, receipt);
 
     const paymentNumber = this.generatePaymentNumber();
 
@@ -91,7 +94,7 @@ export class PaymentsService extends BaseService {
       const created = await tx.payment.create({
         data: {
           paymentNumber,
-          amount: order.netAmount,
+          amount: grandTotal,
           currency,
           status: PaymentStatusEnum.PENDING,
           gatewayProvider: 'RAZORPAY',

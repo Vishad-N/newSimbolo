@@ -328,7 +328,7 @@ function CheckoutContent() {
                   ></textarea>
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-xs font-medium text-gray-400">State Code</label>
+                  <label className="mb-1.5 block text-xs font-medium text-gray-400">State Code (Optional)</label>
                   <input 
                     type="text" 
                     placeholder="e.g. 23" 

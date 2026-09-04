@@ -35,7 +35,7 @@ export function sanitizeStateCodeInput(value: string): string {
 }
 
 export function validateStateCode(value: string | undefined): string | null {
-  if (!value?.trim()) return "State Code is required.";
+  if (!value?.trim()) return null;
   if (!INDIAN_STATE_CODE_PATTERN.test(value)) return "State Code must be exactly 2 digits.";
   return null;
 }
