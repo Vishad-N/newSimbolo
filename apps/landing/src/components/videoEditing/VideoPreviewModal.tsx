@@ -65,9 +65,9 @@ export function VideoPreviewModal({ isOpen, onClose, title, previewUrl, previewT
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="relative w-full max-w-5xl overflow-hidden rounded-[16px] border border-[var(--accent)]/30 bg-[var(--surface)] shadow-[0_0_50px_rgba(34,211,238,0.15)]"
+          className={`relative flex max-h-[85vh] w-full flex-col overflow-hidden rounded-[16px] border border-[var(--accent)]/30 bg-[var(--surface)] shadow-[0_0_50px_rgba(34,211,238,0.15)] ${previewType === "instagram" ? "max-w-[400px]" : "max-w-5xl"}`}
         >
-          <div className="flex items-center justify-between border-b border-white/10 p-4 bg-[var(--background)]">
+          <div className="flex shrink-0 items-center justify-between border-b border-white/10 p-4 bg-[var(--background)]">
             <h3 className="text-[1.1rem] font-bold text-white">{title} Preview</h3>
             <button
               onClick={onClose}
@@ -76,8 +76,8 @@ export function VideoPreviewModal({ isOpen, onClose, title, previewUrl, previewT
               <X className="h-5 w-5" />
             </button>
           </div>
-          
-          <div className={`relative w-full bg-black ${previewType === "instagram" ? "max-h-[80vh] overflow-y-auto" : "aspect-video"}`}>
+
+          <div className={`relative w-full bg-black ${previewType === "instagram" ? "overflow-y-auto" : "aspect-video"}`}>
             {previewType === "youtube" && (
               <iframe
                 src={toEmbeddableVideoUrl(previewUrl, "youtube")}
@@ -108,13 +108,15 @@ export function VideoPreviewModal({ isOpen, onClose, title, previewUrl, previewT
             )}
 
             {previewType === "instagram" && (
-              <div className="flex min-h-[400px] items-center justify-center bg-white p-4">
-                <blockquote
-                  className="instagram-media"
-                  data-instgrm-permalink={previewUrl}
-                  data-instgrm-version="14"
-                  style={{ margin: 0, width: "100%", maxWidth: 540, minWidth: 280 }}
-                />
+              <div className="flex justify-center bg-[var(--surface)] p-3 sm:p-4">
+                <div className="w-full max-w-[350px] overflow-hidden rounded-xl bg-white shadow-lg">
+                  <blockquote
+                    className="instagram-media"
+                    data-instgrm-permalink={previewUrl}
+                    data-instgrm-version="14"
+                    style={{ margin: 0, width: "100%" }}
+                  />
+                </div>
               </div>
             )}
           </div>
