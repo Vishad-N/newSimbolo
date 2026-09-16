@@ -1,5 +1,5 @@
 <!-- SKILLGOD:START v1.1 -->
-# SkillGod Project Memory (auto-generated — do not edit; updated 2026-09-16 13:57)
+# SkillGod Project Memory (auto-generated — do not edit; updated 2026-09-16 15:10)
 
 # SkillGod Active
 
@@ -18,20 +18,20 @@ After completing **meaningful** work (decisions, architecture, non-obvious fixes
 ## SkillGod health
 - version: 1.0.1+794a995
 - project_id: `visha-90fc8883`
-- last inject: 2026-09-16T13:57:50 (runtime)
+- last inject: 2026-09-16T15:09:45 (runtime)
 - last capture: never (-)
 - markers: SKILLGOD:START v1.1
 
 ## Project memory
 
 ## Decisions
+- {"mode": "content", "numFiles": 0, "filenames": [], "content": "19: websiteProjects,\n28: liveProjects?: any[];\n34:export function WebsiteDesignPage({ livePackages, liveProjects, 
 - {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\landing\\src\\components\\videoEditing\\VideoServiceCard.tsx", "oldString": " {/* Hover Overlay */}\n <div className=\"absolute
 - {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\landing\\src\\components\\videoEditing\\VideoServiceCard.tsx", "oldString": " ) : (\n <>\n <Image\n src={servi
 - {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\admin\\src\\app\\packages\\page.tsx", "oldString": " {\n key: \"actions\",\n header: \"Actions\",\n render: (item: PackageData) =>
 - {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\admin\\src\\app\\packages\\page.tsx", "oldString": " const handleDelete = async (id: string) => {\n if (!confirm(\"Are you sure yo
 - {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\landing\\src\\lib\\api.ts", "oldString": "async function fetchPublicApi<T>(endpoint: string, fallback: T, revalidateSeconds: numbe
 - {"filePath": "c:\\Users\\visha\\simbolonew\\backend\\src\\auth\\auth.service.spec.ts", "oldString": " if (!('accessToken' in result)) throw new Error('Expected tokens, got an MFA c
-- {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\admin\\src\\services\\api.ts", "oldString": " user: {\n email: string;\n firstName?: string;\n lastName?: string;\n role?: string;
 
 ## Notes
 

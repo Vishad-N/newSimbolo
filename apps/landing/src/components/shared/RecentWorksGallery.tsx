@@ -1,10 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, ExternalLink } from "lucide-react";
+import { ArrowRight, ChevronUp, ExternalLink } from "lucide-react";
 import { motion } from "framer-motion";
 import { SectionCard } from "@/components/seo/SectionCard";
+
+const INITIAL_VISIBLE_COUNT = 6;
 
 export type Project = {
   id: string;
@@ -24,17 +27,27 @@ function isExternalLink(link: string): boolean {
 }
 
 export function RecentWorksGallery({ works }: RecentWorksGalleryProps) {
+  const [showAll, setShowAll] = useState(false);
+  const hasMore = works.length > INITIAL_VISIBLE_COUNT;
+  const visibleWorks = showAll ? works : works.slice(0, INITIAL_VISIBLE_COUNT);
+
   return (
     <SectionCard className="p-5">
       <div className="mb-6 flex items-center justify-between">
         <h2 className="text-[1.15rem] font-semibold text-white">Recent Our Work</h2>
-        <Link href="/case-studies" className="flex items-center gap-1.5 text-[0.8rem] font-heading font-medium text-[var(--accent)] transition hover:text-white">
-          View all works
-          <ArrowRight className="h-3.5 w-3.5" />
-        </Link>
+        {hasMore && (
+          <button
+            type="button"
+            onClick={() => setShowAll((prev) => !prev)}
+            className="flex items-center gap-1.5 text-[0.8rem] font-heading font-medium text-[var(--accent)] transition hover:text-white"
+          >
+            {showAll ? "Show less" : `View all works (${works.length})`}
+            {showAll ? <ChevronUp className="h-3.5 w-3.5" /> : <ArrowRight className="h-3.5 w-3.5" />}
+          </button>
+        )}
       </div>
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
-        {works.map((work, index) => {
+        {visibleWorks.map((work, index) => {
           const external = isExternalLink(work.link);
           return (
             <motion.div

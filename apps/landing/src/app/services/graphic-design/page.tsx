@@ -66,21 +66,23 @@ const jsonLd = {
 
 import { landingApi, unwrapLandingEnvelope } from "@/lib/api";
 import { fetchMappedFaqs, fetchMappedTestimonials } from "@/lib/content-mapper";
+import { fetchMappedPortfolioProjects } from "@/lib/portfolio-mapper";
 
 export const dynamic = "force-dynamic";
 
 export default async function Page() {
-  const [rawConfig, liveFaqs, liveTestimonials] = await Promise.all([
+  const [rawConfig, liveFaqs, liveTestimonials, liveProjects] = await Promise.all([
     landingApi.getServicePageConfig('graphic-design', null),
     fetchMappedFaqs([]),
     fetchMappedTestimonials([]),
+    fetchMappedPortfolioProjects('graphic-design', []),
   ]);
   const liveConfig = unwrapLandingEnvelope(rawConfig, null);
 
   return (
     <>
       <Script id="json-ld-graphic-design" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <GraphicDesignPage liveConfig={liveConfig} liveFaqs={liveFaqs} liveTestimonials={liveTestimonials} />
+      <GraphicDesignPage liveConfig={liveConfig} liveFaqs={liveFaqs} liveTestimonials={liveTestimonials} liveProjects={liveProjects} />
     </>
   );
 }

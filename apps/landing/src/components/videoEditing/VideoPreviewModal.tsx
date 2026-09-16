@@ -1,8 +1,16 @@
 "use client";
 
+import { useEffect } from "react";
 import { X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { PreviewType } from "@/types/video-editing";
+import { toEmbeddableVideoUrl } from "@/lib/utils";
+
+declare global {
+  interface Window {
+    instgrm?: { Embeds: { process: () => void } };
+  }
+}
 
 type VideoPreviewModalProps = {
   isOpen: boolean;
@@ -13,6 +21,33 @@ type VideoPreviewModalProps = {
 };
 
 export function VideoPreviewModal({ isOpen, onClose, title, previewUrl, previewType }: VideoPreviewModalProps) {
+  // Instagram doesn't allow embedding reels in a plain iframe; the only supported route
+  // is their official embed.js widget script processing a data-instgrm-permalink
+  // blockquote, so the script must be (re)loaded and re-run whenever this modal opens.
+  useEffect(() => {
+    if (!isOpen || previewType !== "instagram") return;
+
+    const process = () => window.instgrm?.Embeds.process();
+
+    if (window.instgrm) {
+      process();
+      return;
+    }
+
+    const existing = document.getElementById("instagram-embed-js");
+    if (existing) {
+      existing.addEventListener("load", process, { once: true });
+      return () => existing.removeEventListener("load", process);
+    }
+
+    const script = document.createElement("script");
+    script.id = "instagram-embed-js";
+    script.src = "https://www.instagram.com/embed.js";
+    script.async = true;
+    script.addEventListener("load", process, { once: true });
+    document.body.appendChild(script);
+  }, [isOpen, previewType, previewUrl]);
+
   if (!isOpen) return null;
 
   return (
@@ -42,27 +77,27 @@ export function VideoPreviewModal({ isOpen, onClose, title, previewUrl, previewT
             </button>
           </div>
           
-          <div className="relative aspect-video w-full bg-black">
+          <div className={`relative w-full bg-black ${previewType === "instagram" ? "max-h-[80vh] overflow-y-auto" : "aspect-video"}`}>
             {previewType === "youtube" && (
               <iframe
-                src={previewUrl}
+                src={toEmbeddableVideoUrl(previewUrl, "youtube")}
                 title={title}
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
                 className="absolute inset-0 h-full w-full border-0"
               />
             )}
-            
+
             {previewType === "vimeo" && (
               <iframe
-                src={previewUrl}
+                src={toEmbeddableVideoUrl(previewUrl, "vimeo")}
                 title={title}
                 allow="autoplay; fullscreen; picture-in-picture"
                 allowFullScreen
                 className="absolute inset-0 h-full w-full border-0"
               />
             )}
-            
+
             {previewType === "direct" && (
               <video
                 src={previewUrl}
@@ -73,8 +108,13 @@ export function VideoPreviewModal({ isOpen, onClose, title, previewUrl, previewT
             )}
 
             {previewType === "instagram" && (
-              <div className="flex h-full items-center justify-center">
-                <p className="text-white/50">Instagram Reel Previews coming soon.</p>
+              <div className="flex min-h-[400px] items-center justify-center bg-white p-4">
+                <blockquote
+                  className="instagram-media"
+                  data-instgrm-permalink={previewUrl}
+                  data-instgrm-version="14"
+                  style={{ margin: 0, width: "100%", maxWidth: 540, minWidth: 280 }}
+                />
               </div>
             )}
           </div>

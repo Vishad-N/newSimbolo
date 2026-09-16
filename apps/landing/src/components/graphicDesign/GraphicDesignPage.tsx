@@ -22,12 +22,14 @@ interface GraphicDesignPageProps {
   liveConfig?: any;
   liveFaqs?: any[];
   liveTestimonials?: any[];
+  liveProjects?: any[];
 }
 
-export function GraphicDesignPage({ liveConfig, liveFaqs, liveTestimonials }: GraphicDesignPageProps) {
+export function GraphicDesignPage({ liveConfig, liveFaqs, liveTestimonials, liveProjects }: GraphicDesignPageProps) {
   const benefits = liveConfig?.heroBenefits?.length > 0 ? liveConfig.heroBenefits : graphicDesignBenefits;
   const faqs = liveFaqs && liveFaqs.length > 0 ? liveFaqs : graphicDesignFaqs;
   const testimonials = liveTestimonials && liveTestimonials.length > 0 ? liveTestimonials : graphicDesignTestimonials;
+  const projects = liveProjects && liveProjects.length > 0 ? liveProjects : graphicDesignProjects;
   
   const stats = liveConfig?.statsBar?.length > 0 ? liveConfig.statsBar.map((s: any, i: number) => ({
     id: `stat-${i}`,
@@ -68,7 +70,7 @@ export function GraphicDesignPage({ liveConfig, liveFaqs, liveTestimonials }: Gr
               <DesignShowcase />
             </div>
 
-            <RecentWorksGallery works={graphicDesignProjects} />
+            <RecentWorksGallery works={projects} />
 
             <div className="grid gap-4 mt-8 xl:grid-cols-[1fr]">
               <TestimonialSection title="What Our Clients Say" testimonials={testimonials} />

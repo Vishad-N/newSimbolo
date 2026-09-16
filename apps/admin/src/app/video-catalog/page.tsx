@@ -354,7 +354,17 @@ export default function VideoCatalogManager() {
                 </div>
                 <div>
                   <label className="block text-sm text-gray-400 mb-1">Preview URL</label>
-                  <input required type="text" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white" value={form.previewUrl} onChange={(e) => setForm({ ...form, previewUrl: e.target.value })} placeholder="https://www.youtube.com/embed/..." />
+                  <input required type="text" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white" value={form.previewUrl} onChange={(e) => setForm({ ...form, previewUrl: e.target.value })} placeholder={
+                    form.previewType === "INSTAGRAM" ? "https://www.instagram.com/reel/..." :
+                    form.previewType === "VIMEO" ? "https://vimeo.com/... or https://player.vimeo.com/video/..." :
+                    form.previewType === "DIRECT" ? "https://.../video.mp4" :
+                    "https://www.youtube.com/watch?v=... or /embed/..."
+                  } />
+                  <p className="mt-1 text-xs text-gray-500">
+                    {form.previewType === "INSTAGRAM"
+                      ? "Paste the full Instagram reel/post permalink (the page auto-embeds it)."
+                      : "A share/watch link is fine — it's converted to the embeddable form automatically."}
+                  </p>
                 </div>
                 <div className="col-span-2">
                   <label className="block text-sm text-gray-400 mb-1">Short Description</label>

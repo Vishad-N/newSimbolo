@@ -2,50 +2,68 @@
 
 import { useState, useEffect } from "react";
 import { DataTable } from "@/components/DataTable";
-import { Plus, Briefcase, X, Save, RefreshCw, Trash } from "lucide-react";
+import { Plus, Briefcase, X, Save, RefreshCw, Trash, Pencil } from "lucide-react";
 import { api, getDataArray } from "@/services/api";
+import { MediaSelector } from "@/components/shared/MediaSelector";
 
 interface ProjectData {
   id: string;
   title: string;
   clientName: string;
   category: string;
+  service: string;
+  thumbnail: string;
   status: string;
   featured: boolean;
 }
 
+const emptyProject = {
+  title: "",
+  clientName: "",
+  categoryId: "",
+  serviceId: "",
+  status: "PUBLISHED",
+  isFeatured: false,
+  liveUrl: "",
+  coverImageId: "",
+  coverImageUrl: "",
+};
+
 export default function PortfolioManager() {
   const [data, setData] = useState<ProjectData[]>([]);
+  const [rawProjects, setRawProjects] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
+  const [services, setServices] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newProject, setNewProject] = useState({
-    title: "",
-    clientName: "",
-    categoryId: "",
-    status: "PUBLISHED",
-    isFeatured: false,
-    liveUrl: ""
-  });
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [newProject, setNewProject] = useState(emptyProject);
 
   const fetchData = async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const [projRes, catRes] = await Promise.all([
+      const [projRes, catRes, svcRes] = await Promise.all([
         api.portfolio.getAll(),
-        fetch(`${api.config.baseURL}/portfolio/categories`).then(r => r.json())
-      ]) as [any, any];
-      
-      setCategories(getDataArray(catRes));
+        fetch(`${api.config.baseURL}/portfolio/categories`).then(r => r.json()),
+        api.services.getAll(),
+      ]) as [any, any, any];
 
-      const mappedData: ProjectData[] = getDataArray<any>(projRes).map((proj: any) => ({
+      setCategories(getDataArray(catRes));
+      setServices(getDataArray(svcRes));
+
+      const projects = getDataArray<any>(projRes);
+      setRawProjects(projects);
+
+      const mappedData: ProjectData[] = projects.map((proj: any) => ({
         id: proj.id,
         title: proj.title,
         clientName: proj.clientName || "Unknown Client",
         category: proj.category?.name || "Uncategorized",
+        service: proj.service?.name || "Not linked to a service",
+        thumbnail: proj.coverImage?.secureUrl || proj.coverImage?.url || "",
         status: proj.status || "PUBLISHED",
         featured: proj.isFeatured || false
       }));
@@ -72,22 +90,54 @@ export default function PortfolioManager() {
     }
   };
 
-  const handleCreate = async (e: React.FormEvent) => {
+  const openCreateModal = () => {
+    setEditingId(null);
+    setNewProject(emptyProject);
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (id: string) => {
+    const proj = rawProjects.find(p => p.id === id);
+    if (!proj) return;
+    setEditingId(id);
+    setNewProject({
+      title: proj.title || "",
+      clientName: proj.clientName || "",
+      categoryId: proj.categoryId || proj.category?.id || "",
+      serviceId: proj.serviceId || proj.service?.id || "",
+      status: proj.status || "PUBLISHED",
+      isFeatured: proj.isFeatured || false,
+      liveUrl: proj.liveUrl || "",
+      coverImageId: proj.coverImageId || proj.coverImage?.id || "",
+      coverImageUrl: proj.coverImage?.secureUrl || proj.coverImage?.url || "",
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const payload = {
+      title: newProject.title,
+      clientName: newProject.clientName,
+      categoryId: newProject.categoryId || undefined,
+      serviceId: newProject.serviceId || undefined,
+      status: newProject.status,
+      isFeatured: newProject.isFeatured,
+      liveUrl: newProject.liveUrl,
+      coverImageId: newProject.coverImageId || undefined,
+    };
     try {
-      await api.portfolio.create({
-        title: newProject.title,
-        clientName: newProject.clientName,
-        categoryId: newProject.categoryId || undefined,
-        status: newProject.status,
-        isFeatured: newProject.isFeatured,
-        liveUrl: newProject.liveUrl
-      });
+      if (editingId) {
+        await api.portfolio.update(editingId, payload);
+      } else {
+        await api.portfolio.create(payload);
+      }
       setIsModalOpen(false);
-      setNewProject({ title: "", clientName: "", categoryId: "", status: "PUBLISHED", isFeatured: false, liveUrl: "" });
+      setEditingId(null);
+      setNewProject(emptyProject);
       fetchData();
     } catch (err: any) {
-      alert("Failed to create project: " + err.message);
+      alert(`Failed to ${editingId ? "update" : "create"} project: ` + err.message);
     }
   };
 
@@ -98,7 +148,11 @@ export default function PortfolioManager() {
       render: (item: ProjectData) => (
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg overflow-hidden bg-white/5 border border-white/10 flex items-center justify-center">
-            <Briefcase className="w-4 h-4 text-gray-500" />
+            {item.thumbnail ? (
+              <img src={item.thumbnail} alt={item.title} className="w-full h-full object-cover" />
+            ) : (
+              <Briefcase className="w-4 h-4 text-gray-500" />
+            )}
           </div>
           <div>
             <div className="font-medium text-white text-sm">{item.title}</div>
@@ -108,6 +162,7 @@ export default function PortfolioManager() {
       )
     },
     { key: "category", header: "Category" },
+    { key: "service", header: "Service" },
     {
       key: "featured",
       header: "Featured",
@@ -135,9 +190,14 @@ export default function PortfolioManager() {
       key: "actions",
       header: "Actions",
       render: (item: ProjectData) => (
-        <button onClick={() => handleDelete(item.id)} className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors">
-          <Trash className="w-4 h-4" />
-        </button>
+        <div className="flex items-center gap-1">
+          <button onClick={() => openEditModal(item.id)} className="p-2 text-gray-400 hover:bg-white/10 hover:text-white rounded-lg transition-colors">
+            <Pencil className="w-4 h-4" />
+          </button>
+          <button onClick={() => handleDelete(item.id)} className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors">
+            <Trash className="w-4 h-4" />
+          </button>
+        </div>
       )
     }
   ];
@@ -157,8 +217,8 @@ export default function PortfolioManager() {
             <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
             Refresh
           </button>
-          <button 
-            onClick={() => setIsModalOpen(true)}
+          <button
+            onClick={openCreateModal}
             className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-hover text-white text-sm font-medium rounded-lg transition-colors shadow-[0_0_15px_var(--primary-glow)]"
           >
             <Plus className="w-4 h-4" />
@@ -185,11 +245,11 @@ export default function PortfolioManager() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <div className="bg-[#0B0F19] border border-white/10 p-6 rounded-xl w-full max-w-2xl shadow-2xl">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-white">Add Project</h2>
+              <h2 className="text-xl font-bold text-white">{editingId ? "Edit Project" : "Add Project"}</h2>
               <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-white"><X className="w-5 h-5"/></button>
             </div>
-            
-            <form onSubmit={handleCreate} className="space-y-6">
+
+            <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm text-gray-400 mb-1">Project Title</label>
@@ -212,6 +272,16 @@ export default function PortfolioManager() {
                     ))}
                   </select>
                 </div>
+                <div>
+                  <label className="block text-sm text-gray-400 mb-1">Service</label>
+                  <select className="w-full bg-[#1A1F2E] border border-white/10 rounded-lg px-4 py-2 text-white appearance-none" value={newProject.serviceId} onChange={e => setNewProject({...newProject, serviceId: e.target.value})}>
+                    <option value="">Not linked to a service page</option>
+                    {services.map(s => (
+                      <option key={s.id} value={s.id}>{s.name}</option>
+                    ))}
+                  </select>
+                  <p className="mt-1 text-xs text-gray-500">Determines which service page (e.g. Graphic Design) shows this in its "Recent Our Work" gallery.</p>
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -231,10 +301,42 @@ export default function PortfolioManager() {
                 </div>
               </div>
 
+              <div>
+                <label className="block text-sm text-gray-400 mb-1">Thumbnail</label>
+                {newProject.coverImageUrl ? (
+                  <div className="relative rounded-xl overflow-hidden group aspect-video bg-black/50 border border-white/10">
+                    <img src={newProject.coverImageUrl} alt="Thumbnail preview" className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm gap-4">
+                      <MediaSelector
+                        triggerText="Replace"
+                        folder="portfolio"
+                        onSelect={(asset) => setNewProject({ ...newProject, coverImageId: asset.id, coverImageUrl: asset.secureUrl || asset.url })}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setNewProject({ ...newProject, coverImageId: "", coverImageUrl: "" })}
+                        className="bg-red-500/20 text-red-300 hover:bg-red-500/40 px-3 py-2 rounded-md font-medium text-sm transition-colors"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="border-2 border-dashed border-white/10 rounded-xl p-8 flex flex-col items-center justify-center text-center bg-white/[0.02]">
+                    <MediaSelector
+                      triggerText="Browse Cloudinary Library"
+                      folder="portfolio"
+                      onSelect={(asset) => setNewProject({ ...newProject, coverImageId: asset.id, coverImageUrl: asset.secureUrl || asset.url })}
+                    />
+                    <p className="text-xs text-gray-500 mt-4">Select an existing asset or upload a new one. Shown as the card image in the public gallery.</p>
+                  </div>
+                )}
+              </div>
+
               <div className="flex justify-end gap-3 mt-8">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors">Cancel</button>
                 <button type="submit" className="flex items-center gap-2 px-6 py-2 bg-primary hover:bg-primary-hover text-white text-sm font-medium rounded-lg transition-colors shadow-[0_0_15px_var(--primary-glow)]">
-                  <Save className="w-4 h-4" /> Save
+                  <Save className="w-4 h-4" /> {editingId ? "Update" : "Save"}
                 </button>
               </div>
             </form>
