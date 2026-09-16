@@ -20,7 +20,7 @@ export async function fetchMappedPortfolioProjects(serviceSlug: string, mockFall
       category: project.category?.name || "Project",
       technologies: project.technologies || [],
       thumbnail: project.thumbnailUrl || project.heroImage || "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&q=80",
-      link: `/portfolio/${project.slug}`,
+      link: project.liveUrl || "/case-studies",
     }));
 
     return mapped.slice(0, 6); // Just show the top 6

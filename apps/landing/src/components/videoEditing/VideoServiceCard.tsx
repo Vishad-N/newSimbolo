@@ -103,7 +103,12 @@ export function VideoServiceCard({ service, onPreview, index }: VideoServiceCard
             </div>
           </>
         ) : (
-          <>
+          <button
+            type="button"
+            onClick={handlePlayClick}
+            aria-label={`Play preview for ${service.title}`}
+            className="absolute inset-0 h-full w-full cursor-pointer text-left"
+          >
             <Image
               src={service.thumbnail}
               alt={service.title}
@@ -129,15 +134,11 @@ export function VideoServiceCard({ service, onPreview, index }: VideoServiceCard
 
             {/* Hover Overlay */}
             <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 backdrop-blur-[2px] transition-opacity duration-300 group-hover:opacity-100">
-              <button
-                onClick={handlePlayClick}
-                aria-label={`Play preview for ${service.title}`}
-                className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--accent)] text-black transition-transform hover:scale-110 shadow-[0_0_20px_var(--accent-glow)]"
-              >
+              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--accent)] text-black transition-transform group-hover:scale-110 shadow-[0_0_20px_var(--accent-glow)]">
                 <Play className="h-5 w-5 fill-black ml-1" />
-              </button>
+              </span>
             </div>
-          </>
+          </button>
         )}
       </div>
 

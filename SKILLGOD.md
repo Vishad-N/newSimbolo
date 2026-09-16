@@ -3,7 +3,7 @@
 > Auto-managed digest for Aider and other CLIs that `read:` this file. Your notes above the markers are safe.
 
 <!-- SKILLGOD:START v1.1 -->
-# SkillGod Project Memory (auto-generated — do not edit; updated 2026-09-04 18:45)
+# SkillGod Project Memory (auto-generated — do not edit; updated 2026-09-16 13:57)
 
 # SkillGod Active
 
@@ -22,20 +22,20 @@ After completing **meaningful** work (decisions, architecture, non-obvious fixes
 ## SkillGod health
 - version: 1.0.1+794a995
 - project_id: `visha-90fc8883`
-- last inject: 2026-09-04T18:45:26 (runtime)
+- last inject: 2026-09-16T13:57:50 (runtime)
 - last capture: never (-)
 - markers: SKILLGOD:START v1.1
 
 ## Project memory
 
 ## Decisions
+- {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\landing\\src\\components\\videoEditing\\VideoServiceCard.tsx", "oldString": " {/* Hover Overlay */}\n <div className=\"absolute
+- {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\landing\\src\\components\\videoEditing\\VideoServiceCard.tsx", "oldString": " ) : (\n <>\n <Image\n src={servi
 - {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\admin\\src\\app\\packages\\page.tsx", "oldString": " {\n key: \"actions\",\n header: \"Actions\",\n render: (item: PackageData) =>
 - {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\admin\\src\\app\\packages\\page.tsx", "oldString": " const handleDelete = async (id: string) => {\n if (!confirm(\"Are you sure yo
 - {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\landing\\src\\lib\\api.ts", "oldString": "async function fetchPublicApi<T>(endpoint: string, fallback: T, revalidateSeconds: numbe
 - {"filePath": "c:\\Users\\visha\\simbolonew\\backend\\src\\auth\\auth.service.spec.ts", "oldString": " if (!('accessToken' in result)) throw new Error('Expected tokens, got an MFA c
 - {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\admin\\src\\services\\api.ts", "oldString": " user: {\n email: string;\n firstName?: string;\n lastName?: string;\n role?: string;
-- {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\admin\\src\\services\\api.ts", "oldString": " roles: {", "newString": " chat: {\n getSupportConversations: async (page = 1, limit 
-- {"filePath": "c:\\Users\\visha\\simbolonew\\apps\\landing\\src\\components\\auth\\auth-modals.tsx", "oldString": " if (mode === \"forgot\" || mode === \"forgot-sent\") {", "newStri
 
 ## Notes
 

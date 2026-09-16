@@ -50,10 +50,13 @@ export interface IPayoutGateway {
 
 /**
  * RazorpayX implementation.
- *
- * Mock mode (no real credentials configured) mirrors the RazorpayGateway convention:
- * every call is simulated locally so the whole payout flow is exercisable without
- * touching a live banking API.
+ * Requires real credentials to actually process payouts — there is no mock/test
+ * fallback. Unlike RazorpayGateway, missing credentials do NOT crash the app at
+ * startup (RazorpayXGateway is wired into the always-loaded AffiliateModule, so
+ * that would take down the whole backend); instead the gateway starts in a
+ * `configured: false` state and every operation fails with a clear error until
+ * RAZORPAYX_KEY_ID / RAZORPAYX_KEY_SECRET / RAZORPAYX_ACCOUNT_NUMBER /
+ * RAZORPAYX_WEBHOOK_SECRET are set.
  */
 @Injectable()
 export class RazorpayXGateway extends BaseService implements IPayoutGateway {
@@ -61,26 +64,34 @@ export class RazorpayXGateway extends BaseService implements IPayoutGateway {
   private readonly keySecret: string;
   private readonly accountNumber: string;
   private readonly webhookSecret: string;
-  private readonly isMockMode: boolean;
+  private readonly configured: boolean;
   private static readonly API_BASE = 'https://api.razorpay.com/v1';
 
   constructor(private readonly configService: ConfigService) {
     super('RazorpayXGateway');
-    this.keyId = this.configService.get<string>('razorpayx.keyId', 'mock-razorpayx-key-id');
-    this.keySecret = this.configService.get<string>('razorpayx.keySecret', 'mock-razorpayx-key-secret');
-    this.accountNumber = this.configService.get<string>('razorpayx.accountNumber', 'mock-razorpayx-account-number');
-    this.webhookSecret = this.configService.get<string>('razorpayx.webhookSecret', 'mock-razorpayx-webhook-secret');
-    this.isMockMode = this.keyId.startsWith('mock-') || !this.keyId.startsWith('rzp_');
+    this.keyId = this.configService.get<string>('razorpayx.keyId', '');
+    this.keySecret = this.configService.get<string>('razorpayx.keySecret', '');
+    this.accountNumber = this.configService.get<string>('razorpayx.accountNumber', '');
+    this.webhookSecret = this.configService.get<string>('razorpayx.webhookSecret', '');
+    this.configured = Boolean(this.keyId && this.keySecret && this.accountNumber && this.webhookSecret);
 
-    if (this.isMockMode) {
-      this.logger.warn('🏦 RazorpayX payouts running in MOCK mode (no real credentials configured)');
-    } else {
+    if (this.configured) {
       this.logger.log('🏦 RazorpayX payouts initialized in LIVE mode');
+    } else {
+      // TODO(razorpayx): apply for RazorpayX access and set the 4 env vars above to enable payouts.
+      this.logger.warn(
+        '⚠️  TODO: RazorpayX is NOT configured — affiliate/sales-employee commission payouts are disabled. ' +
+          'Set RAZORPAYX_KEY_ID, RAZORPAYX_KEY_SECRET, RAZORPAYX_ACCOUNT_NUMBER and RAZORPAYX_WEBHOOK_SECRET once RazorpayX approval is done.',
+      );
     }
   }
 
-  get mockMode(): boolean {
-    return this.isMockMode;
+  private assertConfigured(): void {
+    if (!this.configured) {
+      throw new Error(
+        'RazorpayX is not configured yet. Set RAZORPAYX_KEY_ID, RAZORPAYX_KEY_SECRET, RAZORPAYX_ACCOUNT_NUMBER and RAZORPAYX_WEBHOOK_SECRET to enable payouts.',
+      );
+    }
   }
 
   private authHeader(): string {
@@ -110,12 +121,7 @@ export class RazorpayXGateway extends BaseService implements IPayoutGateway {
   }
 
   async createContact(input: CreateContactInput): Promise<PayoutContactResult> {
-    if (this.isMockMode) {
-      const contactId = `cont_mock_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
-      this.logger.log(`🏦 [MOCK] Created RazorpayX contact ${contactId}`);
-      return { contactId };
-    }
-
+    this.assertConfigured();
     const result = await this.request<{ id: string }>('/contacts', {
       name: input.name,
       email: input.email,
@@ -127,12 +133,7 @@ export class RazorpayXGateway extends BaseService implements IPayoutGateway {
   }
 
   async createFundAccount(input: CreateFundAccountInput): Promise<PayoutFundAccountResult> {
-    if (this.isMockMode) {
-      const fundAccountId = `fa_mock_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
-      this.logger.log(`🏦 [MOCK] Created RazorpayX fund account ${fundAccountId}`);
-      return { fundAccountId };
-    }
-
+    this.assertConfigured();
     const body: Record<string, unknown> =
       input.type === 'bank_account'
         ? {
@@ -165,12 +166,7 @@ export class RazorpayXGateway extends BaseService implements IPayoutGateway {
     fundAccountId: string,
     idempotencyKey: string,
   ): Promise<PayoutResult> {
-    if (this.isMockMode) {
-      const payoutId = `pout_mock_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
-      this.logger.log(`🏦 [MOCK] Created RazorpayX payout ${payoutId} for ₹${amount} (withdrawal ${withdrawalId})`);
-      return { payoutId, status: 'processing' };
-    }
-
+    this.assertConfigured();
     const result = await this.request<{ id: string; status: string }>(
       '/payouts',
       {
@@ -191,12 +187,7 @@ export class RazorpayXGateway extends BaseService implements IPayoutGateway {
   }
 
   verifyWebhookSignature(rawBody: Buffer, signature: string): boolean {
-    if (this.isMockMode) {
-      this.logger.log('🏦 [MOCK] RazorpayX webhook signature verification bypassed');
-      return signature === 'mock-webhook-signature' || signature === 'mock-signature';
-    }
-
-    if (!signature) return false;
+    if (!this.configured || !signature) return false;
 
     const expected = crypto.createHmac('sha256', this.webhookSecret).update(rawBody).digest('hex');
     try {

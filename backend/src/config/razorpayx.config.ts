@@ -1,13 +1,12 @@
 import { registerAs } from '@nestjs/config';
 
 /**
- * RazorpayX (payouts) configuration.
- * All values are optional — when credentials are absent the gateway falls back to
- * MOCK mode (mirrors the RazorpayGateway `isMockMode` convention).
+ * RazorpayX (payouts) configuration. Requires real credentials —
+ * RazorpayXGateway throws at startup if any of these are missing.
  */
 export default registerAs('razorpayx', () => ({
-  keyId: process.env.RAZORPAYX_KEY_ID || 'mock-razorpayx-key-id',
-  keySecret: process.env.RAZORPAYX_KEY_SECRET || 'mock-razorpayx-key-secret',
-  accountNumber: process.env.RAZORPAYX_ACCOUNT_NUMBER || 'mock-razorpayx-account-number',
-  webhookSecret: process.env.RAZORPAYX_WEBHOOK_SECRET || 'mock-razorpayx-webhook-secret',
+  keyId: process.env.RAZORPAYX_KEY_ID || '',
+  keySecret: process.env.RAZORPAYX_KEY_SECRET || '',
+  accountNumber: process.env.RAZORPAYX_ACCOUNT_NUMBER || '',
+  webhookSecret: process.env.RAZORPAYX_WEBHOOK_SECRET || '',
 }));
