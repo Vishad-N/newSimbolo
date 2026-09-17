@@ -9382,3 +9382,42 @@
 {"ts": 1789551585.1639245, "iso": "2026-09-16T15:09:45", "event": "pre_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "pre_tool: inject chars=7847"}
 {"ts": 1789551638.8863785, "iso": "2026-09-16T15:10:38", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.35"}
 {"ts": 1789551642.6904318, "iso": "2026-09-16T15:10:42", "event": "pre_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "pre_tool: inject chars=7804"}
+{"ts": 1789562146.7065837, "iso": "2026-09-16T18:05:46", "event": "session_start", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "session_start: context_chars=9559"}
+{"ts": 1789562146.9384458, "iso": "2026-09-16T18:05:46", "event": "session_start", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "session_start: context_chars=9559"}
+{"ts": 1789562147.1753564, "iso": "2026-09-16T18:05:47", "event": "session_start", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "session_start: context_chars=9559"}
+{"ts": 1789562147.9295192, "iso": "2026-09-16T18:05:47", "event": "session_start", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "session_start: context_chars=9559"}
+{"ts": 1789624686.5646856, "iso": "2026-09-17T11:28:06", "event": "session_start", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "session_start: context_chars=9559"}
+{"ts": 1789624687.237902, "iso": "2026-09-17T11:28:07", "event": "session_start", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "session_start: context_chars=9559"}
+{"ts": 1789624687.6195486, "iso": "2026-09-17T11:28:07", "event": "session_start", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "session_start: context_chars=9559"}
+{"ts": 1789624721.848268, "iso": "2026-09-17T11:28:41", "event": "pre_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "pre_tool: inject chars=9987"}
+{"ts": 1789624724.395707, "iso": "2026-09-17T11:28:44", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.35"}
+{"ts": 1789624727.413504, "iso": "2026-09-17T11:28:47", "event": "pre_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "pre_tool: inject chars=7873"}
+{"ts": 1789624728.706383, "iso": "2026-09-17T11:28:48", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.00"}
+{"ts": 1789624733.4236164, "iso": "2026-09-17T11:28:53", "event": "pre_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "pre_tool: inject chars=7873"}
+{"ts": 1789624746.5663304, "iso": "2026-09-17T11:29:06", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.35"}
+{"ts": 1789624750.4523573, "iso": "2026-09-17T11:29:10", "event": "pre_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "pre_tool: inject chars=7873"}
+{"ts": 1789624751.3002849, "iso": "2026-09-17T11:29:11", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.35"}
+{"ts": 1789624754.5804765, "iso": "2026-09-17T11:29:14", "event": "pre_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "pre_tool: inject chars=7873"}
+{"ts": 1789624768.4263713, "iso": "2026-09-17T11:29:28", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.35"}
+{"ts": 1789624772.0228088, "iso": "2026-09-17T11:29:32", "event": "pre_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "pre_tool: inject chars=7873"}
+{"ts": 1789624776.2404792, "iso": "2026-09-17T11:29:36", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.35"}
+{"ts": 1789624779.5272522, "iso": "2026-09-17T11:29:39", "event": "pre_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "pre_tool: inject chars=7873"}
+{"ts": 1789624780.3150103, "iso": "2026-09-17T11:29:40", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.00"}
+{"ts": 1789624783.666875, "iso": "2026-09-17T11:29:43", "event": "pre_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "pre_tool: inject chars=7873"}
+{"ts": 1789624789.8286955, "iso": "2026-09-17T11:29:49", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.35"}
+{"ts": 1789624820.3877811, "iso": "2026-09-17T11:30:20", "event": "pre_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "pre_tool: inject chars=7799"}
+{"ts": 1789624822.163451, "iso": "2026-09-17T11:30:22", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.35"}
+{"ts": 1789624826.3068979, "iso": "2026-09-17T11:30:26", "event": "pre_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "pre_tool: inject chars=7867"}
+{"ts": 1789624827.0667362, "iso": "2026-09-17T11:30:27", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.00"}
+{"ts": 1789624831.1835504, "iso": "2026-09-17T11:30:31", "event": "pre_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "pre_tool: inject chars=7802"}
+{"ts": 1789624832.7310202, "iso": "2026-09-17T11:30:32", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.35"}
+{"ts": 1789624837.333906, "iso": "2026-09-17T11:30:37", "event": "pre_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "pre_tool: inject chars=7867"}
+{"ts": 1789624840.7551725, "iso": "2026-09-17T11:30:40", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.35"}
+{"ts": 1789624844.4412532, "iso": "2026-09-17T11:30:44", "event": "pre_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "pre_tool: inject chars=7867"}
+{"ts": 1789624848.309959, "iso": "2026-09-17T11:30:48", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.35"}
+{"ts": 1789624853.9471407, "iso": "2026-09-17T11:30:53", "event": "pre_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "pre_tool: inject chars=7867"}
+{"ts": 1789624861.8391562, "iso": "2026-09-17T11:31:01", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.35"}
+{"ts": 1789624867.520007, "iso": "2026-09-17T11:31:07", "event": "pre_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "pre_tool: inject chars=7873"}
+{"ts": 1789624868.7727602, "iso": "2026-09-17T11:31:08", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.00"}
+{"ts": 1789624874.1067688, "iso": "2026-09-17T11:31:14", "event": "pre_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "pre_tool: inject chars=7873"}
+{"ts": 1789624876.7063534, "iso": "2026-09-17T11:31:16", "event": "post_tool", "channel": "hook", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "post_tool: memory=None imp=0.35"}

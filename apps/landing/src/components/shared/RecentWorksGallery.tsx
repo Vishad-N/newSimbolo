@@ -20,13 +20,14 @@ export type Project = {
 
 type RecentWorksGalleryProps = {
   works: Project[];
+  title?: string;
 };
 
 function isExternalLink(link: string): boolean {
   return /^https?:\/\//.test(link);
 }
 
-export function RecentWorksGallery({ works }: RecentWorksGalleryProps) {
+export function RecentWorksGallery({ works, title = "Recent Our Work" }: RecentWorksGalleryProps) {
   const [showAll, setShowAll] = useState(false);
   const hasMore = works.length > INITIAL_VISIBLE_COUNT;
   const visibleWorks = showAll ? works : works.slice(0, INITIAL_VISIBLE_COUNT);
@@ -34,7 +35,7 @@ export function RecentWorksGallery({ works }: RecentWorksGalleryProps) {
   return (
     <SectionCard className="p-5">
       <div className="mb-6 flex items-center justify-between">
-        <h2 className="text-[1.15rem] font-semibold text-white">Recent Our Work</h2>
+        <h2 className="text-[1.15rem] font-semibold text-white">{title}</h2>
         {hasMore && (
           <button
             type="button"
